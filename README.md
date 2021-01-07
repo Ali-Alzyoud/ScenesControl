@@ -13,8 +13,9 @@ open **index.html** and Hit **Play** button, and watch the clip and notice how i
 
 Notes:
 
-1- Video file itself is not edited and keept as is, but video player is configured with scene guide file.
-2- You can use the demo to edit scene guide file, or change behaviour for each scene type.
+- Video file itself is not edited and keept as is, but video player is configured with scene guide file.
+
+- You can use the demo to edit scene guide file, or change behaviour for each scene type.
 
 
 ## Common Questions:
