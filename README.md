@@ -9,6 +9,8 @@ This way consume content by users, will be adoubt user preferences, For example 
 
 ## Play Demo
 
+https://scenescontrol.netlify.app/
+
 open **index.html** and Hit **Play** button, and watch the clip and notice how it will play profanity and violance scenes.
 
 Notes:
