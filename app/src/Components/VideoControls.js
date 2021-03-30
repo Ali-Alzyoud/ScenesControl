@@ -6,6 +6,7 @@ import PLAY_STATE from './defines'
 var styleControls = {
     margin: '0 auto',
     marginTop: '-80px',
+    top: '-100%',
     width: '100%',
     zIndex: 99,
     position: "relative",
@@ -56,23 +57,16 @@ export default function VideoControls({ getPlayer, state, playAction }) {
     const [progress, setProgress] = useState(0);
     let isDown = false;
 
-    setInterval(() => {
-        let player = getPlayer();
-        if (player) {
+    useEffect(() => {
+        var player = getPlayer();
+        player.addEventListener('timeupdate', (event) => {
             setProgress(Math.floor(player.currentTime / player.duration * 100) / 100);
-        }
-    }, 100);
+        });
+    }, []);
 
     const mouseMove = (e) => {
             updateSeek(e.clientX);
     }
-
-    // useEffect(() => {
-    //     document.addEventListener('mousemove', mouseMove);
-    //     return (() => {
-    //         document.removeEventListener('mousemove', mouseMove);
-    //     })
-    // }, []);
 
     const onSeek = (per) => {
         let player = getPlayer();

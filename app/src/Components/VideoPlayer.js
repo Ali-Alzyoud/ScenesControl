@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import PLAY_STATE from './defines'
 import VideoControls from './VideoControls';
+import VideoFilter from './VideoFilter'
 
 
 
@@ -21,7 +22,7 @@ export default function VideoPlayer({ src }) {
         }
     }
 
-    
+
 
     useEffect(() => {
         if (playerState === PLAY_STATE.PLAY) {
@@ -34,17 +35,19 @@ export default function VideoPlayer({ src }) {
 
     const getPlayer = () => player.current;
     return (
-        <div style={{ width: "640px", margin: '0 auto' }}>
-            <video src={src}
-                ref={player}
-                width="640"
-                height="360"
-                //onSeeking={(e) => { console.log(e) }}
-                style={{ background: 'black' }} />
+        <div style={{ width: "640px",  height:"360px", margin: '0 auto' }}>
+                <video src={src}
+                    ref={player}
+                    id="video_player"
+                    width="640"
+                    height="360"
+                    //onSeeking={(e) => { console.log(e) }}
+                    style={{ background: 'black' }} />
+            <VideoFilter getPlayer={getPlayer} player={document.getElementById("video_player")}/>
             <VideoControls
-                getPlayer = {getPlayer}
-                playAction = {playAction}
-                state={playerState}/>
+                getPlayer={getPlayer}
+                playAction={playAction}
+                state={playerState} />
         </div>
     );
 }
