@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import {SceneGuideClass, SceneType} from './../common/SceneGuide'
+import { SceneGuideClass, SceneType } from './../common/SceneGuide'
 
 var FilterStyle = {
     position: "relative",
@@ -37,26 +37,26 @@ export default function VideoFilter({ getPlayer, filterFile }) {
     const [style, setStyle] = useState(FilterStyle);
 
     useEffect(() => {
-        var player = getPlayer() 
+        var player = getPlayer()
         player.addEventListener('timeupdate', (event) => {
-                if (parentGuideClass) {
-                    var records = parentGuideClass.getRecordsAtTime(event.target.currentTime);
-                    var mute = false;
-                    for (var i = 0 ; i < records.length; i++){
-                        if(records[0].Type == SceneType.Profanity) mute = true;
-                    }
-
-                    if(mute) player.volume = 0.0;
-                    else player.volume = 1.0;
-
-                    if (records.length > 0) {
-                        setStyle({ ...FilterStyle, backdropFilter: 'blur(15px)' })
-                    }
-                    else {
-                        setStyle({ ...FilterStyle })
-                    }
+            if (parentGuideClass) {
+                var records = parentGuideClass.getRecordsAtTime(event.target.currentTime);
+                var mute = false;
+                for (var i = 0; i < records.length; i++) {
+                    if (records[0].Type == SceneType.Profanity) mute = true;
                 }
-            });
+
+                if (mute) player.volume = 0.0;
+                else player.volume = 1.0;
+
+                if (records.length > 0) {
+                    setStyle({ ...FilterStyle, backdropFilter: 'blur(15px)' })
+                }
+                else {
+                    setStyle({ ...FilterStyle })
+                }
+            }
+        });
     }, []);
 
 

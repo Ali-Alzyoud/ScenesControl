@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import playicon from '../assets/play.png';
 import pauseicon from '../assets/pause.png';
+import fullicon from '../assets/full-screen.png';
 import PLAY_STATE from './defines'
 
 var styleControls = {
     margin: '0 auto',
     marginTop: '-80px',
     top: '-100%',
-    width: '100%',
+    width: '80%',
     zIndex: 99,
     position: "relative",
     opacity: 1,
@@ -16,14 +17,14 @@ var styleControls = {
 
 var seekbarStyle = {
     margin: '0 auto',
-    width: '80%',
+    width: '100%',
     height: '5px',
     background: 'gray',
 }
 
 var seekbarStyleProgress = {
     marginTop: '-5px',
-    width: '80%',
+    width: '100%',
     height: '5px',
     background: 'white',
 }
@@ -37,7 +38,7 @@ var seekhandleStyle = {
     background: 'white',
     position: 'relative',
     borderRadius: '50%',
-    opacity : 0.9
+    opacity: 0.9
 }
 
 var seekbuttonStyle = {
@@ -46,26 +47,48 @@ var seekbuttonStyle = {
     marginTop: '16px'
 }
 
-export default function VideoControls({ getPlayer, state, playAction }) {
+export default function VideoControls({ getPlayer, state, playAction, visible }) {
 
     const seekbutton = useRef(null);
     const seekbar = useRef(null);
-    const [style] = useState(styleControls);
+    let style;
+    if (visible)
+        style = { ...styleControls, opacity: 1 };
+    else
+        style = { ...styleControls, opacity: 0 };
+
     const [styleHandle, setStyleHandle] = useState(seekhandleStyle);
     const [styleButton, setStyleButton] = useState(seekbuttonStyle);
     const [styleProgress] = useState(seekbarStyleProgress);
     const [progress, setProgress] = useState(0);
-    let isDown = false;
 
     useEffect(() => {
         var player = getPlayer();
-        player.addEventListener('timeupdate', (event) => {
+        var _time = null;
+        const progress = (event) => {
             setProgress(Math.floor(player.currentTime / player.duration * 100) / 100);
-        });
+        };
+        
+        // const mousemove = (event) => {
+        //     if (_time == null)
+        //     _time = setTimeout(() => {
+        //         setStyle({...style, opacity: 1});
+        //         setTimeout(() => {
+        //             setStyle({...style, opacity: 0});
+        //             _time = null;
+        //         }, 2000);
+        //     }, 1);
+            
+        // };
+        player.addEventListener('timeupdate', progress);
+
+        return () => {
+            player.removeEventListener('timeupdate', progress);
+        }
     }, []);
 
     const mouseMove = (e) => {
-            updateSeek(e.clientX);
+        updateSeek(e.clientX);
     }
 
     const onSeek = (per) => {
@@ -100,7 +123,7 @@ export default function VideoControls({ getPlayer, state, playAction }) {
         updateSeek(e.clientX);
     }
 
-    const cleanDocEvents = ()=>{
+    const cleanDocEvents = () => {
         document.onmousemove = null;
         document.onmouseup = null;
     }
@@ -113,7 +136,7 @@ export default function VideoControls({ getPlayer, state, playAction }) {
                         ref={seekbutton}
                         onMouseEnter={() => { mousein("Handle") }}
                         onMouseLeave={() => { mouseout("Handle") }}
-                        onMouseDown={(e) => { 
+                        onMouseDown={(e) => {
                             document.onmousemove = mouseMove;
                             document.onmouseup = cleanDocEvents;
                         }}
@@ -127,6 +150,13 @@ export default function VideoControls({ getPlayer, state, playAction }) {
                 }
                 style={styleButton}
                 onClick={playAction}
+                onMouseEnter={() => { mousein("Button") }}
+                onMouseLeave={() => { mouseout("Button") }}
+            />
+            <img id="full-screen"
+                src={fullicon}
+                style={{ ...styleButton, float: "right" }}
+                onClick={() => { getPlayer().parentElement.requestFullscreen() }}
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
             />
