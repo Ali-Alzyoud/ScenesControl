@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { SceneGuideClass, SceneType } from './../common/SceneGuide'
+import { SceneGuideClass, SceneType } from './../../common/SceneGuide'
 
 var FilterStyle = {
     position: "relative",
@@ -10,31 +10,13 @@ var FilterStyle = {
     zIndex: 9,
 }
 
-var contentFile = "00:00:20\n\
-00:00:22\n\
-Profanity\n\
-High\n\
-\n\
-00:00:22\n\
-00:00:24\n\
-Violence\n\
-High\n\
-\n\
-00:00:30\n\
-00:00:34\n\
-Gore\n\
-High\n\
-\n\
-00:00:47\n\
-00:00:51\n\
-Violence\n\
-High"
-
-var parentGuideClass = new SceneGuideClass();
-parentGuideClass.fromString(contentFile);
-
-export default function VideoFilter({ getPlayer, filterFile }) {
+export default function VideoFilter({ getPlayer, filterSrc }) {
     const [style, setStyle] = useState(FilterStyle);
+    const [filter, setFilter] = useState('');
+    const parentGuideClass = new SceneGuideClass();
+    if (filterSrc != filter){
+        setFilter(filterSrc);
+    }
 
     useEffect(() => {
         var player = getPlayer()
@@ -59,6 +41,13 @@ export default function VideoFilter({ getPlayer, filterFile }) {
         });
     }, []);
 
+    useEffect(() => {
+        fetch(filterSrc)
+            .then((r) => r.text())
+            .then(text => {
+                parentGuideClass.fromString(text);
+            })  
+    }, filter);
 
     return (
         <div style={style}>

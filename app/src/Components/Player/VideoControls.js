@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
-import playicon from '../assets/play.png';
-import pauseicon from '../assets/pause.png';
-import fullicon from '../assets/full-screen.png';
+import playicon from '../../assets/play.png';
+import pauseicon from '../../assets/pause.png';
+import fullicon from '../../assets/full-screen.png';
 import PLAY_STATE from './defines'
 
 var styleControls = {
@@ -156,7 +156,16 @@ export default function VideoControls({ getPlayer, state, playAction, visible })
             <img id="full-screen"
                 src={fullicon}
                 style={{ ...styleButton, float: "right" }}
-                onClick={() => { getPlayer().parentElement.requestFullscreen() }}
+                onClick={() => {
+                    if (document.fullscreenElement)
+                    {
+                        document.exitFullscreen()
+                    }
+                    else
+                    {
+                        getPlayer().parentElement.requestFullscreen()
+                    }
+                        }}
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
             />

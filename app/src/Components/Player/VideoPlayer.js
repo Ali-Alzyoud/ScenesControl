@@ -5,7 +5,7 @@ import VideoFilter from './VideoFilter'
 
 
 
-export default function VideoPlayer({ src }) {
+export default function VideoPlayer({ videoSrc, filterSrc }) {
 
     const [playerState, setPlayerState] = useState(PLAY_STATE.INITIAL);
     const player = useRef(null);
@@ -57,7 +57,7 @@ export default function VideoPlayer({ src }) {
                     () => {setVisible(player.current.paused);},
                     2000)
             } >
-            <video src={src}
+            <video src={videoSrc}
                 ref={player}
                 style={{
                     maxWidth: '100%',
@@ -66,7 +66,7 @@ export default function VideoPlayer({ src }) {
                     minHeight: '100%',
                     width: 'auto', 
                     height: 'auto'  }} />
-            <VideoFilter getPlayer={getPlayer} />
+            <VideoFilter getPlayer={getPlayer} filterSrc={filterSrc}/>
             <VideoControls
                 ref={control}
                 style={{ width: '80%' }}
