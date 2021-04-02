@@ -5,7 +5,7 @@ import VideoFilter from './VideoFilter'
 
 
 
-export default function VideoPlayer({ videoSrc, filterSrc }) {
+export default function VideoPlayer({ videoSrc, filterSrc, style }) {
 
     const [playerState, setPlayerState] = useState(PLAY_STATE.INITIAL);
     const player = useRef(null);
@@ -40,21 +40,21 @@ export default function VideoPlayer({ videoSrc, filterSrc }) {
 
     const debounce = (func1, func, delay) => {
         let inDebounce
-        return function() {
-          const context = this;
-          const args = arguments;
-          clearTimeout(inDebounce);
-          func1();
-          inDebounce = setTimeout(() => func.apply(context, args), delay)
+        return function () {
+            const context = this;
+            const args = arguments;
+            clearTimeout(inDebounce);
+            func1();
+            inDebounce = setTimeout(() => func.apply(context, args), delay)
         }
-      }
+    }
 
     return (
-        <div style={{ width: "640px", height: "360px", margin: '0 auto' }}
+        <div style={{ width: "640px", height: "360px", margin: '0 auto', ...style }}
             onMouseMove={
                 debounce(
-                    () => {setVisible(true)},
-                    () => {setVisible(player.current.paused);},
+                    () => { setVisible(true) },
+                    () => { setVisible(player.current.paused); },
                     2000)
             } >
             <video src={videoSrc}
@@ -64,15 +64,16 @@ export default function VideoPlayer({ videoSrc, filterSrc }) {
                     maxHeight: '100%',
                     minWidth: '100%',
                     minHeight: '100%',
-                    width: 'auto', 
-                    height: 'auto'  }} />
-            <VideoFilter getPlayer={getPlayer} filterSrc={filterSrc}/>
+                    width: 'auto',
+                    height: 'auto'
+                }} />
+            <VideoFilter getPlayer={getPlayer} filterSrc={filterSrc} />
             <VideoControls
                 ref={control}
                 style={{ width: '80%' }}
                 getPlayer={getPlayer}
                 playAction={playAction}
-                visible= {visible}
+                visible={visible}
                 state={playerState} />
         </div>
     );
