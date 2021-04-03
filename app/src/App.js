@@ -10,9 +10,11 @@ function App() {
   return (
     <div className="App">
       <Menu/>
-      <div style={{ width: '860px', margin: '0 auto' }}>
-        <Player style={{ float: 'left', width: '640px' }} videoSrc={videoSample} filterSrc={filterSample} />
+      <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
+        <Player videoSrc={videoSample} filterSrc={filterSample} />
+        <div style={{position: "absolute", top:"80px", right:"60px", backgroundColor:"transparent"}}>
         <List/>
+        </div>
       </div>
     </div>
   );
