@@ -6,11 +6,8 @@ import PLAY_STATE from './defines'
 
 var styleControls = {
     margin: '0 auto',
-    marginTop: '-80px',
-    top: '-100%',
     width: '80%',
     zIndex: 99,
-    position: "relative",
     opacity: 1,
     transition: 'opacity 3s'
 }

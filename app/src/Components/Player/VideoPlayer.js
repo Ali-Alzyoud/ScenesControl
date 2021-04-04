@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import PLAY_STATE from './defines'
 import VideoControls from './VideoControls';
 import VideoFilter from './VideoFilter'
-
+import VideoSRT from './VideoSRT'
 
 
 export default function VideoPlayer({ videoSrc, filterSrc, style }) {
@@ -50,7 +50,12 @@ export default function VideoPlayer({ videoSrc, filterSrc, style }) {
     }
 
     return (
-        <div style={{ width: "640px", height: "360px", margin: '0 auto', ...style }}
+        <div style={{
+            width: "640px",
+            height: "360px",
+            margin: '0 auto',
+            ...style
+        }}
             onMouseMove={
                 debounce(
                     () => { setVisible(true) },
@@ -68,13 +73,29 @@ export default function VideoPlayer({ videoSrc, filterSrc, style }) {
                     height: 'auto'
                 }} />
             <VideoFilter getPlayer={getPlayer} filterSrc={filterSrc} />
-            <VideoControls
-                ref={control}
-                style={{ width: '80%' }}
-                getPlayer={getPlayer}
-                playAction={playAction}
-                visible={visible}
-                state={playerState} />
+            <div style={{
+                display: "grid",
+                gridTemplateRows: "65% 15% 20%",
+                position: "relative",
+                top: "-200%",
+                left: 0,
+                width: "100%",
+                height: "100%",
+                zIndex: 3,
+            }}>
+                <div style={{ gridRow: 2}}>
+                    <VideoSRT />
+                </div>
+                <div style={{ gridRow: 3}}>
+                    <VideoControls
+                        ref={control}
+                        style={{ width: '80%' }}
+                        getPlayer={getPlayer}
+                        playAction={playAction}
+                        visible={visible}
+                        state={playerState} />
+                </div>
+            </div>
         </div>
     );
 }

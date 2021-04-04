@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import { SceneGuideClass, SceneType } from './../../common/SceneGuide'
 
 var FilterStyle = {
+    pointerEvents: 'none',
     position: "relative",
     left: '0',
     top: '-100%',
     width: '100%',
     height: '100%',
-    zIndex: 9,
+    zIndex: 2,
 }
 
 export default function VideoFilter({ getPlayer, filterSrc }) {
