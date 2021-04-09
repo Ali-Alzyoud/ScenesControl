@@ -2,10 +2,9 @@ import React, { useEffect, useRef, useState } from 'react'
 import PLAY_STATE from './defines'
 import VideoControls from './VideoControls';
 import VideoFilter from './VideoFilter'
-import VideoSRT from './VideoSRT'
 
 
-export default function VideoPlayer({ videoSrc, filterSrc, style }) {
+export default function VideoPlayer({ videoSrc, filterSrc, subtitleSrc, style }) {
 
     const [playerState, setPlayerState] = useState(PLAY_STATE.INITIAL);
     const player = useRef(null);
@@ -71,7 +70,9 @@ export default function VideoPlayer({ videoSrc, filterSrc, style }) {
                     minHeight: '100%',
                     width: 'auto',
                     height: 'auto'
-                }} />
+                }}>
+            <track src={subtitleSrc} default></track>
+            </video>
             <VideoFilter getPlayer={getPlayer} filterSrc={filterSrc} />
             <div style={{
                 display: "grid",
@@ -83,9 +84,6 @@ export default function VideoPlayer({ videoSrc, filterSrc, style }) {
                 height: "100%",
                 zIndex: 3,
             }}>
-                <div style={{ gridRow: 2}}>
-                    <VideoSRT />
-                </div>
                 <div style={{ gridRow: 3}}>
                     <VideoControls
                         ref={control}
