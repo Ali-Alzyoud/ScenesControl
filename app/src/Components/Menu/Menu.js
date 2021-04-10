@@ -15,11 +15,11 @@ export default function Menu() {
         window.setSubtitleSrc(srtObject);
     }
     const openFilter = (e) => {
-        fetch(URL.createObjectURL(e.target.files[0])
-            .then(response => response.text())
-            .then(data => {
-                window.setFilterSrc(new SceneGuideClass(data));
-            }));
+        const reader = new FileReader();
+        reader.addEventListener('load', (event) => {
+            window.setFilterSrc(new SceneGuideClass(event.target.result));
+        });
+        reader.readAsText(e.target.files[0]);
     }
     return (
         <div className="navbar">
