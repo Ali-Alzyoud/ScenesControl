@@ -9,7 +9,8 @@ var styleControls = {
     width: '80%',
     zIndex: 99,
     opacity: 1,
-    transition: 'opacity 3s'
+    transition: 'opacity 3s',
+    position: 'relative'
 }
 
 var seekbarStyle = {
@@ -48,6 +49,7 @@ export default function VideoControls({ getPlayer, state, playAction, visible })
 
     const seekbutton = useRef(null);
     const seekbar = useRef(null);
+    const timeLabel = useRef(null);
     let style;
     if (visible)
         style = { ...styleControls, opacity: 1 };
@@ -59,24 +61,23 @@ export default function VideoControls({ getPlayer, state, playAction, visible })
     const [styleProgress] = useState(seekbarStyleProgress);
     const [progress, setProgress] = useState(0);
 
+    const timeToString = (time) => {
+        let h = Math.floor(time / (60 * 60) % 24);
+        let m = Math.floor(time / (60) % 60);
+        let s = Math.floor(time % 60);
+        if(h < 10) h = '0' + h;
+        if(m < 10) m = '0' + m;
+        if(s < 10) s = '0' + s;
+        return h + ':' + m + ':' + s
+    }
+
     useEffect(() => {
         var player = getPlayer();
-        var _time = null;
         const progress = (event) => {
             setProgress(Math.floor(player.currentTime / player.duration * 100) / 100);
+            timeLabel.current.innerHTML = timeToString(player.currentTime) + ' / ' + timeToString(player.duration);
         };
-        
-        // const mousemove = (event) => {
-        //     if (_time == null)
-        //     _time = setTimeout(() => {
-        //         setStyle({...style, opacity: 1});
-        //         setTimeout(() => {
-        //             setStyle({...style, opacity: 0});
-        //             _time = null;
-        //         }, 2000);
-        //     }, 1);
-            
-        // };
+
         player.addEventListener('timeupdate', progress);
 
         return () => {
@@ -140,6 +141,7 @@ export default function VideoControls({ getPlayer, state, playAction, visible })
                     />
                 </div>
             </div>
+            <p ref={timeLabel} style={{float:'left', left:'20px', position:'absolute', color:'white'}}></p>
             <img id="btn_play"
                 src={
                     (state === PLAY_STATE.INITIAL || state === PLAY_STATE.PAUSE) ?

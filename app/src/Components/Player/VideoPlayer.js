@@ -2,13 +2,15 @@ import React, { useEffect, useRef, useState } from 'react'
 import PLAY_STATE from './defines'
 import VideoControls from './VideoControls';
 import VideoFilter from './VideoFilter'
+import VideoSrt from './VideoSRT'
 
 
-export default function VideoPlayer({ videoSrc, filterSrc, subtitleSrc, style }) {
+export default function VideoPlayer({ videoSrc, filterObject, srtObject }) {
 
     const [playerState, setPlayerState] = useState(PLAY_STATE.INITIAL);
     const player = useRef(null);
     const control = useRef(null);
+    const [time, setTime] = useState(0);
     const [visible, setVisible] = useState(true);
 
     const playAction = () => {
@@ -35,6 +37,12 @@ export default function VideoPlayer({ videoSrc, filterSrc, subtitleSrc, style })
         }
     }, [playerState]);
 
+    useEffect(() => {
+        player.current.addEventListener('timeupdate', (event) => {
+            setTime(event.target.currentTime);
+        })
+    }, []);
+
     const getPlayer = () => player.current;
 
     const debounce = (func1, func, delay) => {
@@ -53,7 +61,6 @@ export default function VideoPlayer({ videoSrc, filterSrc, subtitleSrc, style })
             width: "640px",
             height: "360px",
             margin: '0 auto',
-            ...style
         }}
             onMouseMove={
                 debounce(
@@ -65,18 +72,18 @@ export default function VideoPlayer({ videoSrc, filterSrc, subtitleSrc, style })
                 ref={player}
                 style={{
                     maxWidth: '100%',
-                    maxHeight: '100%',
+                    //maxHeight: '100%',
                     minWidth: '100%',
-                    minHeight: '100%',
+                    //minHeight: '100%',
                     width: 'auto',
-                    height: 'auto'
+                    //height: 'auto'
                 }}>
-            <track src={subtitleSrc} default></track>
             </video>
-            <VideoFilter getPlayer={getPlayer} filterSrc={filterSrc} />
+            <VideoFilter getPlayer={getPlayer} filterObject={filterObject} time={time}/>
             <div style={{
                 display: "grid",
-                gridTemplateRows: "65% 15% 20%",
+                position: 'relative',
+                gridTemplateRows: "60% 20% 20%",
                 position: "relative",
                 top: "-200%",
                 left: 0,
@@ -84,7 +91,10 @@ export default function VideoPlayer({ videoSrc, filterSrc, subtitleSrc, style })
                 height: "100%",
                 zIndex: 3,
             }}>
-                <div style={{ gridRow: 3}}>
+                <div style={{ position: 'absolute', bottom: '80px', left: '50%', transform: 'translateX(-50%)', textAlign: 'center' }}>
+                    {<VideoSrt srtObject={srtObject} time={time * 1000} />}
+                </div>
+                <div style={{ position: 'absolute', bottom: '20px', width: '100%' }}>
                     <VideoControls
                         ref={control}
                         style={{ width: '80%' }}

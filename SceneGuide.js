@@ -209,9 +209,12 @@ SceneGuideRecord.prototype.toHTML = function(){
  ******************* SceneGuideClass Class *******************
  **************************************************************/
 
-var SceneGuideClass = function()
+var SceneGuideClass = function(str)
 {
     this.Records = [];
+    if (str){
+        this.fromString(str);
+    }
 }
 
 SceneGuideClass.prototype.fromString = function(content)

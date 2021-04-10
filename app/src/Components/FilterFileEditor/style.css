@@ -1,0 +1,81 @@
+#tb_rec {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 50%;
+}
+
+#tb_rec td,
+#tb_rec th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#tb_rec_total td,
+#tb_rec th {
+    border: 1px solid rgb(221, 221, 221);
+    padding: 8px;
+}
+
+
+#tb_rec tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#tb_rec tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+#tb_rec tr:hover {
+    background-color: #ddd;
+}
+
+#tb_rec th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: rgb(20, 40, 160);
+    color: white;
+}
+
+.special_element1 {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: rgb(20, 40, 160);
+    color: white;
+    width: 100px;
+    margin-top: 5px;
+}
+
+.special_element2 {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: rgb(160, 40, 20);
+    color: white;
+    width: 100px;
+    margin-top: 5px;
+}
+
+#_chBk {
+    -webkit-animation: color-change 5s infinite;
+    -moz-animation: color-change 5s infinite;
+    -o-animation: color-change 5s infinite;
+    -ms-animation: color-change 5s infinite;
+    animation: color-change 5s infinite;
+    font-size: 120%;
+}
+
+input.bk {
+    display: inline-block;
+    width: 20px;
+}
+
+input.bkLong {
+    display: inline-block;
+    width: 50px;
+}
+
+.break{
+    width: 40px;
+}
