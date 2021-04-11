@@ -1,21 +1,39 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 export default function FilterRecord({record}) {
-
+    const recordObj =record;
     var fromDates = record.From.split(":");
     var toDates = record.To.split(":");
+    const [time, setTime] = useState({
+        fh : fromDates[0],
+        fm : fromDates[1],
+        fs : fromDates[2],
+        th : toDates[0],
+        tm : toDates[1],
+        ts : toDates[2],
+    });
+
+    const inputChange = (e) => {
+        const newTime = {...time, [e.target.name]:e.target.value};
+        setTime({...time, [e.target.name]:e.target.value});
+        const from = newTime.fh + ":" + newTime.fm + ":" + newTime.fs;
+        const to = newTime.th + ":" + newTime.tm + ":" + newTime.ts;
+        record.From = from;
+        record.To = to;
+    }
+
     return (
         <tr>
             <td>
-                <input className='bk' value={fromDates[0]} />&nbsp;:&nbsp;
-                                <input className='bk' value={fromDates[1]} />&nbsp;:&nbsp;
-                                <input className='bkLong' value={fromDates[2]} />
+                <input onChange={inputChange} className='bk'     name='fh' value={time.fh} />&nbsp;:&nbsp;
+                <input onChange={inputChange} className='bk'     name='fm' value={time.fm} />&nbsp;:&nbsp;
+                <input onChange={inputChange} className='bkLong' name='fs' value={time.fs} />
             </td>
             <div className='break'></div>
             <td>
-                <input className='bk' value={toDates[0]} />&nbsp;:&nbsp;
-                                <input className='bk' value={toDates[1]} />&nbsp;:&nbsp;
-                                <input className='bkLong' value={toDates[2]} />
+                <input onChange={inputChange}  className='bk'     name='fh' value={time.th} />&nbsp;:&nbsp;
+                <input onChange={inputChange}  className='bk'     name='fm' value={time.tm} />&nbsp;:&nbsp;
+                <input onChange={inputChange}  className='bkLong' name='fs' value={time.ts} />
             </td>
             <td>
                 <select name='Type'>

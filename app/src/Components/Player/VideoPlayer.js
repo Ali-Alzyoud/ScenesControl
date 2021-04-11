@@ -72,7 +72,7 @@ export default function VideoPlayer({ videoSrc, filterObject, srtObject }) {
                 ref={player}
                 style={{
                     maxWidth: '100%',
-                    //maxHeight: '100%',
+                    maxHeight: '100%',
                     minWidth: '100%',
                     //minHeight: '100%',
                     width: 'auto',
