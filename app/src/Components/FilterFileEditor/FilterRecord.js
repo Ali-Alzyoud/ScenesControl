@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 
-export default function FilterRecord({record}) {
-    const recordObj =record;
+export default function FilterRecord({record, removeItem}) {
     var fromDates = record.From.split(":");
     var toDates = record.To.split(":");
     const [time, setTime] = useState({
@@ -22,6 +21,10 @@ export default function FilterRecord({record}) {
         record.To = to;
     }
 
+    const onRemove = () => {
+        removeItem(record);
+    }
+
     return (
         <tr>
             <td>
@@ -31,9 +34,9 @@ export default function FilterRecord({record}) {
             </td>
             <div className='break'></div>
             <td>
-                <input onChange={inputChange}  className='bk'     name='fh' value={time.th} />&nbsp;:&nbsp;
-                <input onChange={inputChange}  className='bk'     name='fm' value={time.tm} />&nbsp;:&nbsp;
-                <input onChange={inputChange}  className='bkLong' name='fs' value={time.ts} />
+                <input onChange={inputChange}  className='bk'     name='th' value={time.th} />&nbsp;:&nbsp;
+                <input onChange={inputChange}  className='bk'     name='tm' value={time.tm} />&nbsp;:&nbsp;
+                <input onChange={inputChange}  className='bkLong' name='ts' value={time.ts} />
             </td>
             <td>
                 <select name='Type'>
@@ -65,6 +68,7 @@ export default function FilterRecord({record}) {
     } */}
                 </select>
             </td >
+        <button onClick={onRemove}>-</button>
         </tr >
     )
 }

@@ -68,7 +68,7 @@ SceneType.ToString = function (value) {
 /***************************************************************
  ******************* SceneGuideRecord Class *******************
  ***************************************************************/
-
+var id = 1;
 var SceneGuideRecord = function (from, to, age, type) {
     from = from || "00:00:00.000";
     to = to || "00:00:00.000";
@@ -79,6 +79,7 @@ var SceneGuideRecord = function (from, to, age, type) {
     this.To = to;
     this.Type = type;
     this.Age = age;
+    this.id = id++;
 }
 SceneGuideRecord.FromString = function (content) {
     var v = new SceneGuideRecord("00:00:00.000", "00:00:00.000", SceneIntensity.Low, SceneType.Violence);
