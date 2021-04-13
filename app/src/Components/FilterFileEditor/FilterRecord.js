@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { SceneGuideClass, SceneGuideRecord, SceneIntensity, SceneType } from '../../common/SceneGuide'
 
 export default function FilterRecord({record, removeItem}) {
     var fromDates = record.From.split(":");
@@ -39,19 +40,11 @@ export default function FilterRecord({record, removeItem}) {
                 <input onChange={inputChange}  className='bkLong' name='ts' value={time.ts} />
             </td>
             <td>
-                <select name='Type'>
-                    {/* {
-    for (var key in SceneType) {
-        var value = SceneType[key];
-        if (typeof (value) == "string") {
-                        str += "<option value='" + value + "'";
-            if (value == sceneObject.Type) {
-                        str += " selected"
-                    }
-            str += ">" + value + "</option>";
-        }
-    }
-} */}
+                <select name='Type' className='selectType'>
+                        <option value={SceneType.Violence}  selected={record.Type === SceneType.Violence}>{SceneType.Violence}</option>
+                        <option value={SceneType.Nudity}    selected={record.Type === SceneType.Nudity}>{SceneType.Nudity}</option>
+                        <option value={SceneType.Profanity} selected={record.Type === SceneType.Profanity}>{SceneType.Profanity}</option>
+                        <option value={SceneType.Gore}      selected={record.Type === SceneType.Gore}>{SceneType.Gore}</option>
                 </select>
             </td>
             <td>
