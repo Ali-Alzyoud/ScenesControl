@@ -4,22 +4,25 @@ import { SceneGuideClass, SceneGuideRecord, SceneIntensity, SceneType } from '..
 export default function FilterRecord({record, removeItem}) {
     var fromDates = record.From.split(":");
     var toDates = record.To.split(":");
-    const [time, setTime] = useState({
+    const [state, setState] = useState({
         fh : fromDates[0],
         fm : fromDates[1],
         fs : fromDates[2],
         th : toDates[0],
         tm : toDates[1],
         ts : toDates[2],
+        type : record.Type
     });
 
     const inputChange = (e) => {
-        const newTime = {...time, [e.target.name]:e.target.value};
-        setTime({...time, [e.target.name]:e.target.value});
-        const from = newTime.fh + ":" + newTime.fm + ":" + newTime.fs;
-        const to = newTime.th + ":" + newTime.tm + ":" + newTime.ts;
+        const newState = {...state, [e.target.name]:e.target.value};
+        setState(newState);
+        const from = newState.fh + ":" + newState.fm + ":" + newState.fs;
+        const to = newState.th + ":" + newState.tm + ":" + newState.ts;
+        const type = newState.type;
         record.From = from;
         record.To = to;
+        record.Type = type;
     }
 
     const onRemove = () => {
@@ -29,18 +32,18 @@ export default function FilterRecord({record, removeItem}) {
     return (
         <tr>
             <td>
-                <input onChange={inputChange} className='bk'     name='fh' value={time.fh} />&nbsp;:&nbsp;
-                <input onChange={inputChange} className='bk'     name='fm' value={time.fm} />&nbsp;:&nbsp;
-                <input onChange={inputChange} className='bkLong' name='fs' value={time.fs} />
+                <input onChange={inputChange} className='bk'     name='fh' value={state.fh} />&nbsp;:&nbsp;
+                <input onChange={inputChange} className='bk'     name='fm' value={state.fm} />&nbsp;:&nbsp;
+                <input onChange={inputChange} className='bkLong' name='fs' value={state.fs} />
             </td>
             <div className='break'></div>
             <td>
-                <input onChange={inputChange}  className='bk'     name='th' value={time.th} />&nbsp;:&nbsp;
-                <input onChange={inputChange}  className='bk'     name='tm' value={time.tm} />&nbsp;:&nbsp;
-                <input onChange={inputChange}  className='bkLong' name='ts' value={time.ts} />
+                <input onChange={inputChange}  className='bk'     name='th' value={state.th} />&nbsp;:&nbsp;
+                <input onChange={inputChange}  className='bk'     name='tm' value={state.tm} />&nbsp;:&nbsp;
+                <input onChange={inputChange}  className='bkLong' name='ts' value={state.ts} />
             </td>
             <td>
-                <select name='Type' className='selectType'>
+                <select name='Type' className='selectType' onChange={inputChange} name='type' value={state.type}>
                         <option value={SceneType.Violence}  selected={record.Type === SceneType.Violence}>{SceneType.Violence}</option>
                         <option value={SceneType.Nudity}    selected={record.Type === SceneType.Nudity}>{SceneType.Nudity}</option>
                         <option value={SceneType.Profanity} selected={record.Type === SceneType.Profanity}>{SceneType.Profanity}</option>
