@@ -11,7 +11,8 @@ export default function FilterRecord({record, removeItem}) {
         th : toDates[0],
         tm : toDates[1],
         ts : toDates[2],
-        type : record.Type
+        type : record.Type,
+        intensity : record.Intensity
     });
 
     const inputChange = (e) => {
@@ -20,9 +21,11 @@ export default function FilterRecord({record, removeItem}) {
         const from = newState.fh + ":" + newState.fm + ":" + newState.fs;
         const to = newState.th + ":" + newState.tm + ":" + newState.ts;
         const type = newState.type;
+        const intensity = newState.intensity;
         record.From = from;
         record.To = to;
         record.Type = type;
+        record.Intensity = intensity;
     }
 
     const onRemove = () => {
@@ -43,7 +46,7 @@ export default function FilterRecord({record, removeItem}) {
                 <input onChange={inputChange}  className='bkLong' name='ts' value={state.ts} />
             </td>
             <td>
-                <select name='Type' className='selectType' onChange={inputChange} name='type' value={state.type}>
+                <select className='selectType' onChange={inputChange} name='type' value={state.type}>
                         <option value={SceneType.Violence}  selected={record.Type === SceneType.Violence}>{SceneType.Violence}</option>
                         <option value={SceneType.Nudity}    selected={record.Type === SceneType.Nudity}>{SceneType.Nudity}</option>
                         <option value={SceneType.Profanity} selected={record.Type === SceneType.Profanity}>{SceneType.Profanity}</option>
@@ -51,17 +54,9 @@ export default function FilterRecord({record, removeItem}) {
                 </select>
             </td>
             <td>
-                <select name='Age'>
-                    {/* for (var key in SceneIntensity) {
-        var value = SceneIntensity[key];
-        if (typeof (value) == "string") {
-            str += "<option value='" + value + "'";
-            if (value == sceneObject.Age) {
-                str += " selected"
-            }
-            str += ">" + value + "</option>";
-        }
-    } */}
+                <select className='selectType' onChange={inputChange} name='intensity' value={state.intensity}>
+                        <option value={SceneIntensity.Low}      selected={record.Intensity === SceneIntensity.Low}>{SceneIntensity.Low}</option>
+                        <option value={SceneIntensity.High}    selected={record.Intensity === SceneIntensity.High}>{SceneIntensity.High}</option>
                 </select>
             </td >
         <button onClick={onRemove}>-</button>

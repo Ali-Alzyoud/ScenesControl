@@ -14,9 +14,19 @@ export default function FilterFileEditor({ sceneObject }) {
         setRecords(records.filter((record => record!==recordItem)));
     }
 
+    const saveItems = () => {
+        const element = document.createElement("a");
+        const file = new Blob([sceneObject.toString()], {type: 'text/plain'});
+        element.href = URL.createObjectURL(file);
+        element.download = "myFile.txt";
+        document.body.appendChild(element); // Required for this to work in FireFox
+        element.click();
+    }
+
     return (
         <div>
             <button onClick={addItem}>+</button>
+            <button onClick={saveItems}>save</button>
             {
                 records.map((record, index) => {
                     console.log(index)

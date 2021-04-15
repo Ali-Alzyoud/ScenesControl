@@ -69,16 +69,16 @@ SceneType.ToString = function (value) {
  ******************* SceneGuideRecord Class *******************
  ***************************************************************/
 var id = 1;
-var SceneGuideRecord = function (from, to, age, type) {
+var SceneGuideRecord = function (from, to, intensity, type) {
     from = from || "00:00:00.000";
     to = to || "00:00:00.000";
-    age = age || SceneIntensity.Low;
+    intensity = intensity || SceneIntensity.Low;
     type = type || SceneType.Violence;
 
     this.From = from;
     this.To = to;
     this.Type = type;
-    this.Age = age;
+    this.Intensity = intensity;
     this.id = id++;
 }
 SceneGuideRecord.FromString = function (content) {
@@ -88,7 +88,7 @@ SceneGuideRecord.FromString = function (content) {
 }
 SceneGuideRecord.prototype.toString = function () {
     var str = "";
-    str += this.From + '\n' + this.To + '\n' + this.Type + '\n' + this.Age + '\n';
+    str += this.From + '\n' + this.To + '\n' + this.Type + '\n' + this.Intensity + '\n';
     return str;
 }
 SceneGuideRecord.prototype.fromString = function (lines) {
@@ -101,7 +101,7 @@ SceneGuideRecord.prototype.fromString = function (lines) {
             this.Type = SceneType.FromString(lines[i]);
         }
         else if (i == 3) {
-            this.Age = SceneIntensity.FromString(lines[i]);
+            this.Intensity = SceneIntensity.FromString(lines[i]);
         }
     }
 }
