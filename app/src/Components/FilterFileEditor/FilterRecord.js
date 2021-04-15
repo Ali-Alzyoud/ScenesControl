@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { SceneGuideClass, SceneGuideRecord, SceneIntensity, SceneType } from '../../common/SceneGuide'
+import {FaMinus} from 'react-icons/fa'
 
 export default function FilterRecord({record, removeItem}) {
     var fromDates = record.From.split(":");
@@ -39,7 +40,6 @@ export default function FilterRecord({record, removeItem}) {
                 <input onChange={inputChange} className='bk'     name='fm' value={state.fm} />&nbsp;:&nbsp;
                 <input onChange={inputChange} className='bkLong' name='fs' value={state.fs} />
             </td>
-            <div className='break'></div>
             <td>
                 <input onChange={inputChange}  className='bk'     name='th' value={state.th} />&nbsp;:&nbsp;
                 <input onChange={inputChange}  className='bk'     name='tm' value={state.tm} />&nbsp;:&nbsp;
@@ -59,7 +59,11 @@ export default function FilterRecord({record, removeItem}) {
                         <option value={SceneIntensity.High}    selected={record.Intensity === SceneIntensity.High}>{SceneIntensity.High}</option>
                 </select>
             </td >
-        <button onClick={onRemove}>-</button>
+            <td>
+            <div className='container remove' onClick={onRemove} style={{margin:'0 auto'}}>
+                <FaMinus className='middle'/>
+            </div>
+            </td>
         </tr >
     )
 }

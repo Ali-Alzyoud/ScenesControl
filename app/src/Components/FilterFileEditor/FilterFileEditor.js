@@ -1,4 +1,5 @@
 import React, {useState} from 'react'
+import {FaSave, FaPlus} from 'react-icons/fa'
 import FilterRecord from './FilterRecord'
 import { SceneGuideClass, SceneGuideRecord, SceneIntensity, SceneType } from '../../common/SceneGuide'
 import './style.css'
@@ -25,14 +26,27 @@ export default function FilterFileEditor({ sceneObject }) {
 
     return (
         <div>
-            <button onClick={addItem}>+</button>
-            <button onClick={saveItems}>save</button>
+            <div className='container' onClick={addItem}>
+                <FaPlus className='middle'/>
+            </div>
+            <div className='container' onClick={saveItems}>
+                <FaSave className='middle'/>
+            </div>
+            <br/><br/>
+            <table>
+            <tr>
+                <th>From</th>
+                <th>To</th>
+                <th>Type</th>
+                <th>Intensity</th>
+            </tr>
             {
                 records.map((record, index) => {
                     console.log(index)
                     return <FilterRecord key={record.id} record={record} removeItem={removeItem}/>
                 })
             }
+            </table>
         </div>
     )
 }

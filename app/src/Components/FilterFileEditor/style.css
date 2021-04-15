@@ -1,17 +1,65 @@
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+input{
+    border: 2px solid;
+    border-radius: 5px;
+}
+
+select{
+    border: 2px solid;
+    border-radius: 5px;
+}
+
 input.bk {
     display: inline-block;
     width: 20px;
+    height: 25px;
 }
 
 input.bkLong {
     display: inline-block;
     width: 50px;
+    height: 25px;
 }
 
 .break{
     width: 40px;
+    height: 25px;
 }
 
 .selectType{
     width: 80px;
+    height: 25px;
+}
+
+.container{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 0;
+    background-color: steelblue;
+    font-size: 16pt;
+    position: relative;
+    display: inline-block;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+.middle{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform:translate(-50%,-50%)
+}
+.container:hover{
+    cursor: pointer;
+}
+.remove{
+    margin: 0 auto;
+    width: 25px;
+    height: 25px;
+    background-color: tomato;
 }
