@@ -1,12 +1,18 @@
 import React from 'react'
 
-const style = {
+let style = {
     color: 'white',
     fontSize: '20pt',
-    backgroundColor: 'black'
+    backgroundColor: 'rgba(0,0,0,0.7)',
 };
 
 export default function VideoSRT({ srtObject, time }) {
+    if (document.fullscreenElement){
+        style = {...style, fontSize : '40px'};
+    }
+    else{
+        style = {...style, fontSize : '20px'};
+    }
     return (
         <div style={style}>
             {srtObject && srtObject.getContentAt(time).join('\n')}

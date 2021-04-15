@@ -11,6 +11,7 @@ export default function VideoPlayer({ videoSrc, filterObject, srtObject }) {
     const player = useRef(null);
     const control = useRef(null);
     const [time, setTime] = useState(0);
+    const [duration, setDuration] = useState(0);
     const [visible, setVisible] = useState(true);
 
     const playAction = () => {
@@ -37,12 +38,6 @@ export default function VideoPlayer({ videoSrc, filterObject, srtObject }) {
         }
     }, [playerState]);
 
-    useEffect(() => {
-        player.current.addEventListener('timeupdate', (event) => {
-            setTime(event.target.currentTime);
-        })
-    }, []);
-
     const getPlayer = () => player.current;
 
     const debounce = (func1, func, delay) => {
@@ -53,6 +48,15 @@ export default function VideoPlayer({ videoSrc, filterObject, srtObject }) {
             clearTimeout(inDebounce);
             func1();
             inDebounce = setTimeout(() => func.apply(context, args), delay)
+        }
+    }
+
+    const onFullscreen = () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen()
+        }
+        else {
+            player.current.parentElement.requestFullscreen()
         }
     }
 
@@ -70,6 +74,8 @@ export default function VideoPlayer({ videoSrc, filterObject, srtObject }) {
             } >
             <video src={videoSrc}
                 ref={player}
+                onCanPlay={(event)=>{setDuration(player.current.duration);setTime(0);}}
+                onTimeUpdate={(event)=>{setTime(event.target.currentTime);}}
                 style={{
                     maxWidth: '100%',
                     maxHeight: '100%',
@@ -98,9 +104,12 @@ export default function VideoPlayer({ videoSrc, filterObject, srtObject }) {
                     <VideoControls
                         ref={control}
                         style={{ width: '80%' }}
-                        getPlayer={getPlayer}
+                        onSeek={(per) => {player.current.currentTime = player.current.duration * per;}}
                         playAction={playAction}
+                        currentTime={time}
+                        duration={duration}
                         visible={visible}
+                        onFullscreen={onFullscreen}
                         state={playerState} />
                 </div>
             </div>

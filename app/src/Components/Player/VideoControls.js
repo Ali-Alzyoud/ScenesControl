@@ -45,7 +45,14 @@ var seekbuttonStyle = {
     marginTop: '16px'
 }
 
-export default function VideoControls({ getPlayer, state, playAction, visible }) {
+export default function VideoControls({ getPlayer,
+                                        state,
+                                        playAction,
+                                        visible,
+                                        onSeek,
+                                        onFullscreen,
+                                        currentTime,
+                                        duration}) {
 
     const seekbutton = useRef(null);
     const seekbar = useRef(null);
@@ -72,27 +79,14 @@ export default function VideoControls({ getPlayer, state, playAction, visible })
     }
 
     useEffect(() => {
-        var player = getPlayer();
-        const progress = (event) => {
-            setProgress(Math.floor(player.currentTime / player.duration * 100) / 100);
-            timeLabel.current.innerHTML = timeToString(player.currentTime) + ' / ' + timeToString(player.duration);
-        };
-
-        player.addEventListener('timeupdate', progress);
-
-        return () => {
-            player.removeEventListener('timeupdate', progress);
+        if (duration > 0){
+            setProgress(Math.floor(currentTime / duration * 100) / 100);
         }
-    }, []);
+        timeLabel.current.innerHTML = timeToString(currentTime) + ' / ' + timeToString(duration);
+    }, [currentTime, duration]);
 
     const mouseMove = (e) => {
         updateSeek(e.clientX);
-    }
-
-    const onSeek = (per) => {
-        let player = getPlayer();
-        if (player)
-            player.currentTime = player.duration * per;
     }
 
     const mousein = (str) => {
@@ -155,16 +149,7 @@ export default function VideoControls({ getPlayer, state, playAction, visible })
             <img id="full-screen"
                 src={fullicon}
                 style={{ ...styleButton, float: "right" }}
-                onClick={() => {
-                    if (document.fullscreenElement)
-                    {
-                        document.exitFullscreen()
-                    }
-                    else
-                    {
-                        getPlayer().parentElement.requestFullscreen()
-                    }
-                        }}
+                onClick={onFullscreen}
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
             />
