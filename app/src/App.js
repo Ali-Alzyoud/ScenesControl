@@ -7,7 +7,7 @@ import subtitleSample from './assets/sample.srt'
 import Menu from './Components/Menu'
 import SrtObject from './common/SrtObject'
 import FilterEditor from './Components/FilterFileEditor'
-import { SceneGuideClass, SceneType } from './common/SceneGuide'
+import { SceneGuideClass } from './common/SceneGuide'
 
 function App() {
   //FIXME Replace with Redux
