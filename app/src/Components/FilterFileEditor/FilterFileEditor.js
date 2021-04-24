@@ -1,11 +1,13 @@
 import React, {useState} from 'react'
-import {FaSave, FaPlus} from 'react-icons/fa'
+import {FaSave, FaPlus, FaFastForward, FaFastBackward} from 'react-icons/fa'
 import FilterRecord from './FilterRecord'
-import { SceneGuideClass, SceneGuideRecord, SceneIntensity, SceneType } from '../../common/SceneGuide'
+import { SceneGuideRecord } from '../../common/SceneGuide'
 import './style.css'
 
-export default function FilterFileEditor({ sceneObject }) {
-    const [records, setRecords] = useState(sceneObject.Records)
+export default function FilterFileEditor({ sceneObject, getCurrentTime }) {
+    const [records, setRecords] = useState(sceneObject.Records);
+    const [selectedRecord, setSelectedRecord] = useState(null);
+    const [forceUpdate, setForceUpdate] = useState(false);
 
     const addItem = () => {
         setRecords([new SceneGuideRecord(),...records]);
@@ -13,6 +15,26 @@ export default function FilterFileEditor({ sceneObject }) {
 
     const removeItem = (recordItem) => {
         setRecords(records.filter((record => record!==recordItem)));
+    }
+
+    const selectItem = (recordItem) => {
+        if (recordItem !== selectedRecord)
+            setSelectedRecord(recordItem);
+        else
+            setSelectedRecord(null);
+    }
+
+    const selectime = (position) => {
+        if (!selectedRecord || !getCurrentTime) return;
+        let time = getCurrentTime();
+        if (position === 'from'){
+            selectedRecord.setFromTime(time);
+            console.log(selectedRecord.From)
+        }
+        else {
+            selectedRecord.setToTime(time);
+        }
+        setForceUpdate(!forceUpdate);
     }
 
     const saveItems = () => {
@@ -32,6 +54,12 @@ export default function FilterFileEditor({ sceneObject }) {
             <div className='container' onClick={saveItems}>
                 <FaSave className='middle'/>
             </div>
+            <div className='container' onClick={() => selectime('from')}>
+                <FaFastBackward className='middle'/>
+            </div>
+            <div className='container' onClick={() => selectime('to')}>
+                <FaFastForward className='middle'/>
+            </div>
             <br/><br/>
             <table>
             <tr>
@@ -43,7 +71,12 @@ export default function FilterFileEditor({ sceneObject }) {
             {
                 records.map((record, index) => {
                     console.log(index)
-                    return <FilterRecord key={record.id} record={record} removeItem={removeItem}/>
+                    return <FilterRecord
+                                key={record.id}
+                                record={record}
+                                isSelected={selectedRecord === record}
+                                removeItem={removeItem}
+                                selectItem={selectItem}/>
                 })
             }
             </table>

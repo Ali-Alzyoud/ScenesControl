@@ -121,6 +121,24 @@ SceneGuideRecord.prototype.containTime = function (time) {
     return false;
 }
 
+SceneGuideRecord.prototype.setFromTime = function (time) {
+    var hour = Math.floor(time / (60*60));
+    var min = Math.floor((time / (60)) % 60);
+    var sec = ((time) % 60).toFixed(2);
+
+    this.From = `${hour}:${min}:${sec}`;
+    this.id = id++;
+}
+
+SceneGuideRecord.prototype.setToTime = function (time) {
+    var hour = Math.floor(time / (60*60));
+    var min = Math.floor((time / (60)) % 60);
+    var sec = ((time) % 60).toFixed(2);
+
+    this.To = `${hour}:${min}:${sec}`;
+    this.id = id++;
+}
+
 SceneGuideRecord.prototype.endTime = function () {
     var toArray = this.To.split(":");
     var toTime = Number(toArray[0]) * 60 * 60 + Number(toArray[1]) * 60 + Number(toArray[2]);

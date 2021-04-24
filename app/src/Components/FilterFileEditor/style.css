@@ -63,3 +63,9 @@ input.bkLong {
     height: 25px;
     background-color: tomato;
 }
+.select{
+    margin: 0 auto;
+    width: 25px;
+    height: 25px;
+    background-color: white;
+}

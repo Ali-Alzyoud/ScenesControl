@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { SceneGuideClass, SceneGuideRecord, SceneIntensity, SceneType } from '../../common/SceneGuide'
-import {FaMinus} from 'react-icons/fa'
+import {FaMinus, FaPen, FaSquare} from 'react-icons/fa'
 
-export default function FilterRecord({record, removeItem}) {
+export default function FilterRecord({record, isSelected, removeItem, selectItem}) {
     var fromDates = record.From.split(":");
     var toDates = record.To.split(":");
     const [state, setState] = useState({
@@ -31,6 +31,10 @@ export default function FilterRecord({record, removeItem}) {
 
     const onRemove = () => {
         removeItem(record);
+    }
+
+    const onSelect = () => {
+        selectItem(record);
     }
 
     return (
@@ -62,6 +66,11 @@ export default function FilterRecord({record, removeItem}) {
             <td>
             <div className='container remove' onClick={onRemove} style={{margin:'0 auto'}}>
                 <FaMinus className='middle'/>
+            </div>
+            </td>
+            <td>
+            <div className='container select' onClick={onSelect} style={{margin:'0 auto'}}>
+                {isSelected ? <FaPen className='middle'/> : <FaSquare className='middle'/>} 
             </div>
             </td>
         </tr >

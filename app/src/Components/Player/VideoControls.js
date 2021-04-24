@@ -3,6 +3,7 @@ import playicon from '../../assets/play.png';
 import pauseicon from '../../assets/pause.png';
 import fullicon from '../../assets/full-screen.png';
 import PLAY_STATE from './defines'
+import './style.css'
 
 var styleControls = {
     margin: '0 auto',
@@ -108,7 +109,7 @@ export default function VideoControls({ getPlayer,
         let progress = (x - rect.left) / rect.width;
         if (progress >= 1.0) progress = 1.0;
         if (progress < 0.0) progress = 0.0;
-        onSeek(progress)
+        onSeek(progress);
     }
 
     const mousedown = (e) => {
@@ -135,12 +136,13 @@ export default function VideoControls({ getPlayer,
                     />
                 </div>
             </div>
-            <p ref={timeLabel} style={{float:'left', left:'20px', position:'absolute', color:'white'}}></p>
+            <p ref={timeLabel} className='controltime'/>
             <img id="btn_play"
                 src={
                     (state === PLAY_STATE.INITIAL || state === PLAY_STATE.PAUSE) ?
                         playicon : pauseicon
                 }
+                alt='error'
                 style={styleButton}
                 onClick={playAction}
                 onMouseEnter={() => { mousein("Button") }}
@@ -148,6 +150,7 @@ export default function VideoControls({ getPlayer,
             />
             <img id="full-screen"
                 src={fullicon}
+                alt='error'
                 style={{ ...styleButton, float: "right" }}
                 onClick={onFullscreen}
                 onMouseEnter={() => { mousein("Button") }}

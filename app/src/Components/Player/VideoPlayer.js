@@ -1,118 +1,162 @@
-import React, { useEffect, useRef, useState } from 'react'
-import PLAY_STATE from './defines'
-import VideoControls from './VideoControls';
-import VideoFilter from './VideoFilter'
-import VideoSrt from './VideoSRT'
+import React, {
+  createRef,
+} from "react";
+import PLAY_STATE from "./defines";
+import VideoControls from "./VideoControls";
+import VideoFilter from "./VideoFilter";
+import VideoSrt from "./VideoSRT";
 
+const debounce = (func1, func, delay) => {
+  let inDebounce;
+  return function () {
+    const context = this;
+    const args = arguments;
+    clearTimeout(inDebounce);
+    func1();
+    inDebounce = setTimeout(() => func.apply(context, args), delay);
+  };
+};
 
-export default function VideoPlayer({ videoSrc, filterObject, srtObject }) {
+class VideoPlayer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      playerState: PLAY_STATE.INITIAL,
+      time: 0,
+      duration: 0,
+      visible: true,
+    };
+    this.player = createRef();
+    this.control = createRef();
+  }
 
-    const [playerState, setPlayerState] = useState(PLAY_STATE.INITIAL);
-    const player = useRef(null);
-    const control = useRef(null);
-    const [time, setTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [visible, setVisible] = useState(true);
-
-    const playAction = () => {
-        if (playerState === PLAY_STATE.INITIAL) {
-            setPlayerState(PLAY_STATE.PLAY);
-            setVisible(false);
-        }
-        else if (playerState === PLAY_STATE.PLAY) {
-            setPlayerState(PLAY_STATE.PAUSE);
-            setVisible(true);
-        }
-        else if (playerState === PLAY_STATE.PAUSE) {
-            setPlayerState(PLAY_STATE.PLAY);
-            setVisible(false);
-        }
+  playAction = () => {
+    const { playerState } = this.state;
+    if (playerState === PLAY_STATE.INITIAL) {
+      this.setState({ playerState: PLAY_STATE.PLAY });
+      this.setState({ visible: false });
+    } else if (playerState === PLAY_STATE.PLAY) {
+      this.setState({ playerState: PLAY_STATE.PAUSE });
+      this.setState({ visible: true });
+    } else if (playerState === PLAY_STATE.PAUSE) {
+      this.setState({ playerState: PLAY_STATE.PLAY });
+      this.setState({ visible: false });
     }
+  };
 
-    useEffect(() => {
-        if (playerState === PLAY_STATE.PLAY) {
-            player.current.play();
-        }
-        else if (playerState === PLAY_STATE.PAUSE) {
-            player.current.pause();
-        }
-    }, [playerState]);
-
-    const getPlayer = () => player.current;
-
-    const debounce = (func1, func, delay) => {
-        let inDebounce
-        return function () {
-            const context = this;
-            const args = arguments;
-            clearTimeout(inDebounce);
-            func1();
-            inDebounce = setTimeout(() => func.apply(context, args), delay)
-        }
+  componentDidUpdate(prevProps, prevState) {
+    const { playerState } = this.state;
+    if (this.state.playerState !== prevState.playerState) {
+      if (playerState === PLAY_STATE.PLAY) {
+        this.player.current.play();
+      } else if (playerState === PLAY_STATE.PAUSE) {
+        this.player.current.pause();
+      }
     }
-
-    const onFullscreen = () => {
-        if (document.fullscreenElement) {
-            document.exitFullscreen()
-        }
-        else {
-            player.current.parentElement.requestFullscreen()
-        }
+    if (this.props.videoSrc !== prevProps.videoSrc) {
+      this.setState({
+        time: 0,
+        playerState: PLAY_STATE.PAUSE,
+        visible: true,
+      });
     }
+  }
 
+  getPlayer = () => this.player.current;
+
+  onFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      this.player.current.parentElement.requestFullscreen();
+    }
+  };
+
+  render = () => {
+    const {filterObject, srtObject, videoSrc} = this.props;
+    const {time, playerState, duration, visible} = this.state;
     return (
-        <div style={{
-            width: "640px",
-            height: "360px",
-            margin: '0 auto',
+      <div
+        style={{
+          width: "640px",
+          height: "360px",
+          margin: "0 auto",
         }}
-            onMouseMove={
-                debounce(
-                    () => { setVisible(true) },
-                    () => { setVisible(player.current.paused); },
-                    2000)
-            } >
-            <video src={videoSrc}
-                ref={player}
-                onCanPlay={(event)=>{setDuration(player.current.duration);setTime(0);}}
-                onTimeUpdate={(event)=>{setTime(event.target.currentTime);}}
-                style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    minWidth: '100%',
-                    //minHeight: '100%',
-                    width: 'auto',
-                    //height: 'auto'
-                }}>
-            </video>
-            <VideoFilter getPlayer={getPlayer} filterObject={filterObject} time={time}/>
-            <div style={{
-                display: "grid",
-                position: 'relative',
-                gridTemplateRows: "60% 20% 20%",
-                position: "relative",
-                top: "-200%",
-                left: 0,
-                width: "100%",
-                height: "100%",
-                zIndex: 3,
-            }}>
-                <div style={{ position: 'absolute', bottom: '80px', left: '50%', transform: 'translateX(-50%)', textAlign: 'center' }}>
-                    {<VideoSrt srtObject={srtObject} time={time * 1000} />}
-                </div>
-                <div style={{ position: 'absolute', bottom: '20px', width: '100%' }}>
-                    <VideoControls
-                        ref={control}
-                        style={{ width: '80%' }}
-                        onSeek={(per) => {player.current.currentTime = player.current.duration * per;}}
-                        playAction={playAction}
-                        currentTime={time}
-                        duration={duration}
-                        visible={visible}
-                        onFullscreen={onFullscreen}
-                        state={playerState} />
-                </div>
-            </div>
+        onMouseMove={debounce(
+          () => {
+            this.setState({visible: true});
+          },
+          () => {
+            this.setState({visible: this.player.current.paused});
+          },
+          2000
+        )}
+      >
+        <video
+          src={videoSrc}
+          ref={this.player}
+          onCanPlay={() => this.setState({duration: this.player.current.duration})}
+          onTimeUpdate={(event) => {
+            this.setState({time: event.target.currentTime});
+          }}
+          style={{
+            maxWidth: "100%",
+            maxHeight: "100%",
+            minWidth: "100%",
+            //minHeight: '100%',
+            width: "auto",
+            //height: 'auto'
+          }}
+        ></video>
+        <VideoFilter
+          getPlayer={this.getPlayer}
+          filterObject={filterObject}
+          time={time}
+        />
+        <div
+          style={{
+            display: "grid",
+            position: "relative",
+            gridTemplateRows: "60% 20% 20%",
+            position: "relative",
+            top: "-200%",
+            left: 0,
+            width: "100%",
+            height: "100%",
+            zIndex: 3,
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              bottom: "80px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              textAlign: "center",
+            }}
+          >
+            {<VideoSrt srtObject={srtObject} time={time * 1000} />}
+          </div>
+          <div style={{ position: "absolute", bottom: "20px", width: "100%" }}>
+            <VideoControls
+              ref={this.control}
+              style={{ width: "80%" }}
+              onSeek={(per) => {
+                this.player.current.currentTime = this.player.current.duration * per;
+                this.setState({time: this.player.current.currentTime});
+              }}
+              playAction={this.playAction}
+              currentTime={time}
+              duration={duration}
+              visible={visible}
+              onFullscreen={this.onFullscreen}
+              state={playerState}
+            />
+          </div>
         </div>
+      </div>
     );
+  };
 }
+
+export default VideoPlayer;

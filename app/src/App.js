@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Player } from './Components/Player';
 import videoSample from './assets/sample.webm'
 import filterSample from './assets/filter.txt'
@@ -10,10 +10,11 @@ import FilterEditor from './Components/FilterFileEditor'
 import { SceneGuideClass } from './common/SceneGuide'
 
 function App() {
-  //FIXME Replace with Redux
+  //FIXME Replace with Redux/Context
   const [videoSrc, setVideoSrc] = useState(videoSample);
   const [subtitleSrc, setSubtitleSrc] = useState(new SrtObject(subtitleSample));
   const [filterSrc, setFilterSrc] = useState(null);
+  const player = useRef(null);
 
   useEffect(() => {
     window.setVideoSrc = setVideoSrc;
@@ -34,12 +35,15 @@ function App() {
       <Menu />
       <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
         <Player
+          ref={player}
           videoSrc={videoSrc}
           filterObject={filterSrc}
           srtObject={subtitleSrc} />
       </div>
       <div style={{left:'50%', position:'absolute', transform: 'translateX(-50%)'}}>
-          {filterSrc && <FilterEditor sceneObject={filterSrc}/>}
+          {filterSrc && <FilterEditor sceneObject={filterSrc} getCurrentTime={() => {
+            return player.current.state.time;
+          }}/>}
       </div>
     </div>
   );

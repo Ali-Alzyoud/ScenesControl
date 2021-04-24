@@ -1,0 +1,10 @@
+*{
+    user-select: none;
+}
+p.controltime {
+    float: left;
+    left: 20px;
+    font-size: small;
+    position: absolute;
+    color: white;
+}
