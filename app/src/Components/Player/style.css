@@ -12,6 +12,7 @@ p.controltime {
 .playercontainer{
     margin: 0 auto;
     width: 80%;
+    position: relative;
 }
 
 @media only screen and (max-width: 1024px) {

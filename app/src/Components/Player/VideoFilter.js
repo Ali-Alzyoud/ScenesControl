@@ -3,9 +3,9 @@ import { SceneGuideClass, SceneType } from './../../common/SceneGuide'
 
 var FilterStyle = {
     pointerEvents: 'none',
-    position: "relative",
+    position: "absolute",
     left: '0',
-    top: '-100%',
+    top: '0',
     width: '100%',
     height: '100%',
     zIndex: 2,
