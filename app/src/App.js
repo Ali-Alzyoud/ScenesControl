@@ -40,7 +40,7 @@ function App() {
           filterObject={filterSrc}
           srtObject={subtitleSrc} />
       </div>
-      <div style={{left:'50%', position:'absolute', transform: 'translateX(-50%)'}}>
+      <div className='filter-container'>
           {filterSrc && <FilterEditor sceneObject={filterSrc} getCurrentTime={() => {
             return player.current.state.time;
           }}/>}

@@ -19,6 +19,12 @@ li.video.selected{
   background: blue !important;
 }
 
+.filter-container {
+  /* left: 50%;
+  position: absolute;
+  transform: translateX(-50%); */
+}
+
 
 li.video:hover{
   background-color: lightblue;

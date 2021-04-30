@@ -76,12 +76,7 @@ class VideoPlayer extends React.Component {
     const {filterObject, srtObject, videoSrc} = this.props;
     const {time, playerState, duration, visible} = this.state;
     return (
-      <div
-        style={{
-          width: "640px",
-          height: "360px",
-          margin: "0 auto",
-        }}
+      <div className='playercontainer'
         onMouseMove={debounce(
           () => {
             this.setState({visible: true});
@@ -93,19 +88,12 @@ class VideoPlayer extends React.Component {
         )}
       >
         <video
+          className='player'
           src={videoSrc}
           ref={this.player}
           onCanPlay={() => this.setState({duration: this.player.current.duration})}
           onTimeUpdate={(event) => {
             this.setState({time: event.target.currentTime});
-          }}
-          style={{
-            maxWidth: "100%",
-            maxHeight: "100%",
-            minWidth: "100%",
-            //minHeight: '100%',
-            width: "auto",
-            //height: 'auto'
           }}
         ></video>
         <VideoFilter
@@ -126,18 +114,10 @@ class VideoPlayer extends React.Component {
             zIndex: 3,
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              bottom: "80px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              textAlign: "center",
-            }}
-          >
+          <div className='subtitlecontainer'>
             {<VideoSrt srtObject={srtObject} time={time * 1000} />}
           </div>
-          <div style={{ position: "absolute", bottom: "20px", width: "100%" }}>
+          <div className='controlscontainer'>
             <VideoControls
               ref={this.control}
               style={{ width: "80%" }}

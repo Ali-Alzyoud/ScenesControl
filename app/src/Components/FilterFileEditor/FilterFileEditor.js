@@ -47,7 +47,7 @@ export default function FilterFileEditor({ sceneObject, getCurrentTime }) {
     }
 
     return (
-        <div>
+        <div className='editor-container'>
             <div className='container' onClick={addItem}>
                 <FaPlus className='middle'/>
             </div>
@@ -61,6 +61,7 @@ export default function FilterFileEditor({ sceneObject, getCurrentTime }) {
                 <FaFastForward className='middle'/>
             </div>
             <br/><br/>
+            <div className='table-container'>
             <table>
             <tr>
                 <th>From</th>
@@ -80,6 +81,7 @@ export default function FilterFileEditor({ sceneObject, getCurrentTime }) {
                 })
             }
             </table>
+            </div>
         </div>
     )
 }
