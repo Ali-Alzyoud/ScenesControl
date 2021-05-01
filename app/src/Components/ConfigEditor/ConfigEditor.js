@@ -12,17 +12,21 @@ export default function ConfigEditor() {
     const onChange = (e) => {
         if (e.target.name === 'violence'){
             setViolence(e.target.value);
+            PlayerConfig.UpdateConfig(e.target.value, nudity, gore, profanity);
         }
         else if (e.target.name === 'nudity'){
             setNudity(e.target.value);
+            PlayerConfig.UpdateConfig(violence, e.target.value, gore, profanity);
         }
         else if (e.target.name === 'gore'){
             setGore(e.target.value);
+            PlayerConfig.UpdateConfig(violence, nudity, e.target.value, profanity);
         }
         else if (e.target.name === 'profanity'){
             setProfanity(e.target.value);
+            PlayerConfig.UpdateConfig(violence, nudity, gore, e.target.value);
         }
-        PlayerConfig.UpdateConfig(violence, nudity, gore, profanity);
+        console.log(PlayerConfig)
     }
 
     return (

@@ -50,15 +50,18 @@ export default function VideoFilter({ getPlayer, filterObject, time }) {
         return;
     }
 
-    setStyle({ ...FilterStyle});
+    
     if (mute) {
         getPlayer().volume = 0.0;
     }
-    if (blur) {
-        setStyle({ ...FilterStyle, backdropFilter: "blur(15px)" });
+    if (blur || black) {
+        if(blur)
+            setStyle({ ...FilterStyle, backdropFilter: "blur(15px)" });
+        else
+            setStyle({ ...FilterStyle, background: "black" });
     }
-    if (black) {
-        setStyle({ ...FilterStyle, background: "black" });
+    else {
+        setStyle({ ...FilterStyle});
     }
 
   }, [time]);
