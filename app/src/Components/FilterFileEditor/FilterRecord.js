@@ -59,8 +59,8 @@ export default function FilterRecord({record, isSelected, removeItem, selectItem
             </td>
             <td>
                 <select className='selectType' onChange={inputChange} name='intensity' value={state.intensity}>
-                        <option value={SceneIntensity.Low}      selected={record.Intensity === SceneIntensity.Low}>{SceneIntensity.Low}</option>
-                        <option value={SceneIntensity.High}    selected={record.Intensity === SceneIntensity.High}>{SceneIntensity.High}</option>
+                        <option value={SceneIntensity.Low}   selected={record.Intensity === SceneIntensity.Low}>{SceneIntensity.Low}</option>
+                        <option value={SceneIntensity.High}  selected={record.Intensity === SceneIntensity.High}>{SceneIntensity.High}</option>
                 </select>
             </td >
             <td>

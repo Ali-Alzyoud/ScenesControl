@@ -1,0 +1,18 @@
+.config{
+    display: grid;
+    grid-template-columns: auto;
+    background-color: gray;
+    width: fit-content;
+    margin: auto auto;
+    width: 400px;
+}
+
+.item {
+    display: inline-block;
+    margin: 5px;
+}
+
+.item > span{
+    display: inline-block;
+    width: 100px;
+}

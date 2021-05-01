@@ -7,7 +7,9 @@ import subtitleSample from './assets/sample.srt'
 import Menu from './Components/Menu'
 import SrtObject from './common/SrtObject'
 import FilterEditor from './Components/FilterFileEditor'
+import ConfigEditor from './Components/ConfigEditor'
 import { SceneGuideClass } from './common/SceneGuide'
+import ToggleButton from './Components/ToggleButton'
 
 function App() {
   //FIXME Replace with Redux/Context
@@ -15,12 +17,14 @@ function App() {
   const [subtitleSrc, setSubtitleSrc] = useState(new SrtObject(subtitleSample));
   const [filterSrc, setFilterSrc] = useState(null);
   const player = useRef(null);
+  const [showEditor,setShowEditor] = useState(false);
+  const [showConfig,setShowConfig] = useState(false);
 
   useEffect(() => {
     window.setVideoSrc = setVideoSrc;
     window.setSubtitleSrc = setSubtitleSrc;
     window.setFilterSrc = setFilterSrc;
-  });
+  }, []);
 
   useEffect(() => {
     fetch(filterSample)
@@ -40,11 +44,20 @@ function App() {
           filterObject={filterSrc}
           srtObject={subtitleSrc} />
       </div>
-      <div className='filter-container'>
-          {filterSrc && <FilterEditor sceneObject={filterSrc} getCurrentTime={() => {
-            return player.current.state.time;
-          }}/>}
-      </div>
+      <ToggleButton on={showEditor} onClick={() => {setShowEditor(!showEditor)}}>Editor</ToggleButton>
+      <ToggleButton on={showConfig} onClick={() => {setShowConfig(!showConfig)}}>Config</ToggleButton>
+      {showEditor &&
+        <div className='filter-container'>
+            {filterSrc && <FilterEditor sceneObject={filterSrc} getCurrentTime={() => {
+              return player.current.state.time;
+            }}/>}
+        </div>
+      }
+      {showConfig &&
+        <div className='config-container'>
+            <ConfigEditor />
+        </div>
+      }
     </div>
   );
 }
