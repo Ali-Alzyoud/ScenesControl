@@ -55,7 +55,6 @@ export default function FilterRecord({record, index, isSelected, removeItemIndex
                         <option value={SceneType.Violence}  selected={record.Type === SceneType.Violence}>{SceneType.Violence}</option>
                         <option value={SceneType.Nudity}    selected={record.Type === SceneType.Nudity}>{SceneType.Nudity}</option>
                         <option value={SceneType.Profanity} selected={record.Type === SceneType.Profanity}>{SceneType.Profanity}</option>
-                        <option value={SceneType.Gore}      selected={record.Type === SceneType.Gore}>{SceneType.Gore}</option>
                 </select>
             </td>
             <td>

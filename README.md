@@ -1,70 +1,72 @@
-# Getting Started with Create React App
+# Scenes Control
+Scenes Control File Format
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This Idea is about creating new file standard, which could be adopted by video/audio players.
+This File contains Scenes notation information about the video/audio which is going to be played.
 
-## Available Scripts
+This way consume content by users, will be adoubt user preferences, For example user can watch movie and skip,blure or mute violence scenes, and keep other part of content the same.
 
-In the project directory, you can run:
 
-### `npm start`
+## Play Demo
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+https://scenescontrol.netlify.app/
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Hit **Play** button, and watch the clip and notice how it will handle profanity and violance scenes.
 
-### `npm test`
+Notes:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Video file itself is not edited and keept as is, but video player is configured with scene guide file.
 
-### `npm run build`
+- You can use the demo to edit scene guide file, or change behaviour for each scene type.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Common Questions:
+### What does it do ?
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Let’s say you are watching a movie in your device
+This file will contains description about scenes parent guide. Like:
 
-### `npm run eject`
+- Category                      : Violence, Nudity, Profanity, etc.
+- intensity                     : Intense level (Hight,  LOW) scale.
+- Suggested behavior            : Blur, Skip, Mute, .. etc.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Why do I need it ?
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Examples :
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- Make watching movies more comfortably, because it will respect user preferences, for example  skip uncomfortable senses types. 
+- You like the movie but you do want to see gore/violence senses.
+- Content provider, will provide one movie, with this file format, instead of shipping multiple version of the movies. (uncut version and original version).
 
-## Learn More
+### How to use it?
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+As simple as setting subtitle for the movie.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Example:
 
-### Code Splitting
+- Open Movie with VLC 
+- Select Parent Guided file
+- Specify in the option (Age restriction, Avoid scenes types)
+- Play the move, and all unwanted scenes will be avoided while playing.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### How these files are created ?
 
-### Analyzing the Bundle Size
+These files will be created with multiple ways:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- Contribution from people, by creating these files for movies they watched. (Like what has be done with subtitle for years)
 
-### Making a Progressive Web App
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-### Advanced Configuration
+### What we are going to do next ?
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- We will try to create simple POC, to show the Idea in real world example.
+- Building utility to generate parent guided files. (this way we can start contributing to community)
+- More diagnosis and research to build file format specification, which will allow future expansion, and simple adoption by video/audio players.
+- Reach community such as VLC to adopt this feature, and do contribute there to implement it.
 
-### Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Expectations:
 
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- We hope that we could build community for such feature, which is very helpful for most of us (let me know your Idea).
+- This will become a standard in most video/audio players.
