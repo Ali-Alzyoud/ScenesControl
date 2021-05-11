@@ -1,30 +1,32 @@
 import React, {useState} from 'react'
 import {FaSave, FaPlus, FaFastForward, FaFastBackward} from 'react-icons/fa'
 import FilterRecord from './FilterRecord'
-import { SceneGuideRecord } from '../../common/SceneGuide'
+import { SceneGuideRecord, SceneGuideClass } from '../../common/SceneGuide'
 
 import { connect } from "react-redux";
 import { getTime, getRecords } from '../../redux/selectors';
+import { addFilterItems, removeFilterIndex, updateFilterItem } from '../../redux/actions';
 
 import './style.css'
 
-function FilterFileEditor({records, time }) {
+function FilterFileEditor({records, time, addFilterItems, removeFilterIndex, updateFilterItem }) {
     const [selectedRecord, setSelectedRecord] = useState(null);
-    const [forceUpdate, setForceUpdate] = useState(false);
+    const [key, setKey] = useState(0);
 
     const addItem = () => {
-        // const newRecords = [new SceneGuideRecord(),...records];
-        // setRecords(newRecords);
+        const newRecords = [new SceneGuideRecord()];
+        addFilterItems(newRecords);
+        setKey(key+1);
     }
 
-    const removeItem = (recordItem) => {
-        // const newRecords = records.filter((record => record!==recordItem));
-        // setRecords(newRecords);
+    const removeItem = (index) => {
+        removeFilterIndex(index);
+        setKey(key+1);
     }
 
-    const selectItem = (recordItem) => {
-        if (recordItem !== selectedRecord)
-            setSelectedRecord(recordItem);
+    const selectItem = (index) => {
+        if (records[index] !== selectedRecord)
+            setSelectedRecord(records[index]);
         else
             setSelectedRecord(null);
     }
@@ -38,16 +40,21 @@ function FilterFileEditor({records, time }) {
         else {
             selectedRecord.setToTime(time);
         }
-        setForceUpdate(!forceUpdate);
+        setKey(key+1);
+    }
+
+    const updateItem = (record, index) => {
+        updateFilterItem(record, index);
+        setKey(key+1);
     }
 
     const saveItems = () => {
-        // const element = document.createElement("a");
-        // const file = new Blob([sceneObject.toString()], {type: 'text/plain'});
-        // element.href = URL.createObjectURL(file);
-        // element.download = "myFile.txt";
-        // document.body.appendChild(element); // Required for this to work in FireFox
-        // element.click();
+        const element = document.createElement("a");
+        const file = new Blob([SceneGuideClass.ToString(records)], {type: 'text/plain'});
+        element.href = URL.createObjectURL(file);
+        element.download = "myFile.txt";
+        document.body.appendChild(element); // Required for this to work in FireFox
+        element.click();
     }
 
     return (
@@ -65,7 +72,7 @@ function FilterFileEditor({records, time }) {
                 <FaFastForward className='middle'/>
             </div>
             <br/><br/>
-            <div className='table-container'>
+            <div className='table-container' key={key}>
             <table>
             <tr>
                 <th>From</th>
@@ -76,11 +83,12 @@ function FilterFileEditor({records, time }) {
             {
                 records.map((record, index) => {
                     return <FilterRecord
-                                key={record.id}
+                                index = {index}
                                 record={record}
                                 isSelected={selectedRecord === record}
-                                removeItem={removeItem}
-                                selectItem={selectItem}/>
+                                removeItemIndex={removeItem}
+                                updateItemIndex={updateItem}
+                                selectItemIndex={selectItem}/>
                 })
             }
             </table>
@@ -96,4 +104,4 @@ const mapStateToProps = state => {
     return { records, time };
   };
 
-export default connect(mapStateToProps)(FilterFileEditor);
+export default connect(mapStateToProps, {addFilterItems, removeFilterIndex, updateFilterItem})(FilterFileEditor);

@@ -2,7 +2,7 @@ import { SET_SUBTITLE, SET_VIDEO, SET_TIME, SET_DURATION, SET_VOLUME, SET_PLAYER
 
 
 const initialState = {
-  subtitle: {records:null},
+  subtitle: [],
   videoSrc: null,
   time: 0,
   duration: 0,

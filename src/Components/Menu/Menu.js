@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import SrtObject from '../../common/SrtObject'
+import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass, SceneType } from '../../common/SceneGuide'
 import './menu.css'
 
@@ -11,7 +11,7 @@ export default function Menu() {
         window.setVideoSrc(URL.createObjectURL(e.target.files[0]));
     }
     const openSubtitle = (e) => {
-        var srtObject = new SrtObject(URL.createObjectURL(e.target.files[0]));
+        var srtObject = new SrtClass(URL.createObjectURL(e.target.files[0]));
         window.setSubtitleSrc(srtObject);
     }
     const openFilter = (e) => {

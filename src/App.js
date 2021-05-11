@@ -8,7 +8,7 @@ import filterSample from './assets/filter.txt'
 import subtitleSample from './assets/sample.srt'
 
 import Menu from './Components/Menu'
-import SrtObject from './common/SrtObject'
+import SrtClass from './common/SrtClass'
 import FilterEditor from './Components/FilterFileEditor'
 import ConfigEditor from './Components/ConfigEditor'
 import { SceneGuideClass } from './common/SceneGuide'
@@ -25,14 +25,9 @@ function App({addFilterItems, setVideoSrc, setSubtitle }) {
 
   useEffect(() => {
     setVideoSrc(videoSample);
-    setSubtitle(new SrtObject(subtitleSample));
+    SrtClass.ReadFile(subtitleSample).then((records)=>{setSubtitle(records)});
 
-    fetch(filterSample)
-      .then(response => response.text())
-      .then(data => {
-        const obj = new SceneGuideClass(data);
-        addFilterItems(obj.Records);
-      });
+    SceneGuideClass.ReadFile(filterSample).then((records)=>{addFilterItems(records)});
 
   }, []);
 

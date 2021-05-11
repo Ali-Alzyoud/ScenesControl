@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { SceneGuideClass, SceneGuideRecord, SceneIntensity, SceneType } from '../../common/SceneGuide'
+import { SceneIntensity, SceneType } from '../../common/SceneGuide'
 import {FaMinus, FaPen, FaSquare} from 'react-icons/fa'
 
-export default function FilterRecord({record, isSelected, removeItem, selectItem}) {
+export default function FilterRecord({record, index, isSelected, removeItemIndex, selectItemIndex, updateItemIndex}) {
     var fromDates = record.From.split(":");
     var toDates = record.To.split(":");
     const [state, setState] = useState({
@@ -27,14 +27,15 @@ export default function FilterRecord({record, isSelected, removeItem, selectItem
         record.To = to;
         record.Type = type;
         record.Intensity = intensity;
+        updateItemIndex(record, index);
     }
 
     const onRemove = () => {
-        removeItem(record);
+        removeItemIndex(index);
     }
 
     const onSelect = () => {
-        selectItem(record);
+        selectItemIndex(record, index);
     }
 
     return (

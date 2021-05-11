@@ -1,5 +1,5 @@
 import store from './store'
-import SrtObject from '../common/SrtObject'
+import SrtClass from '../common/SrtClass'
 import {SceneGuideClass} from '../common/SceneGuide'
 
 export const getRecords = () => {
@@ -46,7 +46,7 @@ export const getPlayerState = () => {
 //HELPERS
 export const getSubtitleAtTime = (time) => {
     const subtitle = getSubtitle();
-    return SrtObject.GetContentAt(subtitle.records ,time);
+    return SrtClass.GetContentAt(subtitle ,time);
 }
 
 export const getRecordsAtTime = (time) => {

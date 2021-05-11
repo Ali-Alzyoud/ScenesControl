@@ -1,4 +1,4 @@
-import { SET_SUBTITLE, SET_VIDEO, SET_TIME, SET_DURATION, SET_VOLUME, ADD_ITEMS, REMOVE_ITEMS, REMOVE_ALL, UPDATE_ITEM, SET_PLAYER_STATE, SET_PLAYER_CONFIG } from "./actionTypes";
+import { SET_SUBTITLE, SET_VIDEO, SET_TIME, SET_DURATION, SET_VOLUME, ADD_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM, SET_PLAYER_STATE, SET_PLAYER_CONFIG } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
   type: SET_SUBTITLE,
@@ -48,17 +48,17 @@ export const addFilterItems = records => ({
     payload: { records }
 });
 
-export const removeFilterItems = records => ({
-    type: REMOVE_ITEMS,
-    payload: { records }
+export const removeFilterIndex = index => ({
+    type: REMOVE_ITEM_INDEX,
+    payload: { index }
 });
 
-export const removeAllFilters = records => ({
+export const removeAllFilters = () => ({
     type: REMOVE_ALL,
     payload: { }
 });
 
 export const updateFilterItem = (record, index) => ({
-    type: REMOVE_ALL,
+    type: UPDATE_ITEM,
     payload: { record, index}
 });

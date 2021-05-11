@@ -160,53 +160,45 @@ SceneGuideRecord.prototype.endTime = function () {
 /**************************************************************
  ******************* SceneGuideClass Class *******************
  **************************************************************/
-var SceneGuideClass = function(str)
+class SceneGuideClass
 {
-    this.Records = [];
-    if (str){
-        this.fromString(str);
+    static async ReadFile(url) {
+        const response = await fetch(url);
+        const data = await response.text();
+        return this.FromString(data);
+      }
+    
+    static FromString = function (content) {
+        const records = [];
+        content = content.replaceAll('\r','')
+        var lines = content.split('\n');
+        for (var i = 0; i < lines.length; i += 5) {
+            var array = lines.slice(i, i + 4);
+            if (array.length < 4) return;
+            records.push(SceneGuideRecord.FromString(lines.slice(i, i + 4)));
+        }
+        return records;
     }
-}
-
-SceneGuideClass.prototype.fromString = function (content) {
-    content = content.replaceAll('\r','')
-    var lines = content.split('\n');
-    for (var i = 0; i < lines.length; i += 5) {
-        var array = lines.slice(i, i + 4);
-        if (array.length < 4) return;
-        this.Records.push(SceneGuideRecord.FromString(lines.slice(i, i + 4)));
+    
+    static ToString = function (records) {
+        var str = "";
+        for (var i = 0; i < records.length; i++) {
+            var record = records[i];
+            str += record.toString() + "\n";
+        }
+        return str;
     }
-}
-
-SceneGuideClass.prototype.toString = function (parentGuideClass) {
-    var str = "";
-    for (var i = 0; i < this.Records.length; i++) {
-        var record = this.Records[i];
-        str += record.toString() + "\n";
+    
+    static GetRecordsAtTime = function (records, time) {
+        //FIXME save data in order, then binary search
+        var ret = [];
+        for (var i = 0; i < records.length; i++) {
+            var record = records[i];
+            if (SceneGuideRecord.ContainTime(record, time))
+                ret.push(record);
+        }
+        return ret;
     }
-    return str;
-}
-
-SceneGuideClass.prototype.getRecordsAtTime = function (time) {
-    //FIXME save data in order, then binary search
-    var ret = [];
-    for (var i = 0; i < this.Records.length; i++) {
-        var record = this.Records[i];
-        if (SceneGuideRecord.ContainTime(record, time))
-            ret.push(record);
-    }
-    return ret;
-}
-
-SceneGuideClass.GetRecordsAtTime = function (records, time) {
-    //FIXME save data in order, then binary search
-    var ret = [];
-    for (var i = 0; i < records.length; i++) {
-        var record = records[i];
-        if (SceneGuideRecord.ContainTime(record, time))
-            ret.push(record);
-    }
-    return ret;
 }
 
 export { SceneGuideClass, SceneGuideRecord, SceneIntensity, SceneType };
