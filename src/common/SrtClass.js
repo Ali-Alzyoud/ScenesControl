@@ -13,12 +13,14 @@ class SrtRecord {
 
     return time;
   }
-  constructor(text) {
-    let fields = text.split("\n");
-    let timeFields = fields[1].split("-->");
+  constructor(lines, index) {
+    let timeFields = lines[index + 1].split("-->");
     this.from = SrtRecord.ConvertToTime(timeFields[0]);
     this.to = SrtRecord.ConvertToTime(timeFields[1]);
-    this.content = fields.slice(2);
+    this.content = [];
+    while((lines.length > (index + 2 + this.content.length)) && lines[index + 2 + this.content.length].length !== 0){
+      this.content.push(lines[index+2+this.content.length]);
+    }
   }
 }
 class SrtClass {
@@ -34,18 +36,21 @@ class SrtClass {
     const data = await response.text();
 
     var text = data;
-    recordsRaw = text.split("\n\r\n");
+    recordsRaw = text.split("\n");
     let skip = 0;
     for (let i = 0; i < recordsRaw.length; i++) {
+      recordsRaw[i] = recordsRaw[i].replace('\n','');
+      recordsRaw[i] = recordsRaw[i].replace('\r','');
       if (recordsRaw[i].length === 0) {
         skip++;
       }
     }
     records = [recordsRaw.length - skip];
-    for (let i = 0; i < recordsRaw.length; i++) {
-      if (recordsRaw[i].length != 0) {
-        records[i] = new SrtRecord(recordsRaw[i]);
-      }
+    let startRead = 0;
+    for (let i = 0; i < recordsRaw.length; i+=1) {
+        if(recordsRaw.length - startRead < 3) break;
+        records[i] = new SrtRecord(recordsRaw, startRead);
+        startRead += records[i].content.length + 3;
     }
 
     return records;
