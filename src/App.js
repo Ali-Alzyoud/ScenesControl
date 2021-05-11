@@ -26,9 +26,7 @@ function App({addFilterItems, setVideoSrc, setSubtitle }) {
   useEffect(() => {
     setVideoSrc(videoSample);
     SrtClass.ReadFile(subtitleSample).then((records)=>{setSubtitle(records)});
-
     SceneGuideClass.ReadFile(filterSample).then((records)=>{addFilterItems(records)});
-
   }, []);
 
   return (

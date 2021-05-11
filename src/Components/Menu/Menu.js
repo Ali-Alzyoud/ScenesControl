@@ -1,25 +1,25 @@
-import React, { useState, useRef } from 'react'
+import React, {useRef } from 'react'
 import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass, SceneType } from '../../common/SceneGuide'
+
+
+import { connect } from "react-redux";
+import { addFilterItems, setVideoSrc, setSubtitle } from '../../redux/actions'
+
 import './menu.css'
 
-export default function Menu() {
+function Menu({addFilterItems, setVideoSrc, setSubtitle}) {
     const videoInput = useRef(null);
     const subtitleInput = useRef(null);
     const filterInput = useRef(null);
     const openVideo = (e) => {
-        window.setVideoSrc(URL.createObjectURL(e.target.files[0]));
+        setVideoSrc(URL.createObjectURL(e.target.files[0]));
     }
     const openSubtitle = (e) => {
-        var srtObject = new SrtClass(URL.createObjectURL(e.target.files[0]));
-        window.setSubtitleSrc(srtObject);
+        SrtClass.ReadFile(URL.createObjectURL(e.target.files[0])).then((records)=>{setSubtitle(records)});
     }
     const openFilter = (e) => {
-        const reader = new FileReader();
-        reader.addEventListener('load', (event) => {
-            window.setFilterSrc(new SceneGuideClass(event.target.result));
-        });
-        reader.readAsText(e.target.files[0]);
+        SceneGuideClass.ReadFile(URL.createObjectURL(e.target.files[0])).then((records)=>{addFilterItems(records)});
     }
     return (
         <div className="navbar">
@@ -38,3 +38,8 @@ export default function Menu() {
         </div>
     )
 }
+
+export default connect(
+    null,
+    { addFilterItems, setVideoSrc, setSubtitle }
+  )(Menu);
