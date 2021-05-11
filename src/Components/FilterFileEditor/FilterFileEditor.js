@@ -24,7 +24,7 @@ function FilterFileEditor({records, time, addFilterItems, removeFilterIndex, upd
         setKey(key+1);
     }
 
-    const selectItem = (index) => {
+    const selectItem = (record, index) => {
         if (records[index] !== selectedRecord)
             setSelectedRecord(records[index]);
         else
@@ -66,10 +66,10 @@ function FilterFileEditor({records, time, addFilterItems, removeFilterIndex, upd
                 <FaSave className='middle'/>
             </div>
             <div className='container' onClick={() => selectime('from')}>
-                <FaFastBackward className='middle'/>
+                <FaFastBackward className='middle' style={!selectedRecord ? {pointerEvents: "none", opacity: "0.4"}:{}}/>
             </div>
             <div className='container' onClick={() => selectime('to')}>
-                <FaFastForward className='middle'/>
+                <FaFastForward className='middle'  style={!selectedRecord ? {pointerEvents: "none", opacity: "0.4"}:{}}/>
             </div>
             <br/><br/>
             <div className='table-container' key={key}>
