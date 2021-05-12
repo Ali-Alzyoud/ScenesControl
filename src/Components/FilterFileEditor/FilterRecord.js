@@ -27,7 +27,6 @@ export default function FilterRecord({record, index, isSelected, removeItemIndex
         record.To = to;
         record.Type = type;
         record.Intensity = intensity;
-        updateItemIndex(record, index);
     }
 
     const onRemove = () => {
@@ -38,27 +37,31 @@ export default function FilterRecord({record, index, isSelected, removeItemIndex
         selectItemIndex(record, index);
     }
 
+    const onBlur = () => {
+        updateItemIndex(record, index);
+    }
+
     return (
         <tr>
             <td>
-                <input onChange={inputChange} className='bk'     name='fh' value={state.fh} />&nbsp;:&nbsp;
-                <input onChange={inputChange} className='bk'     name='fm' value={state.fm} />&nbsp;:&nbsp;
-                <input onChange={inputChange} className='bkLong' name='fs' value={state.fs} />
+                <input onBlurCapture={onBlur} onChange={inputChange} className='bk'     name='fh' value={state.fh} />&nbsp;:&nbsp;
+                <input onBlurCapture={onBlur} onChange={inputChange} className='bk'     name='fm' value={state.fm} />&nbsp;:&nbsp;
+                <input onBlurCapture={onBlur} onChange={inputChange} className='bkLong' name='fs' value={state.fs} />
             </td>
             <td>
-                <input onChange={inputChange}  className='bk'     name='th' value={state.th} />&nbsp;:&nbsp;
-                <input onChange={inputChange}  className='bk'     name='tm' value={state.tm} />&nbsp;:&nbsp;
-                <input onChange={inputChange}  className='bkLong' name='ts' value={state.ts} />
+                <input onBlurCapture={onBlur} onChange={inputChange}  className='bk'     name='th' value={state.th} />&nbsp;:&nbsp;
+                <input onBlurCapture={onBlur} onChange={inputChange}  className='bk'     name='tm' value={state.tm} />&nbsp;:&nbsp;
+                <input onBlurCapture={onBlur} onChange={inputChange}  className='bkLong' name='ts' value={state.ts} />
             </td>
             <td>
-                <select className='selectType' onChange={inputChange} name='type' value={state.type}>
+                <select className='selectType' onBlurCapture={onBlur} onChange={inputChange} name='type' value={state.type}>
                         <option value={SceneType.Violence}  selected={record.Type === SceneType.Violence}>{SceneType.Violence}</option>
                         <option value={SceneType.Nudity}    selected={record.Type === SceneType.Nudity}>{SceneType.Nudity}</option>
                         <option value={SceneType.Profanity} selected={record.Type === SceneType.Profanity}>{SceneType.Profanity}</option>
                 </select>
             </td>
             <td>
-                <select className='selectType' onChange={inputChange} name='intensity' value={state.intensity}>
+                <select className='selectType' onBlurCapture={onBlur} onChange={inputChange} name='intensity' value={state.intensity}>
                         <option value={SceneIntensity.Low}   selected={record.Intensity === SceneIntensity.Low}>{SceneIntensity.Low}</option>
                         <option value={SceneIntensity.High}  selected={record.Intensity === SceneIntensity.High}>{SceneIntensity.High}</option>
                 </select>
