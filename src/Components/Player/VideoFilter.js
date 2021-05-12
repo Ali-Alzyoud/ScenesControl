@@ -69,7 +69,7 @@ function VideoFilter({ records, time, setVolume, setTime, playerConfig }) {
         setStyle({ ...FilterStyle});
     }
 
-  }, [time]);
+  }, [time, records]);
 
   return <div style={style}></div>;
 }
