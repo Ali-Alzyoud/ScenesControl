@@ -11,6 +11,7 @@ import './style.css'
 
 function FilterFileEditor({records, time, addFilterItems, removeFilterIndex, updateFilterItem }) {
     const [selectedRecord, setSelectedRecord] = useState(null);
+    const [selectedRecordIndex, setSelectedRecordIndex] = useState(-1);
     const [key, setKey] = useState(0);
 
     const addItem = () => {
@@ -25,10 +26,14 @@ function FilterFileEditor({records, time, addFilterItems, removeFilterIndex, upd
     }
 
     const selectItem = (record, index) => {
-        if (records[index] !== selectedRecord)
+        if (records[index] !== selectedRecord){
             setSelectedRecord(records[index]);
-        else
+            setSelectedRecordIndex(index);
+        }
+        else{
             setSelectedRecord(null);
+            setSelectedRecordIndex(-1);
+        }
     }
 
     const selectime = (position) => {
@@ -40,10 +45,11 @@ function FilterFileEditor({records, time, addFilterItems, removeFilterIndex, upd
         else {
             selectedRecord.setToTime(time);
         }
-        setKey(key+1);
+        updateItem(selectedRecord, selectedRecordIndex);
     }
 
     const updateItem = (record, index) => {
+        if (!record || index === -1) return;
         updateFilterItem(record, index);
         setKey(key+1);
     }
