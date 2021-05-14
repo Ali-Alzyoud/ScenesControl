@@ -1,4 +1,4 @@
-import { SET_SUBTITLE, SET_VIDEO, SET_TIME, SET_DURATION, SET_VOLUME, ADD_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM, SET_PLAYER_STATE, SET_PLAYER_CONFIG } from "./actionTypes";
+import { SET_SUBTITLE, SET_VIDEO, SET_TIME, SET_DURATION, SET_VOLUME, ADD_ITEMS, SET_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM, SET_PLAYER_STATE, SET_PLAYER_CONFIG } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
   type: SET_SUBTITLE,
@@ -46,6 +46,11 @@ export const setPlayerConfig = (playerConfig) => {
 export const addFilterItems = records => ({
     type: ADD_ITEMS,
     payload: { records }
+});
+
+export const setFilterItems = records => ({
+  type: SET_ITEMS,
+  payload: { records }
 });
 
 export const removeFilterIndex = index => ({

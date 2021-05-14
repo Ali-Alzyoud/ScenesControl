@@ -165,7 +165,7 @@ class SceneGuideClass
     static async ReadFile(url) {
         const response = await fetch(url);
         const data = await response.text();
-        return this.FromString(data);
+        return SceneGuideClass.FromString(data);
       }
     
     static FromString = function (content) {
@@ -174,8 +174,8 @@ class SceneGuideClass
         var lines = content.split('\n');
         for (var i = 0; i < lines.length; i += 5) {
             var array = lines.slice(i, i + 4);
-            if (array.length < 4) return;
-            records.push(SceneGuideRecord.FromString(lines.slice(i, i + 4)));
+            if (array.length < 4) break;
+            records.push(SceneGuideRecord.FromString(array));
         }
         return records;
     }

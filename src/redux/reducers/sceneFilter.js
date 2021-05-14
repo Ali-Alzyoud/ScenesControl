@@ -1,4 +1,4 @@
-import { ADD_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM } from "../actionTypes";
+import { ADD_ITEMS, SET_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM } from "../actionTypes";
 
 const initialState = {
   records: [],
@@ -11,6 +11,13 @@ const SceneFilter = (state = initialState, action) => {
       return {
         ...state,
         records: [...state.records, ...records],
+      };
+    }
+    case SET_ITEMS: {
+      const { records } = action.payload;
+      return {
+        ...state,
+        records: [...records],
       };
     }
     case REMOVE_ITEM_INDEX: {
