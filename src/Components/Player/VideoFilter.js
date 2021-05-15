@@ -27,6 +27,7 @@ function VideoFilter({ records, time, setVolume, setTime, playerConfig }) {
     var skip = false;
     var black = false;
     var blur = false;
+    var blurExtra = false;
     var skipRecord = null;
 
     for (var i = 0; i < currentRecords.length; i++) {
@@ -44,6 +45,9 @@ function VideoFilter({ records, time, setVolume, setTime, playerConfig }) {
         if(playerConfig[record.Type] === PLAYER_ACTION.BLUR) {
             blur = true;
         }
+        if(playerConfig[record.Type] === PLAYER_ACTION.BLUR_EXTRA) {
+            blurExtra = true;
+        }
     }
 
     if (!mute) {
@@ -59,9 +63,11 @@ function VideoFilter({ records, time, setVolume, setTime, playerConfig }) {
     if (mute) {
         setVolume(0.0);
     }
-    if (blur || black) {
+    if (blur || black|| blurExtra) {
         if(blur)
             setStyle({ ...FilterStyle, backdropFilter: "blur(15px)" });
+        else if(blurExtra)
+            setStyle({ ...FilterStyle, backdropFilter: "blur(45px)" });
         else
             setStyle({ ...FilterStyle, background: "black" });
     }

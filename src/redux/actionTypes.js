@@ -13,6 +13,7 @@ export const UPDATE_ITEM = "UPDATE_ITEM";
 
 export const PLAYER_ACTION = {
     BLUR : 'Blur',
+    BLUR_EXTRA : 'Blur Extra',
     BLACK : 'Black screen',
     SKIP : 'Skip',
     MUTE : 'Mute',

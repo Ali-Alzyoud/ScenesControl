@@ -21,6 +21,7 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
                 <span>Violence</span>
                 <select onChange={onChange} name='violence' value={playerConfig.violence}>
                     <option value={PLAYER_ACTION.BLUR}>{PLAYER_ACTION.BLUR}</option>
+                    <option value={PLAYER_ACTION.BLUR_EXTRA}>{PLAYER_ACTION.BLUR_EXTRA}</option>
                     <option value={PLAYER_ACTION.BLACK}>{PLAYER_ACTION.BLACK}</option>
                     <option value={PLAYER_ACTION.SKIP}>{PLAYER_ACTION.SKIP}</option>
                     <option value={PLAYER_ACTION.MUTE}>{PLAYER_ACTION.MUTE}</option>
@@ -32,6 +33,7 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
                 <span>Nudity</span>
                 <select onChange={onChange} name='nudity' value={playerConfig.nudity}>
                     <option value={PLAYER_ACTION.BLUR}>{PLAYER_ACTION.BLUR}</option>
+                    <option value={PLAYER_ACTION.BLUR_EXTRA}>{PLAYER_ACTION.BLUR_EXTRA}</option>
                     <option value={PLAYER_ACTION.BLACK}>{PLAYER_ACTION.BLACK}</option>
                     <option value={PLAYER_ACTION.SKIP}>{PLAYER_ACTION.SKIP}</option>
                     <option value={PLAYER_ACTION.MUTE}>{PLAYER_ACTION.MUTE}</option>
@@ -43,6 +45,7 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
                 <span>Profanity</span>
                 <select onChange={onChange} name='profanity' value={playerConfig.profanity}>
                     <option value={PLAYER_ACTION.BLUR}>{PLAYER_ACTION.BLUR}</option>
+                    <option value={PLAYER_ACTION.BLUR_EXTRA}>{PLAYER_ACTION.BLUR_EXTRA}</option>
                     <option value={PLAYER_ACTION.BLACK}>{PLAYER_ACTION.BLACK}</option>
                     <option value={PLAYER_ACTION.SKIP}>{PLAYER_ACTION.SKIP}</option>
                     <option value={PLAYER_ACTION.MUTE}>{PLAYER_ACTION.MUTE}</option>
