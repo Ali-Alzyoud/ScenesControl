@@ -15,12 +15,6 @@ p.controltime {
     position: relative;
 }
 
-@media only screen and (max-width: 1024px) {
-    .playercontainer{
-        width: 100%;
-    }
-}
-
 .player{
     position: relative; 
     left: 0; 
@@ -41,4 +35,28 @@ p.controltime {
     position: absolute;
     bottom: 20px;
     width: 100%;
+}
+
+.controls{
+    width: 32px;
+    height: 32px;
+    color: white;
+}
+
+.left{
+    margin-right: 20px;
+}
+
+.right{
+    margin-left: 20px;
+}
+
+@media only screen and (max-width: 1024px) {
+    .playercontainer{
+        width: 100%;
+    }
+
+    .controls{
+        display: none;
+    }
 }

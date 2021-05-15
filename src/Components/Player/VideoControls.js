@@ -2,6 +2,15 @@ import React, { useEffect, useRef, useState } from 'react'
 import playicon from '../../assets/play.png';
 import pauseicon from '../../assets/pause.png';
 import fullicon from '../../assets/full-screen.png';
+
+import {MdForward5} from 'react-icons/md'
+import {MdForward10} from 'react-icons/md'
+import {MdForward30} from 'react-icons/md'
+
+import {MdReplay5} from 'react-icons/md'
+import {MdReplay10} from 'react-icons/md'
+import {MdReplay30} from 'react-icons/md'
+
 import './style.css'
 
 import { connect } from "react-redux";
@@ -149,6 +158,9 @@ function VideoControls({    time,
                 </div>
             </div>
             <p ref={timeLabel} className='controltime'/>
+            {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} />
+            <MdReplay10 className='controls left' onClick={()=>{setTime(time-10)}} /> */}
+            <MdReplay5  className='controls left' onClick={()=>{setTime(time-5)}} />
             <img id="btn_play"
                 src={
                     (playerState === 'pause') ?
@@ -160,6 +172,9 @@ function VideoControls({    time,
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
             />
+            <MdForward5 className='controls right' onClick={()=>{setTime(time+5)}} />
+            {/* <MdForward10 className='controls right' onClick={()=>{setTime(time+10)}} />
+            <MdForward30 className='controls right' onClick={()=>{setTime(time+30)}} /> */}
             <img id="full-screen"
                 src={fullicon}
                 alt='error'
