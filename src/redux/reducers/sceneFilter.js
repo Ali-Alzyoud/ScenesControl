@@ -10,7 +10,7 @@ const SceneFilter = (state = initialState, action) => {
       const { records } = action.payload;
       return {
         ...state,
-        records: [...state.records, ...records],
+        records: [...records, ...state.records],
       };
     }
     case SET_ITEMS: {

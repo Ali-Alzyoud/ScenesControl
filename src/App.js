@@ -18,18 +18,39 @@ import ToggleButton from './Components/ToggleButton'
 import { connect } from "react-redux";
 import { addFilterItems, setVideoSrc, setSubtitle } from './redux/actions'
 
-function App({addFilterItems, setVideoSrc, setSubtitle }) {
+function App({ addFilterItems, setVideoSrc, setSubtitle }) {
 
-  const [showEditor,setShowEditor] = useState(false);
-  const [showConfig,setShowConfig] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
 
   useEffect(() => {
     setVideoSrc(videoSample);
-    SrtClass.ReadFile(subtitleSample).then((records)=>{setSubtitle(records)});
-    SceneGuideClass.ReadFile(filterSample).then((records)=>{
+    SrtClass.ReadFile(subtitleSample).then((records) => { setSubtitle(records) });
+    SceneGuideClass.ReadFile(filterSample).then((records) => {
       addFilterItems(records);
     });
   }, []);
+
+  useEffect(() => {
+    const KEY = {
+      E: 69,
+      C: 67,
+    };
+    const handleKeyDown = (e) => {
+      switch (e.keyCode) {
+        case KEY.E:
+          setShowEditor(!showEditor);
+          break;
+        case KEY.C:
+          setShowConfig(!showConfig);
+          break;
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [showEditor, showConfig]);
 
   return (
     <div className="App">
@@ -37,16 +58,16 @@ function App({addFilterItems, setVideoSrc, setSubtitle }) {
       <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
         <Player />
       </div>
-      <ToggleButton on={showEditor} onClick={() => {setShowEditor(!showEditor)}}>Editor</ToggleButton>
-      <ToggleButton on={showConfig} onClick={() => {setShowConfig(!showConfig)}}>Config</ToggleButton>
+      <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
+      <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
       {showEditor &&
         <div className='filter-container'>
-            <FilterEditor />
+          <FilterEditor />
         </div>
       }
       {showConfig &&
         <div className='config-container'>
-            <ConfigEditor />
+          <ConfigEditor />
         </div>
       }
     </div>

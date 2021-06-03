@@ -10,7 +10,7 @@ const initialState = {
   playerState: 'pause',
   playerConfig: {
     violence : PLAYER_ACTION.BLUR,
-    nudity : PLAYER_ACTION.BLUR,
+    nudity : PLAYER_ACTION.BLUR_EXTRA,
     profanity : PLAYER_ACTION.MUTE,
   }
 };

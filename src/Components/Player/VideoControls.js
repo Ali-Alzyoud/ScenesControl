@@ -3,13 +3,13 @@ import playicon from '../../assets/play.png';
 import pauseicon from '../../assets/pause.png';
 import fullicon from '../../assets/full-screen.png';
 
-import {MdForward5} from 'react-icons/md'
-import {MdForward10} from 'react-icons/md'
-import {MdForward30} from 'react-icons/md'
+import { MdForward5 } from 'react-icons/md'
+import { MdForward10 } from 'react-icons/md'
+import { MdForward30 } from 'react-icons/md'
 
-import {MdReplay5} from 'react-icons/md'
-import {MdReplay10} from 'react-icons/md'
-import {MdReplay30} from 'react-icons/md'
+import { MdReplay5 } from 'react-icons/md'
+import { MdReplay10 } from 'react-icons/md'
+import { MdReplay30 } from 'react-icons/md'
 
 import './style.css'
 
@@ -58,14 +58,14 @@ var seekbuttonStyle = {
     marginTop: '16px'
 }
 
-function VideoControls({    time,
-                            setTime,
-                            duration,
-                            visible,
-                            playerState,
-                            setPlayerState,
-                            onFullscreen
-                        }) {
+function VideoControls({ time,
+    setTime,
+    duration,
+    visible,
+    playerState,
+    setPlayerState,
+    onFullscreen
+}) {
 
     const seekbutton = useRef(null);
     const seekbar = useRef(null);
@@ -85,18 +85,44 @@ function VideoControls({    time,
         let h = Math.floor(time / (60 * 60) % 24);
         let m = Math.floor(time / (60) % 60);
         let s = Math.floor(time % 60);
-        if(h < 10) h = '0' + h;
-        if(m < 10) m = '0' + m;
-        if(s < 10) s = '0' + s;
+        if (h < 10) h = '0' + h;
+        if (m < 10) m = '0' + m;
+        if (s < 10) s = '0' + s;
         return h + ':' + m + ':' + s
     }
 
     useEffect(() => {
-        if (duration > 0){
+        if (duration > 0) {
             setProgress(Math.floor(time / duration * 100) / 100);
         }
         timeLabel.current.innerHTML = timeToString(time) + ' / ' + timeToString(duration);
     }, [time, duration]);
+
+    useEffect(() => {
+        const KEY = {
+            SPACE: 32,
+            LEFT: 37,
+            RIGHT: 39,
+        };
+        const handleKeyDown = (e) => {
+            const jump = e.shiftKey ? 1 : 5;
+            switch (e.keyCode) {
+                case KEY.SPACE:
+                    onPlayClick()
+                    break;
+                case KEY.LEFT:
+                    setTime(time - jump)
+                    break;
+                case KEY.RIGHT:
+                    setTime(time + jump)
+                    break;
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        }
+    }, [time, playerState]);
 
     const mouseMove = (e) => {
         updateSeek(e.clientX);
@@ -121,7 +147,7 @@ function VideoControls({    time,
         let progress = (x - rect.left) / rect.width;
         if (progress >= 1.0) progress = 1.0;
         if (progress < 0.0) progress = 0.0;
-        setTime( progress * duration );
+        setTime(progress * duration);
     }
 
     const mousedown = (e) => {
@@ -157,10 +183,10 @@ function VideoControls({    time,
                     />
                 </div>
             </div>
-            <p ref={timeLabel} className='controltime'/>
+            <p ref={timeLabel} className='controltime' />
             {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} />
             <MdReplay10 className='controls left' onClick={()=>{setTime(time-10)}} /> */}
-            <MdReplay5  className='controls left' onClick={()=>{setTime(time-5)}} />
+            <MdReplay5 className='controls left' onClick={() => { setTime(time - 5) }} />
             <img id="btn_play"
                 src={
                     (playerState === 'pause') ?
@@ -172,7 +198,7 @@ function VideoControls({    time,
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
             />
-            <MdForward5 className='controls right' onClick={()=>{setTime(time+5)}} />
+            <MdForward5 className='controls right' onClick={() => { setTime(time + 5) }} />
             {/* <MdForward10 className='controls right' onClick={()=>{setTime(time+10)}} />
             <MdForward30 className='controls right' onClick={()=>{setTime(time+30)}} /> */}
             <img id="full-screen"
@@ -189,9 +215,9 @@ function VideoControls({    time,
 
 const mapStateToProps = state => {
     return {
-      time: getTime(),
-      duration: getDuration(),
-      playerState: getPlayerState(),
+        time: getTime(),
+        duration: getDuration(),
+        playerState: getPlayerState(),
     };
 };
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { SceneIntensity, SceneType } from '../../common/SceneGuide'
 import {FaMinus, FaPen, FaSquare} from 'react-icons/fa'
 
-export default function FilterRecord({record, index, isSelected, removeItemIndex, selectItemIndex, updateItemIndex}) {
+export default function FilterRecord({record, index, isSelected, removeItem, selectItem, updateItem}) {
     var fromDates = record.From.split(":");
     var toDates = record.To.split(":");
     const [state, setState] = useState({
@@ -30,15 +30,15 @@ export default function FilterRecord({record, index, isSelected, removeItemIndex
     }
 
     const onRemove = () => {
-        removeItemIndex(index);
+        removeItem(record);
     }
 
     const onSelect = () => {
-        selectItemIndex(record, index);
+        selectItem(record);
     }
 
     const onBlur = () => {
-        updateItemIndex(record, index);
+        updateItem(record);
     }
 
     return (

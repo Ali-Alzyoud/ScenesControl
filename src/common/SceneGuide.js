@@ -70,7 +70,7 @@ var SceneGuideRecord = function (from, to, intensity, type) {
     from = from || "00:00:00.000";
     to = to || "00:00:00.000";
     intensity = intensity || SceneIntensity.Low;
-    type = type || SceneType.Violence;
+    type = type || SceneType.Nudity;
 
     this.From = from;
     this.To = to;
