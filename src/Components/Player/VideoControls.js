@@ -23,7 +23,7 @@ var styleControls = {
     zIndex: 99,
     opacity: 1,
     transition: 'opacity 3s',
-    position: 'relative'
+    position: 'relative',
 }
 
 var seekbarStyle = {
@@ -72,7 +72,7 @@ function VideoControls({ time,
     const timeLabel = useRef(null);
     let style;
     if (visible)
-        style = { ...styleControls, opacity: 1 };
+        style = { ...styleControls, opacity: 1};
     else
         style = { ...styleControls, opacity: 0 };
 

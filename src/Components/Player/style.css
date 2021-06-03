@@ -15,6 +15,10 @@ p.controltime {
     position: relative;
 }
 
+.hidden{
+    cursor: none;
+}
+
 .player{
     position: relative; 
     left: 0; 

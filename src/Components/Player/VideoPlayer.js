@@ -28,6 +28,7 @@ class VideoPlayer extends React.Component {
     };
     this.player = createRef();
     this.control = createRef();
+    this.hideTimer = null;
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -47,10 +48,19 @@ class VideoPlayer extends React.Component {
     }
     if ((playerState === 'play') && this.player.current.paused){
       this.player.current.play();
-      this.setState({ visible: false });
+      clearTimeout(this.hideTimer);
+      this.hideTimer = setTimeout(() => {
+        this.setState({ visible: false });
+        this.hideTimer = null;
+      }, 1000);
     }
     else if ((playerState === 'pause') && !this.player.current.paused){
       this.player.current.pause();
+      if(this.hideTimer)
+      {
+        clearTimeout(this.hideTimer);
+        this.hideTimer = null;
+      }
       this.setState({ visible: true });
     }
   }
@@ -67,14 +77,18 @@ class VideoPlayer extends React.Component {
     const { videoSrc, setTime, setDuration} = this.props;
     const {time, playerState, duration, visible} = this.state;
     return (
-      <div className='playercontainer'
+      <div className={`playercontainer ${visible ? '' : 'hidden'}`}
         onMouseMove={debounce(
           () => {
             this.setState({visible: true});
           },
           () => {
             if (this.player.current) {
-              this.setState({visible: this.player.current.paused});
+              clearTimeout(this.hideTimer);
+              this.hideTimer = setTimeout(() => {
+                this.setState({visible: this.player.current.paused});
+                this.hideTimer = null;
+              }, 1000);
             }
           },
           2000
