@@ -1,5 +1,6 @@
 export const SET_SUBTITLE = "SET_SUBTITLE";
 export const SET_VIDEO = "SET_VIDEO";
+export const SET_VIDEO_NAME = "SET_VIDEO_NAME";
 export const SET_TIME = "SET_TIME";
 export const SET_DURATION = "SET_DURATION";
 export const SET_VOLUME = "SET_VOLUME";

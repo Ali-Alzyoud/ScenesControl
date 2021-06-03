@@ -1,9 +1,10 @@
-import { SET_SUBTITLE, SET_VIDEO, SET_TIME, SET_DURATION, SET_VOLUME, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION } from "../actionTypes";
+import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION } from "../actionTypes";
 
 
 const initialState = {
   subtitle: [],
   videoSrc: null,
+  videoName: 'myFile',
   time: 0,
   duration: 0,
   volume: 1.0,
@@ -31,6 +32,13 @@ const Media = (state = initialState, action) => {
           videoSrc: videoSrc,
         };
       }
+    case SET_VIDEO_NAME: {
+      const {videoName} = action.payload;
+      return {
+        ...state,
+        videoName: videoName,
+      };
+    }
     case SET_TIME: {
       let { time } = action.payload;
       time = Math.max(time, 0);

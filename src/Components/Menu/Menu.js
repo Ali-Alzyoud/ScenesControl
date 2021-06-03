@@ -4,11 +4,11 @@ import { SceneGuideClass } from '../../common/SceneGuide'
 
 
 import { connect } from "react-redux";
-import { setFilterItems, setVideoSrc, setSubtitle } from '../../redux/actions'
+import { setFilterItems, setVideoSrc, setSubtitle, setVideoName } from '../../redux/actions'
 
 import './menu.css'
 
-function Menu({setFilterItems, setVideoSrc, setSubtitle}) {
+function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
     const videoInput = useRef(null);
     const subtitleInput = useRef(null);
     const filterInput = useRef(null);
@@ -16,6 +16,7 @@ function Menu({setFilterItems, setVideoSrc, setSubtitle}) {
     const openVideo = (e) => {
         if (e.target.files.length < 1) return;
         setVideoSrc(URL.createObjectURL(e.target.files[0]));
+        setVideoName(e.target.files[0].name);
         setkey(key + 1);
     }
     const openSubtitle = (e) => {
@@ -53,5 +54,5 @@ function Menu({setFilterItems, setVideoSrc, setSubtitle}) {
 
 export default connect(
     null,
-    { setVideoSrc, setSubtitle, setFilterItems }
+    { setVideoSrc, setVideoName, setSubtitle, setFilterItems }
   )(Menu);

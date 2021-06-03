@@ -4,12 +4,12 @@ import FilterRecord from './FilterRecord'
 import { SceneGuideRecord, SceneGuideClass } from '../../common/SceneGuide'
 
 import { connect } from "react-redux";
-import { getTime, getRecords } from '../../redux/selectors';
+import { getTime, getRecords, getVideoName } from '../../redux/selectors';
 import { addFilterItems, removeFilterIndex, updateFilterItem } from '../../redux/actions';
 
 import './style.css'
 
-function FilterFileEditor({ records, time, addFilterItems, removeFilterIndex, updateFilterItem }) {
+function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilterIndex, updateFilterItem }) {
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [key, setKey] = useState(0);
 
@@ -30,7 +30,14 @@ function FilterFileEditor({ records, time, addFilterItems, removeFilterIndex, up
                     break;
                 case KEY.S:
                     {
-                        selectItem(records[0]);
+                        if (e.ctrlKey)
+                        {
+                            saveItems();
+                        }
+                        else
+                        {
+                            selectItem(records[0]);
+                        }
                     }
                     break;
                 case KEY.OPEN_BRACKET:
@@ -106,7 +113,7 @@ function FilterFileEditor({ records, time, addFilterItems, removeFilterIndex, up
         const element = document.createElement("a");
         const file = new Blob([SceneGuideClass.ToString(records)], { type: 'text/plain' });
         element.href = URL.createObjectURL(file);
-        element.download = "myFile.txt";
+        element.download = videoName+".txt";
         document.body.appendChild(element); // Required for this to work in FireFox
         element.click();
     }
@@ -154,8 +161,9 @@ function FilterFileEditor({ records, time, addFilterItems, removeFilterIndex, up
 
 const mapStateToProps = state => {
     const records = getRecords();
+    const videoName = getVideoName();
     const time = getTime();
-    return { records, time };
+    return { records, time, videoName };
 };
 
 export default connect(mapStateToProps, { addFilterItems, removeFilterIndex, updateFilterItem })(FilterFileEditor);

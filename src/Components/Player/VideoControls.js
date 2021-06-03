@@ -103,9 +103,12 @@ function VideoControls({ time,
             SPACE: 32,
             LEFT: 37,
             RIGHT: 39,
+            F: 70,
         };
         const handleKeyDown = (e) => {
-            const jump = e.shiftKey ? 1 : 5;
+            let jump = e.shiftKey ? 1 : 5;
+            if (e.ctrlKey) jump*=2;
+
             switch (e.keyCode) {
                 case KEY.SPACE:
                     onPlayClick()
@@ -115,6 +118,9 @@ function VideoControls({ time,
                     break;
                 case KEY.RIGHT:
                     setTime(time + jump)
+                    break;
+                case KEY.F:
+                    onFullscreen()
                     break;
             }
         }

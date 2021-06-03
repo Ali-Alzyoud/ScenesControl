@@ -17,6 +17,11 @@ export const getVideoSrc = () => {
     return state.media.videoSrc;
 }
 
+export const getVideoName = () => {
+    const state = store.getState();
+    return state.media.videoName;
+}
+
 export const getTime = () => {
     const state = store.getState();
     return state.media.time;
