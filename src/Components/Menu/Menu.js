@@ -1,6 +1,7 @@
 import React, {useRef, useState} from 'react'
 import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass } from '../../common/SceneGuide'
+import About from '../About'
 
 
 import { connect } from "react-redux";
@@ -13,6 +14,7 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
     const subtitleInput = useRef(null);
     const filterInput = useRef(null);
     const [key, setkey] = useState(0);
+    const [about, setabout] = useState(false);
     const openVideo = (e) => {
         if (e.target.files.length < 1) return;
         setVideoSrc(URL.createObjectURL(e.target.files[0]));
@@ -48,6 +50,11 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
                     <a href="#" onClick={() => filterInput.current.click()}>Open filter</a>
                 </div>
             </div>
+            <div className="dropdown">
+                <button className="dropbtn" onClick={() => {setabout(true) }}>About
+                </button>
+            </div>
+            { about && <About close={()=>{setabout(false)}}/> }
         </div>
     )
 }

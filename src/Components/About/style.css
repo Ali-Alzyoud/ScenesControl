@@ -1,0 +1,31 @@
+.overlay{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 10;
+}
+
+.box{
+    position: absolute;
+    left: 20%;
+    top: 20%;
+    width: 60%;
+    width: 60%;
+    background: white;
+}
+
+.button {
+    background-color: #7f7f7f;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+  }
