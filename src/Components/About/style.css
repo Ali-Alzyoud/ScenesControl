@@ -25,7 +25,19 @@
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 16px;
+    font-size: 12px;
     margin: 4px 2px;
     cursor: pointer;
-  }
+}
+
+.part {
+    display: inline-block;
+    text-align: left;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+p {
+    text-align: left;
+    margin-left: 30px;
+}
