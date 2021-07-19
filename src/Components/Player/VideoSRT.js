@@ -1,4 +1,5 @@
 import React from 'react'
+import parser from  'html-react-parser'
 
 import { connect } from "react-redux";
 import { getTime, getSubtitle, getSubtitleAtTime } from '../../redux/selectors';
@@ -19,7 +20,7 @@ function VideoSRT({ subtitle, time }) {
 
     return (
         <div style={style}>
-            {getSubtitleAtTime(time).join('\n')}
+            {parser(getSubtitleAtTime(time).join('\n'))}
         </div>
     )
 }

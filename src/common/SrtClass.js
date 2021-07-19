@@ -13,13 +13,25 @@ class SrtRecord {
 
     return time;
   }
+  /**
+   * Replace SRT tags like 'font color', 'b', 'i', 'u',
+   * @param {String} content
+   * @returns content with replaced tags
+   */
+  static ResolveTags(content){
+    // FIXME handle b,i,u cases
+    content = content.replace('<font color="', '<span style="color:');
+    content = content.replace('</font>', '</span>');
+    return content;
+  }
   constructor(lines, index) {
     let timeFields = lines[index].split("-->");
     this.from = SrtRecord.ConvertToTime(timeFields[0]);
     this.to = SrtRecord.ConvertToTime(timeFields[1]);
     this.content = [];
     while((lines.length > (index + 1 + this.content.length)) && lines[index + 1 + this.content.length].length !== 0){
-      this.content.push(lines[index + 1 + this.content.length]);
+      const contentValue = lines[index + 1 + this.content.length];
+      this.content.push(SrtRecord.ResolveTags(contentValue));
     }
   }
 }
