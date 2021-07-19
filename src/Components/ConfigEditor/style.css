@@ -16,3 +16,7 @@
     display: inline-block;
     width: 100px;
 }
+
+.item > select{
+    margin-left: 5px;
+}

@@ -32,20 +32,20 @@ function VideoFilter({ records, time, setVolume, setTime, playerConfig }) {
 
     for (var i = 0; i < currentRecords.length; i++) {
         var record = currentRecords[i];
-        if(playerConfig[record.Type] === PLAYER_ACTION.MUTE) {
+        if(playerConfig[record.Type][0] === PLAYER_ACTION.MUTE || playerConfig[record.Type][1] === PLAYER_ACTION.MUTE) {
             mute = true;
         }
-        if(playerConfig[record.Type] === PLAYER_ACTION.SKIP) {
+        if(playerConfig[record.Type][0] === PLAYER_ACTION.SKIP || playerConfig[record.Type][1] === PLAYER_ACTION.SKIP) {
             skip = true;
             skipRecord = record;
         }
-        if(playerConfig[record.Type] === PLAYER_ACTION.BLACK) {
+        if(playerConfig[record.Type][0] === PLAYER_ACTION.BLACK || playerConfig[record.Type][1] === PLAYER_ACTION.BLACK) {
             black = true;
         }
-        if(playerConfig[record.Type] === PLAYER_ACTION.BLUR) {
+        if(playerConfig[record.Type][0] === PLAYER_ACTION.BLUR || playerConfig[record.Type][1] === PLAYER_ACTION.BLUR) {
             blur = true;
         }
-        if(playerConfig[record.Type] === PLAYER_ACTION.BLUR_EXTRA) {
+        if(playerConfig[record.Type][0] === PLAYER_ACTION.BLUR_EXTRA || playerConfig[record.Type][1] === PLAYER_ACTION.BLUR_EXTRA) {
             blurExtra = true;
         }
     }
