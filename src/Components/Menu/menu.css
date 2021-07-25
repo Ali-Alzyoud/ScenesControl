@@ -57,6 +57,7 @@
   .dropdown:hover .dropdown-content {
     display: block;
   }
-  input {
+
+  input.hidden {
       display: none;
   }
