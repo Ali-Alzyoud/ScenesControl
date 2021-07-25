@@ -17,16 +17,37 @@ import ToggleButton from './Components/ToggleButton'
 
 import { connect } from "react-redux";
 import { addFilterItems, setVideoSrc, setSubtitle } from './redux/actions'
+import { useParams } from "react-router-dom";
 
-function App({ addFilterItems, setVideoSrc, setSubtitle }) {
+function App(props) {
 
+  const { addFilterItems, setVideoSrc, setSubtitle } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
+  const paramsURL = useParams();
+
 
   useEffect(() => {
-    setVideoSrc(videoSample);
-    SrtClass.ReadFile(subtitleSample).then((records) => { setSubtitle(records) });
-    SceneGuideClass.ReadFile(filterSample).then((records) => {
+    let videoURL = videoSample;
+    let subtitleURL = subtitleSample;
+    let filterURL = filterSample;
+
+    const params = paramsURL[0].split('/');
+    if (paramsURL!='/' && params.length >= 2){
+      if(params[1] && params[1].length>0){
+        videoURL = atob(params[1]);
+      }
+      if(params[2] && params[2].length>0){
+        subtitleURL = atob(params[2]);
+      }
+      if(params[3] && params[3].length>0){
+        filterURL = atob(params[3]);
+      }
+    }
+
+    setVideoSrc(videoURL);
+    SrtClass.ReadFile(subtitleURL).then((records) => { setSubtitle(records) });
+    SceneGuideClass.ReadFile(filterURL).then((records) => {
       addFilterItems(records);
     });
   }, []);
