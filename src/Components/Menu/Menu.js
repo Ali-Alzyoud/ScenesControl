@@ -13,7 +13,7 @@ import './menu.css'
 const videoSample = 'https://github.com/Ali-Alzyoud/ScenesControl/raw/main/src/assets/sample.webm'
 const subtitleSample = 'https://raw.githubusercontent.com/Ali-Alzyoud/ScenesControl/main/src/assets/sample.srt'
 const filterSample = 'https://raw.githubusercontent.com/Ali-Alzyoud/ScenesControl/main/src/assets/filter.txt'
-
+const BASE64Sample = '#/aHR0cHM6Ly9naXRodWIuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvcmF3L21haW4vc3JjL2Fzc2V0cy9zYW1wbGUud2VibQ==/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvbWFpbi9zcmMvYXNzZXRzL3NhbXBsZS5zcnQ=/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvbWFpbi9zcmMvYXNzZXRzL2ZpbHRlci50eHQ=';
 
 function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
     const videoInput = useRef(null);
@@ -97,6 +97,10 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
                     <br/>
                     <a href="#" onClick={loadURLS}>LOAD</a>
                 </div>
+            </div>
+            <div className="dropdown">
+                <button className="dropbtn" onClick={() => {window.location.href= window.location.origin + '/' + BASE64Sample }}>Url-Params
+                </button>
             </div>
             <div className="dropdown">
                 <button className="dropbtn" onClick={() => {setabout(true) }}>About

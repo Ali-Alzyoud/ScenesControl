@@ -12,13 +12,13 @@ This way consume content by users, will be adoubt user preferences, For example 
 https://scenescontrol.netlify.app/
 
 
-<a src='https://scenescontrol.netlify.app/aHR0cHM6Ly9naXRodWIuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvcmF3L21haW4vc3JjL2Fzc2V0cy9zYW1wbGUud2VibQ==/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvbWFpbi9zcmMvYXNzZXRzL3NhbXBsZS5zcnQ=/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvbWFpbi9zcmMvYXNzZXRzL2ZpbHRlci50eHQ='>
+<a src='https://scenescontrol.netlify.app/#/aHR0cHM6Ly9naXRodWIuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvcmF3L21haW4vc3JjL2Fzc2V0cy9zYW1wbGUud2VibQ==/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvbWFpbi9zcmMvYXNzZXRzL3NhbXBsZS5zcnQ=/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvbWFpbi9zcmMvYXNzZXRzL2ZpbHRlci50eHQ='>
 Demo_With_URL_Params
 </a>
 <br/>
 
 ```
-DemoURL/Param1/Param2/Param3
+DemoURL/#/Param1/Param2/Param3
 
 Param1: VideoURLBase64
 Param2: SubtitleURLBase64
