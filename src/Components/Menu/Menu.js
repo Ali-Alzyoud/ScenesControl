@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react'
+import React, {useRef, useState, useEffect} from 'react'
 import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass } from '../../common/SceneGuide'
 import About from '../About'
@@ -45,6 +45,11 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
         });
         setkey(key + 1);
     }
+    useEffect(() => {
+        videoInputURL.current.value = videoSample;
+        subtitleInputURL.current.value = subtitleSample;
+        filterInputURL.current.value = filterSample;
+    }, [])
     const loadURLS = () => {
         const vidURL = videoInputURL.current.value;
         const subURL = subtitleInputURL.current.value;
@@ -87,13 +92,13 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
                 </button>
                 <div className="dropdown-content">
                     <span>{' Video: '}</span>
-                    <input ref={videoInputURL} type='text' value={videoSample}/>
+                    <input ref={videoInputURL} type='text'/>
                     <br/>
                     <span>{' Subtitle: '}</span>
-                    <input ref={subtitleInputURL} type='text' value={subtitleSample}/>
+                    <input ref={subtitleInputURL} type='text'/>
                     <br/>
                     <span>{' Filter: '}</span>
-                    <input ref={filterInputURL} type='text' value={filterSample}/>
+                    <input ref={filterInputURL} type='text'/>
                     <br/>
                     <a href="#" onClick={loadURLS}>LOAD</a>
                 </div>
