@@ -3,10 +3,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Player } from './Components/Player';
 
 
-import videoSample from './assets/sample.webm'
-import filterSample from './assets/filter.txt'
-import subtitleSample from './assets/sample.srt'
-
 import Menu from './Components/Menu'
 import SrtClass from './common/SrtClass'
 import FilterEditor from './Components/FilterFileEditor'
@@ -20,13 +16,17 @@ import { addFilterItems, setVideoSrc, setSubtitle } from './redux/actions'
 
 function App(props) {
 
+  const videoSample = 'video/joker/v.webm'
+  const filterSample = 'video/joker/f.txt'
+  const subtitleSample = 'video/joker/s.srt'
+
   const { addFilterItems, setVideoSrc, setSubtitle } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [forceupdate, setForceUpdate] = useState(0);
 
   const loadAll = () => {
-    let videoURL = videoSample;
+      let videoURL = videoSample;
       let subtitleURL = subtitleSample;
       let filterURL = filterSample;
       const paramsURL = window.location.hash;

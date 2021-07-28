@@ -9,12 +9,6 @@ import { setFilterItems, setVideoSrc, setSubtitle, setVideoName } from '../../re
 
 import './menu.css'
 
-//ali.m
-const videoSample = 'https://github.com/Ali-Alzyoud/ScenesControl/raw/main/src/assets/sample.webm'
-const subtitleSample = 'https://raw.githubusercontent.com/Ali-Alzyoud/ScenesControl/main/src/assets/sample.srt'
-const filterSample = 'https://raw.githubusercontent.com/Ali-Alzyoud/ScenesControl/main/src/assets/filter.txt'
-const BASE64Sample = '#/aHR0cHM6Ly9naXRodWIuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvcmF3L21haW4vc3JjL2Fzc2V0cy9zYW1wbGUud2VibQ==/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvbWFpbi9zcmMvYXNzZXRzL3NhbXBsZS5zcnQ=/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL0FsaS1BbHp5b3VkL1NjZW5lc0NvbnRyb2wvbWFpbi9zcmMvYXNzZXRzL2ZpbHRlci50eHQ=';
-
 function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
     const videoInput = useRef(null);
     const subtitleInput = useRef(null);
@@ -24,6 +18,7 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
     const filterInputURL = useRef(null);
     const [key, setkey] = useState(0);
     const [about, setabout] = useState(false);
+    const [files, setFiles] = useState({});
     const openVideoFile = (e) => {
         if (e.target.files.length < 1) return;
         setVideoSrc(URL.createObjectURL(e.target.files[0]));
@@ -46,9 +41,11 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
         setkey(key + 1);
     }
     useEffect(() => {
-        videoInputURL.current.value = videoSample;
-        subtitleInputURL.current.value = subtitleSample;
-        filterInputURL.current.value = filterSample;
+        fetch('videos.json').then(res =>{
+            res.json().then(content => {
+                setFiles(content);
+            });
+        });
     }, [])
     const loadURLS = () => {
         const vidURL = videoInputURL.current.value;
@@ -104,8 +101,16 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
                 </div>
             </div>
             <div className="dropdown">
-                <button className="dropbtn" onClick={() => {window.location.href= window.location.origin + '/' + BASE64Sample }}>Url-Params
+            <button className="dropbtn">Samples
                 </button>
+            <div className="dropdown-content samples">
+                {files.length>0 && files.map(file => {
+                    return <a onClick={() => {
+                        window.location.href= window.location.origin + '#/' + btoa(file.video) + '/' + btoa(file.subtitle) + '/' + btoa(file.filter);
+
+                    }}>{file.name}</a>
+                })}
+            </div>
             </div>
             <div className="dropdown">
                 <button className="dropbtn" onClick={() => {setabout(true) }}>About
