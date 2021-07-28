@@ -8,6 +8,7 @@ import { connect } from "react-redux";
 import { setFilterItems, setVideoSrc, setSubtitle, setVideoName } from '../../redux/actions'
 
 import './menu.css'
+import { Fragment } from 'react';
 
 function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
     const videoInput = useRef(null);
@@ -105,10 +106,13 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
                 </button>
             <div className="dropdown-content samples">
                 {files.length>0 && files.map(file => {
-                    return <a onClick={() => {
-                        window.location.href= window.location.origin + '#/' + btoa(file.video) + '/' + btoa(file.subtitle) + '/' + btoa(file.filter);
+                    return <Fragment>
+                        <a onClick={() => {
+                            window.location.href= window.location.origin + '#/' + btoa(file.video) + '/' + btoa(file.subtitle) + '/' + btoa(file.filter);
 
-                    }}>{file.name}</a>
+                        }}>{file.name}</a>
+                        <img src={file.poster} width={120} height={120}/>
+                    </Fragment>
                 })}
             </div>
             </div>
