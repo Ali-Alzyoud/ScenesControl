@@ -90,14 +90,14 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
             <div className="dropdown">
                 <button className="dropbtn">URL
                 </button>
-                <div className="dropdown-content">
-                    <span>{' Video: '}</span>
+                <div className="dropdown-content files">
+                    <span>{'Video :'}</span>
                     <input ref={videoInputURL} type='text'/>
                     <br/>
-                    <span>{' Subtitle: '}</span>
+                    <span>{'Subtitle :'}</span>
                     <input ref={subtitleInputURL} type='text'/>
                     <br/>
-                    <span>{' Filter: '}</span>
+                    <span>{'Filter :'}</span>
                     <input ref={filterInputURL} type='text'/>
                     <br/>
                     <a href="#" onClick={loadURLS}>LOAD</a>

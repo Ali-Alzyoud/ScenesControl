@@ -40,7 +40,26 @@
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 10;
   }
-  
+
+  .dropdown-content.files > span{
+        margin-left: 10px;
+        display: inline-block;
+        width: 70px;
+        text-align: left;
+  }
+
+  .dropdown-content.files > input{
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
+  .dropdown-content.files > a{
+    background: #4f4f4d;
+    color: #fff;
+    margin-top: 10px;
+    text-align: center;
+  }
+
   .dropdown-content a {
     float: none;
     color: black;
