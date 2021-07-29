@@ -65,7 +65,7 @@
     padding-right: 20px;
   }
 
-  .dropdown-content.samples > img{
+  .dropdown-content.samples > div > img{
     margin-bottom: 20px;
     object-fit: contain;
   }
@@ -81,6 +81,10 @@
   
   .dropdown-content a:hover {
     background-color: #aaa;
+  }
+
+  .dropdown-content div:hover {
+    background-color: #999;
   }
   
   .dropdown:hover .dropdown-content {
