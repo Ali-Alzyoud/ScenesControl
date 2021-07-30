@@ -104,6 +104,10 @@ function VideoControls({ time,
             LEFT: 37,
             RIGHT: 39,
             F: 70,
+
+            MEDIA_PLAY_PAUSE:   179,
+            FAST_FORWARD:       417,
+            REWIND:             412,
         };
         const handleKeyDown = (e) => {
             let jump = e.shiftKey ? 1 : 5;
@@ -111,12 +115,15 @@ function VideoControls({ time,
 
             switch (e.keyCode) {
                 case KEY.SPACE:
+                case KEY.MEDIA_PLAY_PAUSE:
                     onPlayClick()
                     break;
                 case KEY.LEFT:
+                case KEY.REWIND:
                     setTime(time - jump)
                     break;
                 case KEY.RIGHT:
+                case KEY.FAST_FORWARD:
                     setTime(time + jump)
                     break;
                 case KEY.F:
