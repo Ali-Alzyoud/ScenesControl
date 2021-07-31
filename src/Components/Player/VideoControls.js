@@ -197,6 +197,7 @@ function VideoControls({ time,
                 </div>
             </div>
             <p ref={timeLabel} className='controltime' />
+            <div className='main-controls'>
             {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} />
             <MdReplay10 className='controls left' onClick={()=>{setTime(time-10)}} /> */}
             <MdReplay5 className='controls left' onClick={() => { setTime(time - 5) }} />
@@ -214,6 +215,7 @@ function VideoControls({ time,
             <MdForward5 className='controls right' onClick={() => { setTime(time + 5) }} />
             {/* <MdForward10 className='controls right' onClick={()=>{setTime(time+10)}} />
             <MdForward30 className='controls right' onClick={()=>{setTime(time+30)}} /> */}
+            </div>
             <img id="full-screen"
                 src={fullicon}
                 alt='error'

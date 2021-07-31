@@ -25,11 +25,15 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
         setPlayerConfig({[e.target.name]: [firstValue, e.target.value]});
     }
 
-    const options = [
+    const options_video = [
         <option value={PLAYER_ACTION.BLUR}>{PLAYER_ACTION.BLUR}</option>,
         <option value={PLAYER_ACTION.BLUR_EXTRA}>{PLAYER_ACTION.BLUR_EXTRA}</option>,
         <option value={PLAYER_ACTION.BLACK}>{PLAYER_ACTION.BLACK}</option>,
         <option value={PLAYER_ACTION.SKIP}>{PLAYER_ACTION.SKIP}</option>,
+        <option value={PLAYER_ACTION.NOACTION}>{PLAYER_ACTION.NOACTION}</option>
+    ];
+
+    const options_audio = [
         <option value={PLAYER_ACTION.MUTE}>{PLAYER_ACTION.MUTE}</option>,
         <option value={PLAYER_ACTION.NOACTION}>{PLAYER_ACTION.NOACTION}</option>
     ];
@@ -39,30 +43,30 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
             <div className='item'>
                 <span>Violence</span>
                 <select onChange={onChange} name='violence' value={playerConfig.violence[0]}>
-                    {options.map((option) => option)}
+                    {options_video.map((option) => option)}
                 </select>
                 <select onChange={onChange2} name='violence' value={playerConfig.violence[1]}>
-                    {options.map((option) => option)}
+                    {options_audio.map((option) => option)}
                 </select>
             </div>
 
             <div className='item'>
                 <span>Nudity</span>
                 <select onChange={onChange} name='nudity' value={playerConfig.nudity[0]}>
-                    {options.map((option) => option)}
+                    {options_video.map((option) => option)}
                 </select>
                 <select onChange={onChange2} name='nudity' value={playerConfig.nudity[1]}>
-                    {options.map((option) => option)}
+                    {options_audio.map((option) => option)}
                 </select>
             </div>
 
             <div className='item'>
                 <span>Profanity</span>
                 <select onChange={onChange} name='profanity' value={playerConfig.profanity[0]}>
-                    {options.map((option) => option)}
+                    {options_video.map((option) => option)}
                 </select>
                 <select onChange={onChange2} name='profanity' value={playerConfig.profanity[1]}>
-                    {options.map((option) => option)}
+                    {options_audio.map((option) => option)}
                 </select>
             </div>
         </div>

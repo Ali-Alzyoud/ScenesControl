@@ -55,6 +55,13 @@ p.controltime {
     margin-left: 20px;
 }
 
+.main-controls{
+    display: inline-block;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
 @media only screen and (max-width: 1024px) {
     .playercontainer{
         width: 100%;

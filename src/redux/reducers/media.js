@@ -12,7 +12,7 @@ const initialState = {
   playerConfig: {
     violence : [PLAYER_ACTION.BLUR, PLAYER_ACTION.NOACTION],
     nudity : [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
-    profanity : [PLAYER_ACTION.MUTE, PLAYER_ACTION.NOACTION],
+    profanity : [PLAYER_ACTION.NOACTION, PLAYER_ACTION.MUTE],
   }
 };
 
