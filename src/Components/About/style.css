@@ -37,7 +37,7 @@
     margin-right: 20px;
 }
 
-p {
+.overlay > p {
     text-align: left;
     margin-left: 30px;
 }

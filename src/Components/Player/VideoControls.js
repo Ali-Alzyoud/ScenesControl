@@ -16,14 +16,16 @@ import './style.css'
 import { connect } from "react-redux";
 import { getTime, getDuration, getPlayerState } from '../../redux/selectors';
 import { setTime, setPlayerState } from '../../redux/actions';
+import { Fragment } from 'react';
 
 var styleControls = {
-    margin: '0 auto',
     width: '80%',
     zIndex: 99,
     opacity: 1,
     transition: 'opacity 3s',
-    position: 'relative',
+    position: 'absolute',
+    left: '10%',
+    height: '100%',
 }
 
 var seekbarStyle = {
@@ -31,6 +33,8 @@ var seekbarStyle = {
     width: '100%',
     height: '5px',
     background: 'gray',
+    position: 'absolute',
+    bottom: '50px',
 }
 
 var seekbarStyleProgress = {
@@ -181,7 +185,29 @@ function VideoControls({ time,
         }
     }
 
+    const player_controls = (
+        <div className='main-controls'>
+            {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} /> */}
+            {/* <MdReplay10 className='controls left' onClick={()=>{setTime(time-10)}} /> */}
+            <MdReplay5 className='controls left' onClick={() => { setTime(time - 5) }} />
+            <img id="btn_play"
+                src={
+                    (playerState === 'pause') ?
+                        playicon : pauseicon
+                }
+                alt='error'
+                style={styleButton}
+                onClick={onPlayClick}
+                onMouseEnter={() => { mousein("Button") }}
+                onMouseLeave={() => { mouseout("Button") }}
+            />
+            <MdForward5 className='controls right' onClick={() => { setTime(time + 5) }} />
+            {/* <MdForward10 className='controls right' onClick={()=>{setTime(time+10)}} /> */}
+            {/* <MdForward30 className='controls right' onClick={()=>{setTime(time+30)}} /> */}
+        </div>
+    );
     return (
+        <Fragment>
         <div style={style}>
             <div style={seekbarStyle} ref={seekbar} onMouseDown={mousedown} onMouseUp={cleanDocEvents}>
                 <div style={{ ...styleProgress, width: (progress * 100) + '%' }}>
@@ -197,34 +223,17 @@ function VideoControls({ time,
                 </div>
             </div>
             <p ref={timeLabel} className='controltime' />
-            <div className='main-controls'>
-            {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} />
-            <MdReplay10 className='controls left' onClick={()=>{setTime(time-10)}} /> */}
-            <MdReplay5 className='controls left' onClick={() => { setTime(time - 5) }} />
-            <img id="btn_play"
-                src={
-                    (playerState === 'pause') ?
-                        playicon : pauseicon
-                }
-                alt='error'
-                style={styleButton}
-                onClick={onPlayClick}
-                onMouseEnter={() => { mousein("Button") }}
-                onMouseLeave={() => { mouseout("Button") }}
-            />
-            <MdForward5 className='controls right' onClick={() => { setTime(time + 5) }} />
-            {/* <MdForward10 className='controls right' onClick={()=>{setTime(time+10)}} />
-            <MdForward30 className='controls right' onClick={()=>{setTime(time+30)}} /> */}
-            </div>
+            {player_controls}
             <img id="full-screen"
                 src={fullicon}
                 alt='error'
-                style={{ ...styleButton, float: "right" }}
+                style={{ ...styleButton, bottom: '10px', position: 'absolute', right: '0'}}
                 onClick={onFullscreen}
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
             />
         </div>
+        </Fragment>
     );
 }
 

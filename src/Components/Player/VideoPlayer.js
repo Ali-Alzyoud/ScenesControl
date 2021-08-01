@@ -109,9 +109,9 @@ class VideoPlayer extends React.Component {
         <div
           style={{
             display: "grid",
-            position: "relative",
+            position: "absolute",
             gridTemplateRows: "60% 20% 20%",
-            top: "-100%",
+            top: "0%",
             left: 0,
             width: "100%",
             height: "100%",

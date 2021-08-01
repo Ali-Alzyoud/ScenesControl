@@ -2,11 +2,11 @@
     user-select: none;
 }
 p.controltime {
-    float: left;
-    left: 20px;
+    left: 0;
     font-size: small;
     position: absolute;
     color: white;
+    bottom: 10px;
 }
 
 .playercontainer{
@@ -37,7 +37,8 @@ p.controltime {
 
 .controlscontainer{
     position: absolute;
-    bottom: 20px;
+    top: 0;
+    height: 100%;
     width: 100%;
 }
 
@@ -59,7 +60,8 @@ p.controltime {
     display: inline-block;
     position: absolute;
     left: 50%;
-    transform: translateX(-50%);
+    top:50%;
+    transform: translateX(-50%) translateY(-50%);
 }
 
 @media only screen and (max-width: 1024px) {
