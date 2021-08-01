@@ -38,7 +38,6 @@ var seekbarStyle = {
 }
 
 var seekbarStyleProgress = {
-    marginTop: '-5px',
     width: '100%',
     height: '5px',
     background: 'white',
