@@ -1,4 +1,4 @@
-import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, ADD_ITEMS, SET_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM, SET_PLAYER_STATE, SET_PLAYER_CONFIG } from "./actionTypes";
+import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_SPEED, ADD_ITEMS, SET_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM, SET_PLAYER_STATE, SET_PLAYER_CONFIG } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
   type: SET_SUBTITLE,
@@ -33,6 +33,12 @@ export const setVolume = (volume) => {
   return {
     type: SET_VOLUME,
     payload: { volume }
+  }
+};
+export const setSpeed = (speed) => {
+  return {
+    type: SET_SPEED,
+    payload: { speed }
   }
 };
 export const setPlayerState = (playerState) => {

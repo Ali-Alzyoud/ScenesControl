@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { connect } from "react-redux";
 import { getTime, getRecords, getRecordsAtTime, getPlayerConfig } from '../../redux/selectors';
-import { setVolume, setTime } from "../../redux/actions";
+import { setVolume, setTime, setSpeed } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
 
 
@@ -16,7 +16,7 @@ var FilterStyle = {
   zIndex: 2,
 };
 
-function VideoFilter({ records, time, setVolume, setTime, playerConfig }) {
+function VideoFilter({ records, time, setVolume, setTime, setSpeed, playerConfig }) {
   const [style, setStyle] = useState(FilterStyle);
 
   useEffect(() => {
@@ -28,6 +28,8 @@ function VideoFilter({ records, time, setVolume, setTime, playerConfig }) {
     var black = false;
     var blur = false;
     var blurExtra = false;
+    var blurExtreme = false;
+    var doubleSpeed = false;
     var skipRecord = null;
 
     for (var i = 0; i < currentRecords.length; i++) {
@@ -48,6 +50,13 @@ function VideoFilter({ records, time, setVolume, setTime, playerConfig }) {
         if(playerConfig[record.Type][0] === PLAYER_ACTION.BLUR_EXTRA || playerConfig[record.Type][1] === PLAYER_ACTION.BLUR_EXTRA) {
             blurExtra = true;
         }
+        if(playerConfig[record.Type][0] === PLAYER_ACTION.BLUR_EXTREME || playerConfig[record.Type][1] === PLAYER_ACTION.BLUR_EXTREME) {
+            blurExtreme = true;
+        }
+        if(playerConfig[record.Type][0] === PLAYER_ACTION.BLUR_EXTREME_X2 || playerConfig[record.Type][1] === PLAYER_ACTION.BLUR_EXTREME_X2) {
+            blurExtreme = true;
+            doubleSpeed = true;
+        }
     }
 
     if (!mute) {
@@ -63,16 +72,24 @@ function VideoFilter({ records, time, setVolume, setTime, playerConfig }) {
     if (mute) {
         setVolume(0.0);
     }
-    if (blur || black|| blurExtra) {
+    if (blur || black|| blurExtra || blurExtreme) {
         if(blur)
             setStyle({ ...FilterStyle, backdropFilter: "blur(15px)" });
         else if(blurExtra)
             setStyle({ ...FilterStyle, backdropFilter: "blur(45px)" });
+        else if(blurExtreme)
+            setStyle({ ...FilterStyle, backdropFilter: "blur(80px)" });
         else
             setStyle({ ...FilterStyle, background: "black" });
     }
     else {
         setStyle({ ...FilterStyle});
+    }
+
+    if(doubleSpeed){
+        setSpeed(2.0);
+    } else {
+        setSpeed(1.0);
     }
 
   }, [time, records, playerConfig]);
@@ -88,4 +105,4 @@ const mapStateToProps = state => {
     return { records, time, playerConfig };
   };
 
-export default connect(mapStateToProps, {setVolume,setTime})(VideoFilter);
+export default connect(mapStateToProps, { setVolume, setTime, setSpeed })(VideoFilter);

@@ -42,6 +42,11 @@ export const getVolume = () => {
     return state.media.volume;
 }
 
+export const getSpeed = () => {
+    const state = store.getState();
+    return state.media.speed;
+}
+
 export const getPlayerState = () => {
     const state = store.getState();
     return state.media.playerState;

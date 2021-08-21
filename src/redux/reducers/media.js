@@ -1,4 +1,5 @@
-import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION } from "../actionTypes";
+import { act } from "react-dom/cjs/react-dom-test-utils.production.min";
+import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_SPEED, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION } from "../actionTypes";
 
 
 const initialState = {
@@ -8,6 +9,7 @@ const initialState = {
   time: 0,
   duration: 0,
   volume: 1.0,
+  speed: 1.0,
   playerState: 'pause',
   playerConfig: {
     violence : [PLAYER_ACTION.BLUR, PLAYER_ACTION.NOACTION],
@@ -75,6 +77,13 @@ const Media = (state = initialState, action) => {
         ...state,
         playerConfig: {...state.playerConfig,...playerConfig},
       };
+    }
+    case SET_SPEED: {
+      const { speed } = action.payload;
+      return {
+        ...state,
+        speed,
+      }
     }
     default:
       return state;

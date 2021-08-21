@@ -28,6 +28,8 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
     const options_video = [
         <option value={PLAYER_ACTION.BLUR}>{PLAYER_ACTION.BLUR}</option>,
         <option value={PLAYER_ACTION.BLUR_EXTRA}>{PLAYER_ACTION.BLUR_EXTRA}</option>,
+        <option value={PLAYER_ACTION.BLUR_EXTREME}>{PLAYER_ACTION.BLUR_EXTREME}</option>,
+        <option value={PLAYER_ACTION.BLUR_EXTREME_X2}>{PLAYER_ACTION.BLUR_EXTREME_X2}</option>,
         <option value={PLAYER_ACTION.BLACK}>{PLAYER_ACTION.BLACK}</option>,
         <option value={PLAYER_ACTION.SKIP}>{PLAYER_ACTION.SKIP}</option>,
         <option value={PLAYER_ACTION.NOACTION}>{PLAYER_ACTION.NOACTION}</option>
