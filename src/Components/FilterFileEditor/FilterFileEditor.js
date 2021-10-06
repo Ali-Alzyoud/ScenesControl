@@ -4,7 +4,7 @@ import FilterRecord from './FilterRecord'
 import { SceneGuideRecord, SceneGuideClass } from '../../common/SceneGuide'
 
 import { connect } from "react-redux";
-import { getTime, getRecords, getVideoName } from '../../redux/selectors';
+import { selectTime, selectRecords, selectVideoName } from '../../redux/selectors';
 import { addFilterItems, removeFilterIndex, updateFilterItem } from '../../redux/actions';
 
 import './style.css'
@@ -160,9 +160,9 @@ function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilt
 
 
 const mapStateToProps = state => {
-    const records = getRecords();
-    const videoName = getVideoName();
-    const time = getTime();
+    const records = selectRecords(state);
+    const videoName = selectVideoName(state);
+    const time = selectTime(state);
     return { records, time, videoName };
 };
 

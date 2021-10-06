@@ -14,7 +14,7 @@ import { MdReplay30 } from 'react-icons/md'
 import './style.css'
 
 import { connect } from "react-redux";
-import { getTime, getDuration, getPlayerState } from '../../redux/selectors';
+import { selectTime, selectDuration, selectPlayerState } from '../../redux/selectors';
 import { setTime, setPlayerState } from '../../redux/actions';
 import { Fragment } from 'react';
 
@@ -238,9 +238,9 @@ function VideoControls({ time,
 
 const mapStateToProps = state => {
     return {
-        time: getTime(),
-        duration: getDuration(),
-        playerState: getPlayerState(),
+        time: selectTime(state),
+        duration: selectDuration(state),
+        playerState: selectPlayerState(state),
     };
 };
 

@@ -4,7 +4,7 @@ import VideoFilter from "./VideoFilter";
 import VideoSrt from "./VideoSRT";
 
 import { connect } from "react-redux";
-import { getVideoSrc, getTime, getVolume, getPlayerState, getSpeed } from '../../redux/selectors'
+import { selectVideoSrc, selectTime, selectVolume, selectPlayerState, selectSpeed } from '../../redux/selectors'
 import { setTime, setDuration, setPlayerState } from "../../redux/actions";
 
 const debounce = (func1, func, delay) => {
@@ -144,11 +144,11 @@ class VideoPlayer extends React.Component {
 
 const mapStateToProps = state => {
   return {
-    videoSrc: getVideoSrc(),
-    time: getTime(),
-    volume: getVolume(),
-    playerState: getPlayerState(),
-    speed: getSpeed(),
+    videoSrc: selectVideoSrc(state),
+    time: selectTime(state),
+    volume: selectVolume(state),
+    playerState: selectPlayerState(state),
+    speed: selectSpeed(state),
   };
 };
 

@@ -3,7 +3,7 @@ import React from 'react'
 
 import { connect } from "react-redux";
 import { PLAYER_ACTION} from '../../redux/actionTypes'
-import { getPlayerConfig } from '../../redux/selectors';
+import { selectPlayerConfig } from '../../redux/selectors';
 import { setPlayerConfig } from '../../redux/actions';
 
 
@@ -76,7 +76,7 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
 }
 
 const mapStateToProps = state => {
-    const playerConfig = getPlayerConfig();
+    const playerConfig = selectPlayerConfig(state);
     return { playerConfig };
   };
 

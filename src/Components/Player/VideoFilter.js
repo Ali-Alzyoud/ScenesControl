@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { connect } from "react-redux";
-import { getTime, getRecords, getRecordsAtTime, getPlayerConfig } from '../../redux/selectors';
+import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig } from '../../redux/selectors';
 import { setVolume, setTime, setSpeed } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
 
@@ -99,9 +99,9 @@ function VideoFilter({ records, time, setVolume, setTime, setSpeed, playerConfig
 
 
 const mapStateToProps = state => {
-    const records = getRecords();
-    const time = getTime();
-    const playerConfig =  getPlayerConfig();
+    const records = selectRecords(state);
+    const time = selectTime(state);
+    const playerConfig =  selectPlayerConfig(state);
     return { records, time, playerConfig };
   };
 
