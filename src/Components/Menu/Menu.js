@@ -5,12 +5,12 @@ import About from '../About'
 
 
 import { connect } from "react-redux";
-import { setFilterItems, setVideoSrc, setSubtitle, setVideoName } from '../../redux/actions'
+import { setFilterItems, setVideoSrc, setSubtitle, setVideoName, setTime, setDuration } from '../../redux/actions'
 
 import './menu.css'
 import { Fragment } from 'react';
 
-function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
+function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime, setDuration }) {
     const videoInput = useRef(null);
     const subtitleInput = useRef(null);
     const filterInput = useRef(null);
@@ -22,8 +22,17 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
     const [files, setFiles] = useState({});
     const openVideoFile = (e) => {
         if (e.target.files.length < 1) return;
-        setVideoSrc(URL.createObjectURL(e.target.files[0]));
-        setVideoName(e.target.files[0].name);
+
+        const videoSrc = URL.createObjectURL(e.target.files[0]);
+        const videoName = e.target.files[0].name;
+        setVideoSrc(videoSrc);
+        setVideoName(videoName);
+
+        const getCurrentTime = localStorage.getItem(videoName);
+        if (getCurrentTime) {
+            setDuration(0);
+            setTime(Number(getCurrentTime));
+        }
         setkey(key + 1);
     }
     const openSubtitleFile = (e) => {
@@ -130,5 +139,5 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle}) {
 
 export default connect(
     null,
-    { setVideoSrc, setVideoName, setSubtitle, setFilterItems }
+    { setVideoSrc, setVideoName, setSubtitle, setFilterItems, setTime, setDuration }
   )(Menu);

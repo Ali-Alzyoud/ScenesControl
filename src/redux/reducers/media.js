@@ -44,7 +44,9 @@ const Media = (state = initialState, action) => {
     case SET_TIME: {
       let { time } = action.payload;
       time = Math.max(time, 0);
-      time = Math.min(time, state.duration);
+      if (state.duration) {
+        time = Math.min(time, state.duration);
+      }
       return {
         ...state,
         time: time,

@@ -4,7 +4,7 @@ import VideoFilter from "./VideoFilter";
 import VideoSrt from "./VideoSRT";
 
 import { connect } from "react-redux";
-import { selectVideoSrc, selectTime, selectVolume, selectPlayerState, selectSpeed } from '../../redux/selectors'
+import { selectVideoSrc, selectTime, selectVolume, selectPlayerState, selectSpeed, selectVideoName } from '../../redux/selectors'
 import { setTime, setDuration, setPlayerState } from "../../redux/actions";
 
 const debounce = (func1, func, delay) => {
@@ -29,6 +29,7 @@ class VideoPlayer extends React.Component {
     this.player = createRef();
     this.control = createRef();
     this.hideTimer = null;
+    this.localStorageUpdateCounter = 0;
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -36,7 +37,7 @@ class VideoPlayer extends React.Component {
 
     if (this.props.videoSrc !== prevProps.videoSrc) {
       this.setState({
-        time: 0,
+        time,
         visible: true,
       });
     }
@@ -77,7 +78,7 @@ class VideoPlayer extends React.Component {
   };
 
   render = () => {
-    const { videoSrc, setTime, setDuration} = this.props;
+    const { videoSrc, setTime, setDuration, videoName} = this.props;
     const {time, playerState, duration, visible} = this.state;
     return (
       <div className={`playercontainer ${visible ? '' : 'hidden'}`}
@@ -106,6 +107,11 @@ class VideoPlayer extends React.Component {
           }}
           onTimeUpdate={(event) => {
             setTime(event.target.currentTime);
+            if(this.localStorageUpdateCounter > 0){
+              this.localStorageUpdateCounter = 0;
+              localStorage.setItem(videoName, event.target.currentTime);
+            }
+            this.localStorageUpdateCounter++;
           }}
         ></video>
         <VideoFilter/>
@@ -149,6 +155,7 @@ const mapStateToProps = state => {
     volume: selectVolume(state),
     playerState: selectPlayerState(state),
     speed: selectSpeed(state),
+    videoName: selectVideoName(state),
   };
 };
 
