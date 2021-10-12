@@ -115,6 +115,7 @@ function VideoControls({ time,
         const handleKeyDown = (e) => {
             let jump = e.shiftKey ? 1 : 5;
             if (e.ctrlKey) jump*=2;
+            if (e.altKey) jump/=2;
 
             switch (e.keyCode) {
                 case KEY.SPACE:
