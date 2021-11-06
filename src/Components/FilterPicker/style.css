@@ -1,0 +1,32 @@
+.filters-container{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 10;
+}
+
+.filters-container-close{
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 20px;
+    background-color: #ddd;
+    right:-20px;
+    top:-20px;
+}
+.filters-container-close:hover {
+    background-color: #fff;
+}
+
+.filters-container-body{
+    position: absolute;
+    left: 10%;
+    top: 10%;
+    height: 80%;
+    width: 80%;
+    background: lightgray;
+}

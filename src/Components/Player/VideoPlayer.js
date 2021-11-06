@@ -105,9 +105,18 @@ class VideoPlayer extends React.Component {
           onCanPlay={(event) => {
             setDuration(event.target.duration);
           }}
+          onSeeking={(event) => {
+            const { currentTime } = this.player.current;
+            setTime(currentTime);
+          }}
+          onSeeked={(event) => {
+            const { currentTime } = this.player.current;
+            setTime(currentTime);
+            localStorage.setItem(videoName, currentTime);
+          }}
           onTimeUpdate={(event) => {
             setTime(event.target.currentTime);
-            if(this.localStorageUpdateCounter > 0){
+            if (this.localStorageUpdateCounter > 10) {
               this.localStorageUpdateCounter = 0;
               localStorage.setItem(videoName, event.target.currentTime);
             }

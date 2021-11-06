@@ -2,6 +2,7 @@ import React, {useRef, useState, useEffect} from 'react'
 import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass } from '../../common/SceneGuide'
 import About from '../About'
+import FilterPicker from '../FilterPicker'
 
 
 import { connect } from "react-redux";
@@ -19,6 +20,7 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime, 
     const filterInputURL = useRef(null);
     const [key, setkey] = useState(0);
     const [about, setabout] = useState(false);
+    const [filterPicker, setfilterPicker] = useState(false);
     const [files, setFiles] = useState({});
     const openVideoFile = (e) => {
         if (e.target.files.length < 1) return;
@@ -129,10 +131,15 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime, 
             </div>
             </div>
             <div className="dropdown">
-                <button className="dropbtn" onClick={() => {setabout(true) }}>About
+                <button className="dropbtn" onClick={() => {setfilterPicker(true)}}>Filters Store
                 </button>
             </div>
-            { about && <About close={()=>{setabout(false)}}/> }
+            <div className="dropdown">
+                <button className="dropbtn" onClick={() => { setabout(true) }}>About
+                </button>
+            </div>
+            {about && <About close={() => { setabout(false) }} />}
+            {filterPicker && <FilterPicker close={() => { setfilterPicker(false) }} />}
         </div>
     )
 }
