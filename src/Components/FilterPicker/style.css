@@ -18,6 +18,12 @@
     right:-20px;
     top:-20px;
 }
+
+.filters-container-search{
+    width: 40px;
+    height: 40px;
+}
+
 .filters-container-close:hover {
     background-color: #fff;
 }
@@ -29,4 +35,45 @@
     height: 80%;
     width: 80%;
     background: lightgray;
+}
+
+.filters-container-input-container{
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+    width: 50%;
+}
+
+.filters-container-input{
+    width: 100%;
+}
+
+.filter-files{
+    overflow: scroll;
+    height: 78%;
+    margin-top: 50px;
+}
+
+.file-record{
+    height: 80px;
+    width: 400px;
+    margin: auto;
+    display: flex;
+    background: darkgray;;
+}
+
+.file-record > img{
+    height: 80px;
+    width: 80px;
+    background-color: gray;
+}
+
+.file-record > img{
+    height: 80px;
+    width: 80px;
+    background-color: gray;
+}
+
+.file-record > h1{
+    margin-left: 25px;
 }

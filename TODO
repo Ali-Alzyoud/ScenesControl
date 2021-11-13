@@ -1,3 +1,16 @@
 * Upload filter files on cloud, Allow user to download them (Filter + Subtitle + Movie URL)
 * Enhance SRT support, and support positions
 * Create Youtube Video to show, how to use the application, and save/load filters
+
+
+Store:
+* Create Store to navigate/Store/Apply filters
+* allow user to upload filter files (contribute)
+* Save filters files on separate cloud
+
+Video Format:
+* Support extra video formats, other that native supported by HTML5 player. (avi/mkv/...)
+
+
+Apps support:
+* Create native applications for IOS/Android
