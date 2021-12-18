@@ -42,6 +42,10 @@ export const selectPlayerState = (state) => {
     return state.media.playerState;
 }
 
+//Settings
+export const getFontSize = (state) => {
+    return state.settings.fontSize;
+}
 
 //HELPERS
 export const getSubtitleAtTime = (time) => {

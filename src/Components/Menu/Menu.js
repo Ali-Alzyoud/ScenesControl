@@ -2,6 +2,7 @@ import React, {useRef, useState, useEffect} from 'react'
 import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass } from '../../common/SceneGuide'
 import About from '../About'
+import Settings from '../Settings'
 import FilterPicker from '../FilterPicker'
 
 
@@ -20,6 +21,7 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime, 
     const filterInputURL = useRef(null);
     const [key, setkey] = useState(0);
     const [about, setabout] = useState(false);
+    const [settings, setSettings] = useState(false);
     const [filterPicker, setfilterPicker] = useState(false);
     const [files, setFiles] = useState({});
     const openVideoFile = (e) => {
@@ -135,10 +137,15 @@ function Menu({setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime, 
                 </button>
             </div>
             <div className="dropdown">
+                <button className="dropbtn" onClick={() => { setSettings(true) }}>Settings
+                </button>
+            </div>
+            <div className="dropdown">
                 <button className="dropbtn" onClick={() => { setabout(true) }}>About
                 </button>
             </div>
             {about && <About close={() => { setabout(false) }} />}
+            {settings && <Settings close={() => { setSettings(false) }} />}
             {filterPicker && <FilterPicker close={() => { setfilterPicker(false) }} />}
         </div>
     )

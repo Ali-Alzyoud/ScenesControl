@@ -104,6 +104,7 @@ function VideoControls({ time,
     useEffect(() => {
         const KEY = {
             SPACE: 32,
+            SPACE_ANDROID_V_KB: 231,//get by debugging
             LEFT: 37,
             RIGHT: 39,
             F: 70,
@@ -119,6 +120,7 @@ function VideoControls({ time,
 
             switch (e.keyCode) {
                 case KEY.SPACE:
+                case KEY.SPACE_ANDROID_V_KB:
                 case KEY.MEDIA_PLAY_PAUSE:
                     onPlayClick()
                     break;

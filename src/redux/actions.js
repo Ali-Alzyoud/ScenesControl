@@ -1,15 +1,31 @@
-import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_SPEED, ADD_ITEMS, SET_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM, SET_PLAYER_STATE, SET_PLAYER_CONFIG } from "./actionTypes";
+import {
+  SET_SUBTITLE,
+  SET_VIDEO,
+  SET_VIDEO_NAME,
+  SET_TIME,
+  SET_DURATION,
+  SET_VOLUME,
+  SET_SPEED,
+  ADD_ITEMS,
+  SET_ITEMS,
+  REMOVE_ITEM_INDEX,
+  REMOVE_ALL,
+  UPDATE_ITEM,
+  SET_PLAYER_STATE,
+  SET_PLAYER_CONFIG,
+SET_FONT_SIZE
+} from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
-  type: SET_SUBTITLE,
-  payload: {
-    subtitle
-  }
+type: SET_SUBTITLE,
+payload: {
+subtitle
+}
 });
 
 export const setVideoSrc = videoSrc => ({
-  type: SET_VIDEO,
-  payload: { videoSrc }
+type: SET_VIDEO,
+payload: { videoSrc }
 });
 
 export const setVideoName = videoName => ({
@@ -77,4 +93,9 @@ export const removeAllFilters = () => ({
 export const updateFilterItem = (record, index) => ({
     type: UPDATE_ITEM,
     payload: { record, index}
+});
+
+export const setSettings_fontSize = (fontSize) => ({
+    type: SET_FONT_SIZE,
+    payload: { fontSize}
 });
