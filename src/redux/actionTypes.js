@@ -12,7 +12,7 @@ export const SET_ITEMS = "SET_ITEMS";
 export const REMOVE_ITEM_INDEX = "REMOVE_ITEM_INDEX";
 export const REMOVE_ALL = "REMOVE_ALL";
 export const UPDATE_ITEM = "UPDATE_ITEM";
-export const SET_FONT_SIZE = "SET_FONT_SIZE";
+export const SET_FONT_CONFIG = "SET_FONT_CONFIG";
 
 export const PLAYER_ACTION = {
     BLUR : 'Blur',

@@ -13,7 +13,7 @@ import {
   UPDATE_ITEM,
   SET_PLAYER_STATE,
   SET_PLAYER_CONFIG,
-SET_FONT_SIZE
+  SET_FONT_CONFIG
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
@@ -95,7 +95,7 @@ export const updateFilterItem = (record, index) => ({
     payload: { record, index}
 });
 
-export const setSettings_fontSize = (fontSize) => ({
-    type: SET_FONT_SIZE,
-    payload: { fontSize}
+export const setSettings_fontConfig = (fontConfig) => ({
+    type: SET_FONT_CONFIG,
+    payload: { fontConfig}
 });

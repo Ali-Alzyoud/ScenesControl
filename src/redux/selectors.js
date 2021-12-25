@@ -43,8 +43,8 @@ export const selectPlayerState = (state) => {
 }
 
 //Settings
-export const getFontSize = (state) => {
-    return state.settings.fontSize;
+export const getFontConfig = (state) => {
+    return state.settings.fontConfig;
 }
 
 //HELPERS
