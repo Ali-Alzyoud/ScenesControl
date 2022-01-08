@@ -230,7 +230,11 @@ function VideoControls({ time,
                 src={fullicon}
                 alt='error'
                 style={{ ...styleButton, bottom: '10px', position: 'absolute', right: '0'}}
-                onClick={onFullscreen}
+                onClick={(e) => {
+                    onFullscreen();
+                    e.stopPropagation();
+                    e.preventDefault();
+                }}
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
             />

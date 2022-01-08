@@ -78,8 +78,8 @@ class VideoPlayer extends React.Component {
   };
 
   render = () => {
-    const { videoSrc, setTime, setDuration, videoName} = this.props;
-    const {time, playerState, duration, visible} = this.state;
+    const { videoSrc, setTime, setDuration, videoName, setPlayerState, playerState} = this.props;
+    const {time, duration, visible} = this.state;
     return (
       <div className={`playercontainer ${visible ? '' : 'hidden'}`}
         onMouseMove={debounce(
@@ -97,6 +97,16 @@ class VideoPlayer extends React.Component {
           },
           2000
         )}
+        onClick={()=>{
+          if(playerState == 'play'){
+            setPlayerState('pause');
+          } else {
+            setPlayerState('play');
+          }
+        }}
+        onDoubleClick={()=>{
+          this.onFullscreen();
+        }}
       >
         <video
           className='player'
