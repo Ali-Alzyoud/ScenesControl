@@ -16,10 +16,22 @@ var FilterStyle = {
   zIndex: 2,
 };
 
-function VideoFilter({ records, time, setVolume, setTime, setSpeed, playerConfig }) {
+function VideoFilter({
+    records,
+    time,
+    setVolume,
+    setTime,
+    setSpeed,
+    playerConfig,
+    blackScreen
+}) {
   const [style, setStyle] = useState(FilterStyle);
 
   useEffect(() => {
+      if (blackScreen) {
+          setStyle({ ...FilterStyle, background: "black" });
+          return;
+      }
     if (!records || !records.length > 0) return;
 
     var currentRecords = getRecordsAtTime(time);
@@ -92,7 +104,7 @@ function VideoFilter({ records, time, setVolume, setTime, setSpeed, playerConfig
         setSpeed(1.0);
     }
 
-  }, [time, records, playerConfig]);
+  }, [time, records, playerConfig, blackScreen]);
 
   return <div style={style}></div>;
 }

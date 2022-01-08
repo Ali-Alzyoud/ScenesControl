@@ -18,13 +18,14 @@ const debounce = (func1, func, delay) => {
   };
 };
 
-class VideoPlayer extends React.Component {
+class VideoPlayer extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
       time: 0,
       duration: 0,
       visible: true,
+      blackScreen: false,
     };
     this.player = createRef();
     this.control = createRef();
@@ -39,6 +40,7 @@ class VideoPlayer extends React.Component {
       this.setState({
         time,
         visible: true,
+        blackScreen: false,
       });
     }
     if (Math.abs(time - this.player.current.currentTime) > 0.5){
@@ -49,6 +51,7 @@ class VideoPlayer extends React.Component {
     }
     if ((playerState === 'play') && this.player.current.paused){
       this.player.current.play();
+      this.setState({blackScreen: false});
       clearTimeout(this.hideTimer);
       this.hideTimer = setTimeout(() => {
         this.setState({ visible: false });
@@ -79,7 +82,7 @@ class VideoPlayer extends React.Component {
 
   render = () => {
     const { videoSrc, setTime, setDuration, videoName, setPlayerState, playerState} = this.props;
-    const {time, duration, visible} = this.state;
+    const {time, duration, visible, blackScreen} = this.state;
     return (
       <div className={`playercontainer ${visible ? '' : 'hidden'}`}
         onMouseMove={debounce(
@@ -107,6 +110,13 @@ class VideoPlayer extends React.Component {
         onDoubleClick={()=>{
           this.onFullscreen();
         }}
+        onMouseDown={(e)=>{
+          if(e.button == 1){
+            this.setState({ blackScreen: !blackScreen }, () => {
+              setPlayerState('pause');
+            });
+          }
+        }}
       >
         <video
           className='player'
@@ -133,7 +143,7 @@ class VideoPlayer extends React.Component {
             this.localStorageUpdateCounter++;
           }}
         ></video>
-        <VideoFilter/>
+        <VideoFilter blackScreen={blackScreen}/>
         <div
           style={{
             display: "grid",

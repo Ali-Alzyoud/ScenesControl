@@ -34,6 +34,12 @@ export default function About({close}) {
                     Space/Play : play/pause <br/>
                     F : FullScreen
                 </div>
+                <p className="bold"> Mouse Bindings </p>
+                <div className='part'>
+                    Left-Click : Play/Pause <br/>
+                    Left-Double Click : FullScreen on/off <br/>
+                    Middle : Back Screen on/off <br/>
+                </div>
                 <br/>
                 <br/>
                 <br/>
