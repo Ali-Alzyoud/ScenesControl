@@ -1,17 +1,22 @@
-import { SET_FONT_SIZE } from "../actionTypes";
+import { SET_FONT_CONFIG } from "../actionTypes";
 
+const fontConfigJSON = localStorage.getItem("fontConfig");
+const savedFontConfig = fontConfigJSON ? JSON.parse(fontConfigJSON) : {
+  size: 40,
+  transparency: 0.7,
+};
 const initialState = {
-  fontSize: Number(localStorage.getItem("fontSize") ? localStorage.getItem("fontSize") : 40),
+  fontConfig: savedFontConfig,
 };
 
 const Settings = (state = initialState, action) => {
   switch (action.type) {
-    case SET_FONT_SIZE: {
-      const { fontSize } = action.payload;
-      localStorage.fontSize = fontSize;
+    case SET_FONT_CONFIG: {
+      const { fontConfig } = action.payload;
+      localStorage.fontConfig = JSON.stringify(fontConfig);
       return {
         ...state,
-        fontSize,
+        fontConfig,
       };
     }
     default:
