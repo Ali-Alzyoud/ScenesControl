@@ -5,11 +5,12 @@ import { SceneGuideRecord, SceneGuideClass } from '../../common/SceneGuide'
 
 import { connect } from "react-redux";
 import { selectTime, selectRecords, selectVideoName } from '../../redux/selectors';
-import { addFilterItems, removeFilterIndex, updateFilterItem } from '../../redux/actions';
+import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem } from '../../redux/actions';
+import {FaMinus} from 'react-icons/fa'
 
 import './style.css'
 
-function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilterIndex, updateFilterItem }) {
+function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem }) {
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [key, setKey] = useState(0);
 
@@ -63,6 +64,10 @@ function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilt
         addFilterItems(newRecords);
         setKey(key + 1);
         return newRecords;
+    }
+
+    const removeAll = () => {
+        removeAllFilters();
     }
 
     const removeItem = (record) => {
@@ -132,6 +137,9 @@ function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilt
             <div className='container' onClick={() => selectime('to')}>
                 <FaFastForward className='middle' style={!selectedRecord ? { pointerEvents: "none", opacity: "0.4" } : {}} />
             </div>
+            <div className='container red' onClick={() => removeAll('to')}>
+                <FaMinus className='middle' />
+            </div>
             <br /><br />
             <div className='table-container' key={key}>
                 <table>
@@ -166,4 +174,4 @@ const mapStateToProps = state => {
     return { records, time, videoName };
 };
 
-export default connect(mapStateToProps, { addFilterItems, removeFilterIndex, updateFilterItem })(FilterFileEditor);
+export default connect(mapStateToProps, { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem })(FilterFileEditor);

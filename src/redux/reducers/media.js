@@ -2,6 +2,13 @@ import { act } from "react-dom/cjs/react-dom-test-utils.production.min";
 import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_SPEED, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION } from "../actionTypes";
 
 
+const playerConfigJSON = localStorage.getItem("playerConfig");
+const savedPlayerConfig = playerConfigJSON ? JSON.parse(playerConfigJSON) : {
+  violence : [PLAYER_ACTION.BLUR, PLAYER_ACTION.NOACTION],
+  nudity : [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
+  profanity : [PLAYER_ACTION.NOACTION, PLAYER_ACTION.MUTE],
+}
+
 const initialState = {
   subtitle: [],
   videoSrc: null,
@@ -11,11 +18,7 @@ const initialState = {
   volume: 1.0,
   speed: 1.0,
   playerState: 'pause',
-  playerConfig: {
-    violence : [PLAYER_ACTION.BLUR, PLAYER_ACTION.NOACTION],
-    nudity : [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
-    profanity : [PLAYER_ACTION.NOACTION, PLAYER_ACTION.MUTE],
-  }
+  playerConfig: savedPlayerConfig
 };
 
 const Media = (state = initialState, action) => {
@@ -75,6 +78,7 @@ const Media = (state = initialState, action) => {
     }
     case SET_PLAYER_CONFIG: {
       const { playerConfig } = action.payload;
+      localStorage.setItem("playerConfig", JSON.stringify({...state.playerConfig,...playerConfig}));
       return {
         ...state,
         playerConfig: {...state.playerConfig,...playerConfig},

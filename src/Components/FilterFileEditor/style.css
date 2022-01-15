@@ -58,6 +58,11 @@ input.bkLong {
     margin-left: 20px;
     margin-right: 20px;
 }
+
+.red{
+    background-color: red;
+}
+
 .middle{
     position: absolute;
     top: 50%;

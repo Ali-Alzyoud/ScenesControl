@@ -171,6 +171,7 @@ function VideoControls({ time,
 
     const mousedown = (e) => {
         updateSeek(e.clientX);
+        e.stopPropagation();
     }
 
     const cleanDocEvents = () => {
@@ -185,13 +186,14 @@ function VideoControls({ time,
         else {
             setPlayerState('play');
         }
+        event.stopPropagation();
     }
 
     const player_controls = (
         <div className='main-controls'>
             {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} /> */}
-            {/* <MdReplay10 className='controls left' onClick={()=>{setTime(time-10)}} /> */}
-            <MdReplay5 className='controls left' onClick={() => { setTime(time - 5) }} />
+            <MdReplay10 className='controls left' onClick={(event)=>{setTime(time-10); event.stopPropagation();}} />
+            <MdReplay5 className='controls left' onClick={(event) => { setTime(time - 5); event.stopPropagation(); }} />
             <img id="btn_play"
                 src={
                     (playerState === 'pause') ?
@@ -200,11 +202,17 @@ function VideoControls({ time,
                 alt='error'
                 style={styleButton}
                 onClick={onPlayClick}
-                onMouseEnter={() => { mousein("Button") }}
-                onMouseLeave={() => { mouseout("Button") }}
+                onMouseEnter={(e) => {
+                    mousein("Button");
+                    e.stopPropagation();
+                }}
+                onMouseLeave={(e) => {
+                    mouseout("Button");
+                    e.stopPropagation();
+                }}
             />
-            <MdForward5 className='controls right' onClick={() => { setTime(time + 5) }} />
-            {/* <MdForward10 className='controls right' onClick={()=>{setTime(time+10)}} /> */}
+            <MdForward5 className='controls right' onClick={(event) => { setTime(time + 5); event.stopPropagation(); }} />
+            <MdForward10 className='controls right' onClick={(event)=>{setTime(time+10);  event.stopPropagation();}} />
             {/* <MdForward30 className='controls right' onClick={()=>{setTime(time+30)}} /> */}
         </div>
     );
@@ -220,6 +228,7 @@ function VideoControls({ time,
                         onMouseDown={(e) => {
                             document.onmousemove = mouseMove;
                             document.onmouseup = cleanDocEvents;
+                            e.stopPropagation();
                         }}
                     />
                 </div>
@@ -233,7 +242,6 @@ function VideoControls({ time,
                 onClick={(e) => {
                     onFullscreen();
                     e.stopPropagation();
-                    e.preventDefault();
                 }}
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
