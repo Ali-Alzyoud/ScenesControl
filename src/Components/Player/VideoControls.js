@@ -249,7 +249,7 @@ function VideoControls({ time,
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
                 />
-                <div style={{ bottom: '40%', position: 'absolute', right: '0' }}>
+                <div className='controls-volume'>
                     <Slider value={volume * 100} setValue={
                         (v) => {
                             setVolume(v);

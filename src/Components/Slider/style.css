@@ -12,9 +12,22 @@
   cursor: pointer;
 }
 
+.slider-text{
+  color:white;
+  position:absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+}
 
-@media only screen and (max-height: 400px) {
+@media only screen and (max-width: 600px) {
   .slider-container{
     height: 100px;
+  }
+}
+
+@media only screen and (max-width: 300px) {
+  .slider-container{
+    height: 50px;
   }
 }

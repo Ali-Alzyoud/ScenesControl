@@ -64,6 +64,13 @@ p.controltime {
     transform: translateX(-50%) translateY(-50%);
 }
 
+.controls-volume{
+    top: 50%;
+    transform:translateY(-50%);
+    position: absolute;
+    right: 0;
+}
+
 @media only screen and (max-width: 1024px) {
     .playercontainer{
         width: 100%;
