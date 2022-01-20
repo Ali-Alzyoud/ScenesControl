@@ -20,7 +20,7 @@ export default function Slider({ value, setValue }) {
                         position: 'absolute',
                         width: '100%',
                         height: `${Math.floor(value)}%`,
-                        background: 'blue',
+                        background: 'rgba(127,127,127,0.5)',
                         bottom: '0px'
                     }}></div>
             </div>
