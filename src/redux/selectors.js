@@ -34,6 +34,10 @@ export const selectVolume = (state) => {
     return state.media.volume;
 }
 
+export const selectMute = (state) => {
+    return state.media.mute;
+}
+
 export const selectSpeed = (state) => {
     return state.media.speed;
 }

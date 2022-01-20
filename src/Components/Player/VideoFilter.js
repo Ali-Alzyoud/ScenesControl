@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { connect } from "react-redux";
 import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig } from '../../redux/selectors';
-import { setVolume, setTime, setSpeed } from "../../redux/actions";
+import { setMute, setTime, setSpeed } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
 
 
@@ -19,7 +19,7 @@ var FilterStyle = {
 function VideoFilter({
     records,
     time,
-    setVolume,
+    setMute,
     setTime,
     setSpeed,
     playerConfig,
@@ -71,19 +71,13 @@ function VideoFilter({
         }
     }
 
-    if (!mute) {
-        setVolume(1.0);
-    }
+    setMute(mute);
 
     if (skip){
         setTime(skipRecord.endTime() + 0.01);
         return;
     }
 
-    
-    if (mute) {
-        setVolume(0.0);
-    }
     if (blur || black|| blurExtra || blurExtreme) {
         if(blur)
             setStyle({ ...FilterStyle, backdropFilter: "blur(15px)" });
@@ -117,4 +111,4 @@ const mapStateToProps = state => {
     return { records, time, playerConfig };
   };
 
-export default connect(mapStateToProps, { setVolume, setTime, setSpeed })(VideoFilter);
+export default connect(mapStateToProps, { setMute, setTime, setSpeed })(VideoFilter);

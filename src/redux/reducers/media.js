@@ -1,5 +1,4 @@
-import { act } from "react-dom/cjs/react-dom-test-utils.production.min";
-import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_SPEED, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION } from "../actionTypes";
+import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_MUTE, SET_SPEED, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION } from "../actionTypes";
 
 
 const playerConfigJSON = localStorage.getItem("playerConfig");
@@ -16,6 +15,7 @@ const initialState = {
   time: 0,
   duration: 0,
   volume: 1.0,
+  mute: false,
   speed: 1.0,
   playerState: 'pause',
   playerConfig: savedPlayerConfig
@@ -64,9 +64,17 @@ const Media = (state = initialState, action) => {
     }
     case SET_VOLUME: {
       const { volume } = action.payload;
+      const limitedVolume = Math.min(1, Math.max(volume, 0));
       return {
         ...state,
-        volume: volume,
+        volume: limitedVolume,
+      };
+    }
+    case SET_MUTE: {
+      const { mute } = action.payload;
+      return {
+        ...state,
+        mute,
       };
     }
     case SET_PLAYER_STATE: {

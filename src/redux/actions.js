@@ -5,6 +5,7 @@ import {
   SET_TIME,
   SET_DURATION,
   SET_VOLUME,
+  SET_MUTE,
   SET_SPEED,
   ADD_ITEMS,
   SET_ITEMS,
@@ -49,6 +50,12 @@ export const setVolume = (volume) => {
   return {
     type: SET_VOLUME,
     payload: { volume }
+  }
+};
+export const setMute = (mute) => {
+  return {
+    type: SET_MUTE,
+    payload: { mute }
   }
 };
 export const setSpeed = (speed) => {

@@ -4,8 +4,8 @@ import VideoFilter from "./VideoFilter";
 import VideoSrt from "./VideoSRT";
 
 import { connect } from "react-redux";
-import { selectVideoSrc, selectTime, selectVolume, selectPlayerState, selectSpeed, selectVideoName } from '../../redux/selectors'
-import { setTime, setDuration, setPlayerState } from "../../redux/actions";
+import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName } from '../../redux/selectors'
+import { setTime, setDuration, setPlayerState, setVolume } from "../../redux/actions";
 
 const debounce = (func1, func, delay) => {
   let inDebounce;
@@ -34,7 +34,7 @@ class VideoPlayer extends React.PureComponent {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { time, playerState, volume, speed } = this.props;
+    const { time, playerState, volume, mute, speed } = this.props;
 
     if (this.props.videoSrc !== prevProps.videoSrc) {
       this.setState({
@@ -46,8 +46,13 @@ class VideoPlayer extends React.PureComponent {
     if (Math.abs(time - this.player.current.currentTime) > 0.5){
       this.player.current.currentTime = time;
     }
-    if (Math.abs(volume - this.player.current.volume) > 0.01){
-      this.player.current.volume = volume;
+    if (mute || Math.abs(volume - this.player.current.volume) > 0.01){
+      if (mute) {
+        this.player.current.volume = 0;
+      }
+      else {
+        this.player.current.volume = volume;
+      }
     }
     if ((playerState === 'play') && this.player.current.paused){
       this.player.current.play();
@@ -81,7 +86,7 @@ class VideoPlayer extends React.PureComponent {
   };
 
   render = () => {
-    const { videoSrc, setTime, setDuration, videoName, setPlayerState, playerState} = this.props;
+    const { videoSrc, setTime, setDuration, videoName, setPlayerState, playerState, setVolume, volume} = this.props;
     const {time, duration, visible, blackScreen} = this.state;
     return (
       <div className={`playercontainer ${visible ? '' : 'hidden'}`}
@@ -106,6 +111,10 @@ class VideoPlayer extends React.PureComponent {
           } else {
             setPlayerState('play');
           }
+        }}
+        onWheel={(event)=>{
+          event.stopPropagation();
+          setVolume(volume + event.deltaY * -0.001)
         }}
         onDoubleClick={()=>{
           this.onFullscreen();
@@ -182,10 +191,11 @@ const mapStateToProps = state => {
     videoSrc: selectVideoSrc(state),
     time: selectTime(state),
     volume: selectVolume(state),
+    mute: selectMute(state),
     playerState: selectPlayerState(state),
     speed: selectSpeed(state),
     videoName: selectVideoName(state),
   };
 };
 
-export default connect(mapStateToProps, { setDuration, setTime, setPlayerState })(VideoPlayer);
+export default connect(mapStateToProps, { setDuration, setTime, setPlayerState, setVolume })(VideoPlayer);

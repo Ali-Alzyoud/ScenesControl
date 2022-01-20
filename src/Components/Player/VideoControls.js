@@ -14,9 +14,10 @@ import { MdReplay30 } from 'react-icons/md'
 import './style.css'
 
 import { connect } from "react-redux";
-import { selectTime, selectDuration, selectPlayerState } from '../../redux/selectors';
-import { setTime, setPlayerState } from '../../redux/actions';
+import { selectTime, selectDuration, selectPlayerState, selectVolume } from '../../redux/selectors';
+import { setTime, setPlayerState, setVolume } from '../../redux/actions';
 import { Fragment } from 'react';
+import Slider from '../Slider';
 
 var styleControls = {
     width: '80%',
@@ -67,6 +68,8 @@ function VideoControls({ time,
     visible,
     playerState,
     setPlayerState,
+    setVolume,
+    volume,
     onFullscreen
 }) {
 
@@ -245,7 +248,14 @@ function VideoControls({ time,
                 }}
                 onMouseEnter={() => { mousein("Button") }}
                 onMouseLeave={() => { mouseout("Button") }}
-            />
+                />
+                <div style={{ bottom: '40%', position: 'absolute', right: '0' }}>
+                    <Slider value={volume * 100} setValue={
+                        (v) => {
+                            setVolume(v);
+                        }
+                    } />
+                </div>
         </div>
         </Fragment>
     );
@@ -256,7 +266,8 @@ const mapStateToProps = state => {
         time: selectTime(state),
         duration: selectDuration(state),
         playerState: selectPlayerState(state),
+        volume: selectVolume(state)
     };
 };
 
-export default connect(mapStateToProps, { setTime, setPlayerState, setPlayerState })(VideoControls);
+export default connect(mapStateToProps, { setTime, setPlayerState, setPlayerState, setVolume })(VideoControls);

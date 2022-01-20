@@ -4,6 +4,7 @@ export const SET_VIDEO_NAME = "SET_VIDEO_NAME";
 export const SET_TIME = "SET_TIME";
 export const SET_DURATION = "SET_DURATION";
 export const SET_VOLUME = "SET_VOLUME";
+export const SET_MUTE = "SET_MUTE";
 export const SET_SPEED = "SET_SPEED";
 export const SET_PLAYER_STATE = "SET_PLAYER_STATE";
 export const SET_PLAYER_CONFIG = "SET_PLAYER_CONFIG";
