@@ -56,12 +56,13 @@
 
 .file-record{
     height: 80px;
-    width: 400px;
+    width: 500px;
     margin: auto;
     display: flex;
     background: darkgray;
     margin-top: 10px;
     margin-bottom: 10px;
+    align-items: center;
 }
 
 .file-record > img{
@@ -78,4 +79,14 @@
 
 .file-record > h2{
     margin-left: 20px;
+    font-size: 20px;
+}
+
+.file-record-icon{
+    height:100%;
+    margin-right:10px;
+}
+
+.file-record-icon:hover{
+    cursor: pointer;
 }

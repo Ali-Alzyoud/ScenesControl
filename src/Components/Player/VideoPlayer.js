@@ -113,6 +113,7 @@ class VideoPlayer extends React.PureComponent {
           }
         }}
         onWheel={(event)=>{
+          event.stopPropagation();
           setVolume(volume + event.deltaY * -0.0005);
         }}
         onDoubleClick={()=>{
