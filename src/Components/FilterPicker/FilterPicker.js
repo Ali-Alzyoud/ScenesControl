@@ -59,6 +59,7 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setModalOpen }) {
                                 <FileRecord
                                     imgSrc={item.img}
                                     title={item.title}
+                                    link={item.movie}
                                     index={index}
                                     isSelected={selectedIndex!==undefined && selectedIndex==index}
                                     select={select} />

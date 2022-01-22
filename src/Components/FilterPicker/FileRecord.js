@@ -4,10 +4,13 @@ import { MdFileDownload } from 'react-icons/md'
 import { GrRadialSelected, GrRadial } from 'react-icons/gr'
 
 
-export default function FileRecord({ imgSrc, title, index, isSelected, select }) {
+export default function FileRecord({ imgSrc, title, link, index, isSelected, select }) {
+    const click = () => {
+        window.open(link);
+    }
     return (
         <div className="file-record">
-            <img src={imgSrc} />
+            <img src={imgSrc} onClick={click}/>
             <h2>{title}</h2>
             <div style={{ flex: 2, flexFlow:'row-reverse' , display:'flex' ,textAlign: 'end', height: '100%' }}>
                 {/* <MdFileDownload className='file-record-icon' /> */}

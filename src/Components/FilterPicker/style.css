@@ -72,6 +72,10 @@
     object-fit: contain;
 }
 
+.file-record > img:hover{
+    cursor: pointer;
+}
+
 .file-record > h2{
     margin-left: 20px;
     font-size: 20px;
