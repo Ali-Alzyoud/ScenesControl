@@ -10,10 +10,10 @@
 
 .box{
     position: absolute;
-    left: 20%;
-    top: 20%;
-    width: 60%;
-    width: 60%;
+    left: 5%;
+    top: 5%;
+    height: 90%;
+    width: 90%;
     background: white;
 }
 
