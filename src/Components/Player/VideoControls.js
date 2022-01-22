@@ -73,6 +73,7 @@ function VideoControls({ time,
     onFullscreen
 }) {
 
+    const ref = useRef(null);
     const seekbutton = useRef(null);
     const seekbar = useRef(null);
     const timeLabel = useRef(null);
@@ -140,9 +141,9 @@ function VideoControls({ time,
                     break;
             }
         }
-        window.addEventListener('keydown', handleKeyDown);
+        ref.current.addEventListener('keydown', handleKeyDown);
         return () => {
-            window.removeEventListener('keydown', handleKeyDown);
+            ref.current.removeEventListener('keydown', handleKeyDown);
         }
     }, [time, playerState]);
 
@@ -220,8 +221,7 @@ function VideoControls({ time,
         </div>
     );
     return (
-        <Fragment>
-        <div style={style}>
+        <div style={style} ref={ref}>
             <div style={seekbarStyle} ref={seekbar} onMouseDown={mousedown} onMouseUp={cleanDocEvents}>
                 <div style={{ ...styleProgress, width: (progress * 100) + '%' }}>
                     <div style={styleHandle}
@@ -257,7 +257,6 @@ function VideoControls({ time,
                     } />
                 </div>
         </div>
-        </Fragment>
     );
 }
 

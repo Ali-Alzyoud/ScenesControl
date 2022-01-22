@@ -4,13 +4,13 @@ import FilterRecord from './FilterRecord'
 import { SceneGuideRecord, SceneGuideClass } from '../../common/SceneGuide'
 
 import { connect } from "react-redux";
-import { selectTime, selectRecords, selectVideoName } from '../../redux/selectors';
+import { selectTime, selectRecords, selectVideoName, selectModalOpen } from '../../redux/selectors';
 import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem } from '../../redux/actions';
 import {FaMinus} from 'react-icons/fa'
 
 import './style.css'
 
-function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem }) {
+function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, modalOpen }) {
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [key, setKey] = useState(0);
 
@@ -23,6 +23,7 @@ function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilt
 
         };
         const handleKeyDown = (e) => {
+            if(modalOpen) return;
             switch (e.keyCode) {
                 case KEY.N:
                     {
@@ -171,7 +172,8 @@ const mapStateToProps = state => {
     const records = selectRecords(state);
     const videoName = selectVideoName(state);
     const time = selectTime(state);
-    return { records, time, videoName };
+    const modalOpen = selectModalOpen(state);
+    return { records, time, videoName, modalOpen };
 };
 
 export default connect(mapStateToProps, { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem })(FilterFileEditor);

@@ -1,4 +1,4 @@
-import { SET_FONT_CONFIG } from "../actionTypes";
+import { SET_FONT_CONFIG, SET_MODAL_OPEN } from "../actionTypes";
 
 const fontConfigJSON = localStorage.getItem("fontConfig");
 const savedFontConfig = fontConfigJSON ? JSON.parse(fontConfigJSON) : {
@@ -7,6 +7,7 @@ const savedFontConfig = fontConfigJSON ? JSON.parse(fontConfigJSON) : {
 };
 const initialState = {
   fontConfig: savedFontConfig,
+  modalOpen: false,
 };
 
 const Settings = (state = initialState, action) => {
@@ -17,6 +18,13 @@ const Settings = (state = initialState, action) => {
       return {
         ...state,
         fontConfig,
+      };
+    }
+    case SET_MODAL_OPEN: {
+      const { modalOpen } = action.payload;
+      return {
+        ...state,
+        modalOpen: modalOpen,
       };
     }
     default:

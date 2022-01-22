@@ -13,6 +13,13 @@ import ToggleButton from './Components/ToggleButton'
 
 import { connect } from "react-redux";
 import { addFilterItems, setVideoSrc, setSubtitle } from './redux/actions'
+import {selectModalOpen} from './redux/selectors'
+import userEvent from '@testing-library/user-event';
+
+const KEY = {
+  E: 69,
+  C: 67,
+};
 
 function App(props) {
 
@@ -20,10 +27,13 @@ function App(props) {
   const filterSample = 'video/joker/f.txt'
   const subtitleSample = 'video/joker/s.srt'
 
-  const { addFilterItems, setVideoSrc, setSubtitle } = props;
+  const { addFilterItems, setVideoSrc, setSubtitle, modalOpen } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [forceupdate, setForceUpdate] = useState(0);
+  const [keyEvent, setKeyEvent] = useState(null);
+
+  const ref = useRef(null);
 
   const loadAll = () => {
       let videoURL = videoSample;
@@ -62,12 +72,9 @@ function App(props) {
   }, []);
 
   useEffect(() => {
-    const KEY = {
-      E: 69,
-      C: 67,
-    };
-    const handleKeyDown = (e) => {
-      switch (e.keyCode) {
+      const { modalOpen } = props;
+      if(modalOpen || !keyEvent) return;
+      switch (keyEvent.keyCode) {
         case KEY.E:
           setShowEditor(!showEditor);
           break;
@@ -75,6 +82,11 @@ function App(props) {
           setShowConfig(!showConfig);
           break;
       }
+  }, [keyEvent]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      setKeyEvent(e);
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -83,7 +95,7 @@ function App(props) {
   }, [showEditor, showConfig]);
 
   return (
-    <div className="App">
+    <div className="App" ref={ref}>
       <Menu />
       <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
         <Player />
@@ -104,7 +116,12 @@ function App(props) {
   );
 }
 
+const mapStateToProps = state => {
+  const modalOpen = selectModalOpen(state);
+    return {modalOpen};
+};
+
 export default connect(
-  null,
+  mapStateToProps,
   { addFilterItems, setVideoSrc, setSubtitle }
 )(App);

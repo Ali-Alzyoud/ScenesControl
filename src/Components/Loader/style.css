@@ -1,0 +1,22 @@
+.loader-container{
+  width: 30px;
+  height: 30px;
+  position: relative;
+  display: inline-block;
+}
+
+.loader-icon{
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  animation: animate 2.5s ;
+  animation-iteration-count: infinite;
+  overflow: visible;
+  left: 0;
+  top: 0;
+}
+
+@keyframes animate {
+  0% {transform: rotate(0deg);}
+  100% {transform: rotate(360deg);}
+}

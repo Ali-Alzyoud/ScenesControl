@@ -46,6 +46,10 @@ export const selectPlayerState = (state) => {
     return state.media.playerState;
 }
 
+export const selectModalOpen = (state) => {
+    return state.settings.modalOpen;
+}
+
 //Settings
 export const getFontConfig = (state) => {
     return state.settings.fontConfig;

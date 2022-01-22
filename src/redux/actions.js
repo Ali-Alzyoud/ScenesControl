@@ -14,7 +14,8 @@ import {
   UPDATE_ITEM,
   SET_PLAYER_STATE,
   SET_PLAYER_CONFIG,
-  SET_FONT_CONFIG
+  SET_FONT_CONFIG,
+  SET_MODAL_OPEN
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
@@ -77,6 +78,14 @@ export const setPlayerConfig = (playerConfig) => {
     payload: { playerConfig }
   }
 };
+
+export const setModalOpen = (modalOpen) => {
+  return {
+    type: SET_MODAL_OPEN,
+    payload: { modalOpen }
+  }
+};
+
 export const addFilterItems = records => ({
     type: ADD_ITEMS,
     payload: { records }
