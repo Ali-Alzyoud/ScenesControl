@@ -55,7 +55,7 @@
 }
 
 .file-record{
-    height: 80px;
+    height: 120px;
     width: 500px;
     margin: auto;
     display: flex;
@@ -66,15 +66,10 @@
 }
 
 .file-record > img{
-    height: 80px;
-    width: 80px;
+    height: 120px;
+    width: 120px;
     background-color: gray;
-}
-
-.file-record > img{
-    height: 80px;
-    width: 80px;
-    background-color: gray;
+    object-fit: contain;
 }
 
 .file-record > h2{
