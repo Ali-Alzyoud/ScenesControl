@@ -31,8 +31,8 @@
 .filters-container-body{
     position: absolute;
     left: 10%;
-    top: 10%;
-    height: 80%;
+    top: 5%;
+    height: 90%;
     width: 80%;
     background: lightgray;
 }
