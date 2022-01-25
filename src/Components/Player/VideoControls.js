@@ -14,7 +14,7 @@ import { MdReplay30 } from 'react-icons/md'
 import './style.css'
 
 import { connect } from "react-redux";
-import { selectTime, selectDuration, selectPlayerState, selectVolume } from '../../redux/selectors';
+import { selectTime, selectDuration, selectPlayerState, selectVolume, selectModalOpen } from '../../redux/selectors';
 import { setTime, setPlayerState, setVolume } from '../../redux/actions';
 import { Fragment } from 'react';
 import Slider from '../Slider';
@@ -62,6 +62,18 @@ var seekbuttonStyle = {
     marginTop: '16px'
 }
 
+const KEY = {
+    SPACE: 32,
+    SPACE_ANDROID_V_KB: 231,//get by debugging
+    LEFT: 37,
+    RIGHT: 39,
+    F: 70,
+
+    MEDIA_PLAY_PAUSE:   179,
+    FAST_FORWARD:       417,
+    REWIND:             412,
+};
+
 function VideoControls({ time,
     setTime,
     duration,
@@ -70,7 +82,8 @@ function VideoControls({ time,
     setPlayerState,
     setVolume,
     volume,
-    onFullscreen
+    onFullscreen,
+    modalOpen
 }) {
 
     const ref = useRef(null);
@@ -87,6 +100,7 @@ function VideoControls({ time,
     const [styleButton, setStyleButton] = useState(seekbuttonStyle);
     const [styleProgress] = useState(seekbarStyleProgress);
     const [progress, setProgress] = useState(0);
+    const [keyEvent, setKeyEvent] = useState(null);
 
     const timeToString = (time) => {
         let h = Math.floor(time / (60 * 60) % 24);
@@ -106,23 +120,12 @@ function VideoControls({ time,
     }, [time, duration]);
 
     useEffect(() => {
-        const KEY = {
-            SPACE: 32,
-            SPACE_ANDROID_V_KB: 231,//get by debugging
-            LEFT: 37,
-            RIGHT: 39,
-            F: 70,
+        if(modalOpen || !keyEvent) return;
+        let jump = keyEvent.shiftKey ? 1 : 5;
+            if (keyEvent.ctrlKey) jump*=2;
+            if (keyEvent.altKey) jump/=2;
 
-            MEDIA_PLAY_PAUSE:   179,
-            FAST_FORWARD:       417,
-            REWIND:             412,
-        };
-        const handleKeyDown = (e) => {
-            let jump = e.shiftKey ? 1 : 5;
-            if (e.ctrlKey) jump*=2;
-            if (e.altKey) jump/=2;
-
-            switch (e.keyCode) {
+            switch (keyEvent.keyCode) {
                 case KEY.SPACE:
                 case KEY.SPACE_ANDROID_V_KB:
                 case KEY.MEDIA_PLAY_PAUSE:
@@ -140,12 +143,18 @@ function VideoControls({ time,
                     onFullscreen()
                     break;
             }
+    }, [keyEvent]);
+
+    useEffect(() => {
+        
+        const handleKeyDown = (e) => {
+            setKeyEvent(e);
         }
-        ref.current.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keydown', handleKeyDown);
         return () => {
-            ref.current.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keydown', handleKeyDown);
         }
-    }, [time, playerState]);
+    }, []);
 
     const mouseMove = (e) => {
         updateSeek(e.clientX);
@@ -190,7 +199,6 @@ function VideoControls({ time,
         else {
             setPlayerState('play');
         }
-        event.stopPropagation();
     }
 
     const player_controls = (
@@ -265,7 +273,8 @@ const mapStateToProps = state => {
         time: selectTime(state),
         duration: selectDuration(state),
         playerState: selectPlayerState(state),
-        volume: selectVolume(state)
+        volume: selectVolume(state),
+        modalOpen: selectModalOpen(state)
     };
 };
 

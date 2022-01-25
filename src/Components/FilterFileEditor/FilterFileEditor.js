@@ -10,9 +10,51 @@ import {FaMinus} from 'react-icons/fa'
 
 import './style.css'
 
+const KEY = {
+    N: 78,
+    S: 83,
+    OPEN_BRACKET: 219,
+    CLOSE_BRACKET: 221,
+
+};
+
 function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, modalOpen }) {
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [key, setKey] = useState(0);
+    const [keyEvent, setKeyEvent] = useState(null);
+
+    useEffect(() => {
+        if(modalOpen || !keyEvent) return;
+        switch (keyEvent.keyCode) {
+            case KEY.N:
+                {
+                    addItem();
+                }
+                break;
+            case KEY.S:
+                {
+                    if (keyEvent.ctrlKey)
+                    {
+                        saveItems();
+                    }
+                    else
+                    {
+                        selectItem(records[0]);
+                    }
+                }
+                break;
+            case KEY.OPEN_BRACKET:
+                {
+                    selectime("from");
+                }
+                break;
+            case KEY.CLOSE_BRACKET:
+                {
+                    selectime("to");
+                }
+                break;
+        }
+    }, [keyEvent]);
 
     useEffect(() => {
         const KEY = {
@@ -23,42 +65,13 @@ function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilt
 
         };
         const handleKeyDown = (e) => {
-            if(modalOpen) return;
-            switch (e.keyCode) {
-                case KEY.N:
-                    {
-                        addItem();
-                    }
-                    break;
-                case KEY.S:
-                    {
-                        if (e.ctrlKey)
-                        {
-                            saveItems();
-                        }
-                        else
-                        {
-                            selectItem(records[0]);
-                        }
-                    }
-                    break;
-                case KEY.OPEN_BRACKET:
-                    {
-                        selectime("from");
-                    }
-                    break;
-                case KEY.CLOSE_BRACKET:
-                    {
-                        selectime("to");
-                    }
-                    break;
-            }
+            setKeyEvent(e);
         }
         window.addEventListener('keydown', handleKeyDown);
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         }
-    }, [records, key, selectedRecord, time]);
+    }, []);
 
     const addItem = () => {
         const newRecords = [new SceneGuideRecord()];
