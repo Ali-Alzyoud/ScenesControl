@@ -31,6 +31,15 @@ class VideoPlayer extends React.PureComponent {
     this.control = createRef();
     this.hideTimer = null;
     this.localStorageUpdateCounter = 0;
+    this.clickCount = 0;
+    this.timer = null;
+  }
+
+  componentWillUnmount(){
+    if(this.timer){
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -105,19 +114,28 @@ class VideoPlayer extends React.PureComponent {
           },
           2000
         )}
-        onClick={()=>{
-          if(playerState == 'play'){
-            setPlayerState('pause');
+        onClick={() => {
+          this.clickCount++;
+          if (this.clickCount === 1) {
+            this.timer = setTimeout(() => {
+              this.clickCount = 0;
+              this.timer = null;
+              if (playerState == 'play') {
+                setPlayerState('pause');
+              } else {
+                setPlayerState('play');
+              }
+            }, 250);
           } else {
-            setPlayerState('play');
+            clearTimeout(this.timer);
+            this.clickCount = 0;
+            this.timer = null;
+            this.onFullscreen();
           }
         }}
         onWheel={(event)=>{
           event.stopPropagation();
           setVolume(volume + event.deltaY * -0.0005);
-        }}
-        onDoubleClick={()=>{
-          this.onFullscreen();
         }}
         onMouseDown={(e)=>{
           if(e.button == 1){
