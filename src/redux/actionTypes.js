@@ -15,6 +15,7 @@ export const REMOVE_ALL = "REMOVE_ALL";
 export const UPDATE_ITEM = "UPDATE_ITEM";
 export const SET_FONT_CONFIG = "SET_FONT_CONFIG";
 export const SET_MODAL_OPEN = "SET_MODAL_OPEN";
+export const SET_IS_LOADING = "SET_IS_LOADING";
 
 export const PLAYER_ACTION = {
     BLUR : 'Blur',

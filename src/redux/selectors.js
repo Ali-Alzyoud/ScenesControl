@@ -50,6 +50,10 @@ export const selectModalOpen = (state) => {
     return state.settings.modalOpen;
 }
 
+export const selectIsLoading = (state) => {
+    return state.settings.isLoading;
+}
+
 //Settings
 export const getFontConfig = (state) => {
     return state.settings.fontConfig;

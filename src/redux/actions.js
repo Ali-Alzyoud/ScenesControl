@@ -15,7 +15,8 @@ import {
   SET_PLAYER_STATE,
   SET_PLAYER_CONFIG,
   SET_FONT_CONFIG,
-  SET_MODAL_OPEN
+  SET_MODAL_OPEN,
+  SET_IS_LOADING
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
@@ -83,6 +84,13 @@ export const setModalOpen = (modalOpen) => {
   return {
     type: SET_MODAL_OPEN,
     payload: { modalOpen }
+  }
+};
+
+export const setIsLoading = (isLoading) => {
+  return {
+    type: SET_IS_LOADING,
+    payload: { isLoading }
   }
 };
 
