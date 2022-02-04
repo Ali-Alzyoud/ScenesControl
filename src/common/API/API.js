@@ -5,7 +5,7 @@ const URLS = {
 
 
 export async function getMediaRecords(){
-    const response = await fetch(URLS.RECORDS,{
+    const response = await fetch(URLS.RECORDS+`?${Date.now()}`,{
         method: 'GET'
     });
     const status = response.status;

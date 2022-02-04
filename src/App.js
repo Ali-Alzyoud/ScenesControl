@@ -13,7 +13,7 @@ import ToggleButton from './Components/ToggleButton'
 
 import { connect } from "react-redux";
 import { addFilterItems, setVideoSrc, setSubtitle } from './redux/actions'
-import { selectModalOpen, selectIsLoading } from './redux/selectors'
+import { selectModalOpen, selectVideoIsLoading } from './redux/selectors'
 import Loader from './Components/Loader';
 
 const KEY = {
@@ -36,9 +36,9 @@ function App(props) {
   const ref = useRef(null);
 
   const loadAll = () => {
-    let videoURL = videoSample;
-    let subtitleURL = subtitleSample;
-    let filterURL = filterSample;
+    let videoURL = '';
+    let subtitleURL = '';
+    let filterURL = '';
     const paramsURL = window.location.hash;
 
     const params = paramsURL.split('/');
@@ -69,10 +69,6 @@ function App(props) {
   }, []);
 
   useEffect(() => {
-    loadAll();
-  }, []);
-
-  useEffect(() => {
     const { modalOpen } = props;
     if (modalOpen || !keyEvent) return;
     switch (keyEvent.keyCode) {
@@ -98,33 +94,33 @@ function App(props) {
   return (
     <div className="App" ref={ref}>
       <Menu />
-      {isLoading ? 
-      <div style={{position:'absolute', left:'50%', top:'50%',transform:'translateX(-50%) translateY(-50%);'}}><Loader/></div> : 
-      <Fragment>
+      {isLoading &&
+        <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translateX(-50%) translateY(-50%);' }}><Loader /></div>
+      }
+      <div style={{ opacity: isLoading ? 0 : 1 }}>
         <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
-        <Player />
+          <Player />
+        </div>
+        <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
+        <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
+        {showEditor &&
+          <div className='filter-container'>
+            <FilterEditor />
+          </div>
+        }
+        {showConfig &&
+          <div className='config-container'>
+            <ConfigEditor />
+          </div>
+        }
       </div>
-      <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
-      <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
-      {showEditor &&
-        <div className='filter-container'>
-          <FilterEditor />
-        </div>
-      }
-      {showConfig &&
-        <div className='config-container'>
-          <ConfigEditor />
-        </div>
-      }
-      </Fragment>
-      }
-    </div>
+    </div >
   );
 }
 
 const mapStateToProps = state => {
   const modalOpen = selectModalOpen(state);
-  const isLoading = selectIsLoading(state);
+  const isLoading = selectVideoIsLoading(state);
   return { modalOpen, isLoading };
 };
 

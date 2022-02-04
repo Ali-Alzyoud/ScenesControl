@@ -5,12 +5,5 @@
         "subtitle" : "https://raw.githubusercontent.com/Ali-Alzyoud/ScenesControl/public/video/joker/s.srt",
         "filter" : "https://raw.githubusercontent.com/Ali-Alzyoud/ScenesControl/main/public/video/joker/f.txt",
         "poster" : "https://raw.githubusercontent.com/Ali-Alzyoud/ScenesControl/main/public/video/joker/p.jpg"
-    },
-    {
-        "name" : "Joker Sample local",
-        "video" : "video/joker/v.webm",
-        "subtitle" : "video/joker/s.srt",
-        "filter" : "video/joker/f.txt",
-        "poster" : "video/joker/p.jpg"
     }
 ]

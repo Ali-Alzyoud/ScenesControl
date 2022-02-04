@@ -4,26 +4,35 @@ import FileRecord from './FileRecord'
 import * as API from '../../common/API/API'
 
 import { connect } from "react-redux";
-import { setFilterItems, setSubtitle, setModalOpen } from '../../redux/actions'
+import { setFilterItems, setSubtitle, setModalOpen, setVideoSrc } from '../../redux/actions'
 import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass } from '../../common/SceneGuide'
 
 import "./style.css"
 import Loader from '../Loader';
 
-function FilterPicker({ close, setFilterItems, setSubtitle, setModalOpen }) {
+function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setModalOpen }) {
     const [recordsItems, setRecordsItems] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState();
     const [filterText, setFilterText] = useState();
     const select = (index) => {
         setSelectedIndex(index);
         const selectedRecord = recordsItems[index];
-            SrtClass.ReadFile(API.endpoint + "/" + selectedRecord.subtitle).then((records)=>{
-                setSubtitle(records);
-            });
-            SceneGuideClass.ReadFile(API.endpoint + "/" + selectedRecord.filterSrc).then((records)=>{
+        SrtClass.ReadFile(API.endpoint + "/" + selectedRecord.subtitle).then((records) => {
+            setSubtitle(records);
+        });
+        if (selectedRecord.filterSrc) {
+            SceneGuideClass.ReadFile(API.endpoint + "/" + selectedRecord.filterSrc).then((records) => {
                 setFilterItems(records);
             });
+        }
+        else {
+            setFilterItems(null);
+        }
+        if (selectedRecord.video) {
+            setVideoSrc(selectedRecord.video);
+        }
+        close();
     }
     const textChanged = (e) => {
         setFilterText(e.target.value.toLowerCase());
@@ -51,23 +60,24 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setModalOpen }) {
                 <div className="filter-files">
                     <list>
                         {
-                            recordsItems && recordsItems.length>0 ?
-                            recordsItems.map((item, index) => {
-                                return filterText && !item.title.toLowerCase().includes(filterText) ?
-                                null
+                            recordsItems && recordsItems.length > 0 ?
+                                recordsItems.map((item, index) => {
+                                    return filterText && !item.title.toLowerCase().includes(filterText) ?
+                                        null
+                                        :
+                                        <FileRecord
+                                            imgSrc={item.img}
+                                            title={item.title}
+                                            link={item.movie}
+                                            index={index}
+                                            readyToPlay={!!item.video}
+                                            isSelected={selectedIndex !== undefined && selectedIndex == index}
+                                            select={select} />
+                                })
                                 :
-                                <FileRecord
-                                    imgSrc={item.img}
-                                    title={item.title}
-                                    link={item.movie}
-                                    index={index}
-                                    isSelected={selectedIndex!==undefined && selectedIndex==index}
-                                    select={select} />
-                            })
-                            :
-                            <div style={{width:'100%',position:'absolute',alignContent:'center'}}>
-                            <Loader/>
-                            </div>
+                                <div style={{ width: '100%', position: 'absolute', alignContent: 'center' }}>
+                                    <Loader />
+                                </div>
                         }
                     </list>
                 </div>
@@ -78,6 +88,6 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setModalOpen }) {
 
 export default connect(
     null,
-    { setSubtitle, setFilterItems, setModalOpen }
-  )(FilterPicker);
+    { setSubtitle, setFilterItems, setModalOpen, setVideoSrc }
+)(FilterPicker);
 

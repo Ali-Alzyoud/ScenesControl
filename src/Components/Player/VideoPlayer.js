@@ -5,7 +5,7 @@ import VideoSrt from "./VideoSRT";
 
 import { connect } from "react-redux";
 import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName } from '../../redux/selectors'
-import { setTime, setDuration, setPlayerState, setVolume } from "../../redux/actions";
+import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume } from "../../redux/actions";
 
 const debounce = (func1, func, delay) => {
   let inDebounce;
@@ -95,7 +95,7 @@ class VideoPlayer extends React.PureComponent {
   };
 
   render = () => {
-    const { videoSrc, setTime, setDuration, videoName, setPlayerState, playerState, setVolume, volume} = this.props;
+    const { videoSrc, setTime, setDuration, videoName, setPlayerState, setVideoIsLoading, playerState, setVolume, volume} = this.props;
     const {time, duration, visible, blackScreen} = this.state;
     return (
       <div className={`playercontainer ${visible ? '' : 'hidden'}`}
@@ -146,9 +146,12 @@ class VideoPlayer extends React.PureComponent {
         }}
       >
         <video
-          className='player'
+          className={`player ${videoSrc ? '' : 'no-source'}`}
           src={videoSrc}
           ref={this.player}
+          onLoadedData={()=>{
+            setVideoIsLoading(false);
+          }}
           onCanPlay={(event) => {
             setDuration(event.target.duration);
           }}
@@ -216,4 +219,4 @@ const mapStateToProps = state => {
   };
 };
 
-export default connect(mapStateToProps, { setDuration, setTime, setPlayerState, setVolume })(VideoPlayer);
+export default connect(mapStateToProps, { setDuration, setTime, setPlayerState, setVolume, setVideoIsLoading })(VideoPlayer);

@@ -1,11 +1,11 @@
-import { SET_SUBTITLE, SET_VIDEO, SET_VIDEO_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_MUTE, SET_SPEED, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION } from "../actionTypes";
+import { SET_SUBTITLE, VIDEO_SRC, VIDEO_IS_LOADING, VIDEO_SRC_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_MUTE, SET_SPEED, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION } from "../actionTypes";
 
 
 const playerConfigJSON = localStorage.getItem("playerConfig");
 const savedPlayerConfig = playerConfigJSON ? JSON.parse(playerConfigJSON) : {
-  violence : [PLAYER_ACTION.BLUR, PLAYER_ACTION.NOACTION],
-  nudity : [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
-  profanity : [PLAYER_ACTION.NOACTION, PLAYER_ACTION.MUTE],
+  violence: [PLAYER_ACTION.BLUR, PLAYER_ACTION.NOACTION],
+  nudity: [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
+  profanity: [PLAYER_ACTION.NOACTION, PLAYER_ACTION.MUTE],
 }
 
 const initialState = {
@@ -30,15 +30,23 @@ const Media = (state = initialState, action) => {
         subtitle: subtitle,
       };
     }
-    case SET_VIDEO: {
-        const { videoSrc } = action.payload;
-        return {
-          ...state,
-          videoSrc: videoSrc,
-        };
-      }
-    case SET_VIDEO_NAME: {
-      const {videoName} = action.payload;
+    case VIDEO_SRC: {
+      const { videoSrc } = action.payload;
+      return {
+        ...state,
+        videoSrc: videoSrc,
+        videoIsLoading: videoSrc!=state.videoSrc,
+      };
+    }
+    case VIDEO_IS_LOADING: {
+      const { videoIsLoading } = action.payload;
+      return {
+        ...state,
+        videoIsLoading,
+      };
+    }
+    case VIDEO_SRC_NAME: {
+      const { videoName } = action.payload;
       return {
         ...state,
         videoName: videoName,
@@ -86,10 +94,10 @@ const Media = (state = initialState, action) => {
     }
     case SET_PLAYER_CONFIG: {
       const { playerConfig } = action.payload;
-      localStorage.setItem("playerConfig", JSON.stringify({...state.playerConfig,...playerConfig}));
+      localStorage.setItem("playerConfig", JSON.stringify({ ...state.playerConfig, ...playerConfig }));
       return {
         ...state,
-        playerConfig: {...state.playerConfig,...playerConfig},
+        playerConfig: { ...state.playerConfig, ...playerConfig },
       };
     }
     case SET_SPEED: {

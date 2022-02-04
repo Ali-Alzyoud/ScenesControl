@@ -17,7 +17,7 @@ const SceneFilter = (state = initialState, action) => {
       const { records } = action.payload;
       return {
         ...state,
-        records: [...records],
+        records: (records && records.length > 0) ? [...records] : null,
       };
     }
     case REMOVE_ITEM_INDEX: {

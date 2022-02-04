@@ -65,6 +65,10 @@
     align-items: center;
 }
 
+.file-record.ready{
+    background-color: aquamarine;
+}
+
 .file-record > img{
     height: 120px;
     width: 120px;

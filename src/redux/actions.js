@@ -1,7 +1,8 @@
 import {
   SET_SUBTITLE,
-  SET_VIDEO,
-  SET_VIDEO_NAME,
+  VIDEO_SRC,
+  VIDEO_IS_LOADING,
+  VIDEO_SRC_NAME,
   SET_TIME,
   SET_DURATION,
   SET_VOLUME,
@@ -15,24 +16,23 @@ import {
   SET_PLAYER_STATE,
   SET_PLAYER_CONFIG,
   SET_FONT_CONFIG,
-  SET_MODAL_OPEN,
-  SET_IS_LOADING
+  SET_MODAL_OPEN
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
-type: SET_SUBTITLE,
-payload: {
-subtitle
-}
+  type: SET_SUBTITLE,
+  payload: {
+    subtitle
+  }
 });
 
 export const setVideoSrc = videoSrc => ({
-type: SET_VIDEO,
-payload: { videoSrc }
+  type: VIDEO_SRC,
+  payload: { videoSrc }
 });
 
 export const setVideoName = videoName => ({
-  type: SET_VIDEO_NAME,
+  type: VIDEO_SRC_NAME,
   payload: { videoName }
 });
 
@@ -87,16 +87,16 @@ export const setModalOpen = (modalOpen) => {
   }
 };
 
-export const setIsLoading = (isLoading) => {
+export const setVideoIsLoading = (videoIsLoading) => {
   return {
-    type: SET_IS_LOADING,
-    payload: { isLoading }
+    type: VIDEO_IS_LOADING,
+    payload: { videoIsLoading }
   }
 };
 
 export const addFilterItems = records => ({
-    type: ADD_ITEMS,
-    payload: { records }
+  type: ADD_ITEMS,
+  payload: { records }
 });
 
 export const setFilterItems = records => ({
@@ -105,21 +105,21 @@ export const setFilterItems = records => ({
 });
 
 export const removeFilterIndex = index => ({
-    type: REMOVE_ITEM_INDEX,
-    payload: { index }
+  type: REMOVE_ITEM_INDEX,
+  payload: { index }
 });
 
 export const removeAllFilters = () => ({
-    type: REMOVE_ALL,
-    payload: { }
+  type: REMOVE_ALL,
+  payload: {}
 });
 
 export const updateFilterItem = (record, index) => ({
-    type: UPDATE_ITEM,
-    payload: { record, index}
+  type: UPDATE_ITEM,
+  payload: { record, index }
 });
 
 export const setSettings_fontConfig = (fontConfig) => ({
-    type: SET_FONT_CONFIG,
-    payload: { fontConfig}
+  type: SET_FONT_CONFIG,
+  payload: { fontConfig }
 });

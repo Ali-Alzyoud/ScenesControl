@@ -50,8 +50,8 @@ export const selectModalOpen = (state) => {
     return state.settings.modalOpen;
 }
 
-export const selectIsLoading = (state) => {
-    return state.settings.isLoading;
+export const selectVideoIsLoading = (state) => {
+    return state.media.videoIsLoading;
 }
 
 //Settings

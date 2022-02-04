@@ -1,6 +1,8 @@
 * Upload filter files on cloud, Allow user to download them (Filter + Subtitle + Movie URL)
-* Enhance SRT support, and support positions
+* Enhance SRT support
 * Create Youtube Video to show, how to use the application, and save/load filters
+* Support adding area of filteration with positions(rects).
+    * after selecting new record, user can draw areas with mouse, and each area has a delete button on top-right
 
 
 Store:
