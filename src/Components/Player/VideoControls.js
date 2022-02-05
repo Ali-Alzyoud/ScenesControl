@@ -192,8 +192,8 @@ function VideoControls({ time,
     }
 
     const cleanDocEvents = () => {
-        document.onmousemove = null;
-        document.onmouseup = null;
+        document.onpointermove = null;
+        document.onpointerup = null;
     }
 
     useEffect(()=>{
@@ -228,11 +228,11 @@ function VideoControls({ time,
                 alt='error'
                 style={{...styleButton, color:'white'}}
                 onClick={onPlayClick}
-                onMouseEnter={(e) => {
+                onPointerEnter={(e) => {
                     mousein("Button");
                     e.stopPropagation();
                 }}
-                onMouseLeave={(e) => {
+                onPointerLeave={(e) => {
                     mouseout("Button");
                     e.stopPropagation();
                 }}
@@ -244,15 +244,15 @@ function VideoControls({ time,
     );
     return (
         <div style={style} ref={ref}>
-            <div style={seekbarStyle} ref={seekbar} onMouseDown={mousedown} onMouseUp={cleanDocEvents} onClick={e=>e.stopPropagation()}>
+            <div style={seekbarStyle} ref={seekbar} onPointerDown={mousedown} onPointerUp={cleanDocEvents} onClick={e=>e.stopPropagation()}>
                 <div style={{ ...styleProgress, width: (progress * 100) + '%' }}>
                     <div style={styleHandle}
                         ref={seekbutton}
-                        onMouseEnter={() => { mousein("Handle") }}
-                        onMouseLeave={() => { mouseout("Handle") }}
-                        onMouseDown={(e) => {
-                            document.onmousemove = mouseMove;
-                            document.onmouseup = cleanDocEvents;
+                        onPointerEnter={() => { mousein("Handle") }}
+                        onPointerLeave={() => { mouseout("Handle") }}
+                        onPointerDown={(e) => {
+                            document.onpointermove = mouseMove;
+                            document.onpointerup = cleanDocEvents;
                             document.onclick = e => e.stopPropagation()
                             e.stopPropagation();
                         }}
@@ -281,8 +281,8 @@ function VideoControls({ time,
                     onFullscreen();
                     e.stopPropagation();
                 }}
-                onMouseEnter={() => { mousein("Button") }}
-                onMouseLeave={() => { mouseout("Button") }}
+                onPointerEnter={() => { mousein("Button") }}
+                onPointerLeave={() => { mouseout("Button") }}
                 />
                 <div className='controls-volume'>
                     <Slider value={volume * 100} setValue={

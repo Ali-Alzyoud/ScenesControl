@@ -111,7 +111,7 @@ class VideoPlayer extends React.PureComponent {
     const {time, duration, visible, blackScreen} = this.state;
     return (
       <div className={`playercontainer ${visible ? '' : 'hidden'}`}
-        onMouseMove={debounce(
+        onPointerMove={debounce(
           () => {
             this.setState({visible: true});
           },
@@ -149,7 +149,7 @@ class VideoPlayer extends React.PureComponent {
           event.stopPropagation();
           setVolume(volume + event.deltaY * -0.0005);
         }}
-        onMouseDown={(e)=>{
+        onPointerDown={(e)=>{
           if(e.button == 1){
             this.setState({ blackScreen: !blackScreen }, () => {
               setPlayerState('pause');
