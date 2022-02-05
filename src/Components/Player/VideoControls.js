@@ -244,7 +244,7 @@ function VideoControls({ time,
     );
     return (
         <div style={style} ref={ref}>
-            <div style={seekbarStyle} ref={seekbar} onMouseDown={mousedown} onMouseUp={cleanDocEvents}>
+            <div style={seekbarStyle} ref={seekbar} onMouseDown={mousedown} onMouseUp={cleanDocEvents} onClick={e=>e.stopPropagation()}>
                 <div style={{ ...styleProgress, width: (progress * 100) + '%' }}>
                     <div style={styleHandle}
                         ref={seekbutton}
@@ -253,6 +253,10 @@ function VideoControls({ time,
                         onMouseDown={(e) => {
                             document.onmousemove = mouseMove;
                             document.onmouseup = cleanDocEvents;
+                            document.onclick = e => e.stopPropagation()
+                            e.stopPropagation();
+                        }}
+                        onClick={(e)=>{
                             e.stopPropagation();
                         }}
                     />
