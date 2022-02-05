@@ -64,16 +64,6 @@
     margin-top: 10px;
     text-align: center;
   }
-
-  .dropdown-content.samples > a{
-    padding-right: 20px;
-  }
-
-  .dropdown-content.samples > div > img{
-    margin-bottom: 20px;
-    object-fit: contain;
-  }
-
   .dropdown-content a {
     float: none;
     color: black;

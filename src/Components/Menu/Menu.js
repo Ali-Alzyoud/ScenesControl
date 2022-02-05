@@ -109,24 +109,6 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime,
                 </div>
             </div>
             <div className="dropdown">
-                <button className="dropbtn">Samples
-                </button>
-                <div className="dropdown-content samples">
-                    {files.length > 0 && files.map(file => {
-                        return (
-                            <div onClick={
-                                () => {
-                                    window.location.href = window.location.origin + '#/' + btoa(file.video) + '/' + btoa(file.subtitle) + '/' + btoa(file.filter);
-                                }
-                            }>
-                                <a>{file.name}</a>
-                                <img src={file.poster} width={120} height={120} />
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-            <div className="dropdown">
                 <button className="dropbtn blue" onClick={() => { setfilterPicker(true) }}>Store
                 </button>
             </div>

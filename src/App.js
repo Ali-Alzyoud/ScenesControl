@@ -69,7 +69,7 @@ function App(props) {
         setSubtitle(records)
       });
     } else {
-      setSubtitle(null);
+      setSubtitle([]);
     }
 
     if (filterURL.toLowerCase().startsWith('http')) {
@@ -77,7 +77,7 @@ function App(props) {
         addFilterItems(records);
       });
     } else {
-      setFilterItems(null);
+      setFilterItems([]);
     }
   };
 

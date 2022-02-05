@@ -1,7 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react'
-import playicon from '../../assets/play.png';
-import pauseicon from '../../assets/pause.png';
-import fullicon from '../../assets/full-screen.png';
 
 import { MdForward5 } from 'react-icons/md'
 import { MdForward10 } from 'react-icons/md'
@@ -11,6 +8,9 @@ import { MdReplay5 } from 'react-icons/md'
 import { MdReplay10 } from 'react-icons/md'
 import { MdReplay30 } from 'react-icons/md'
 
+import { GiExpand } from 'react-icons/gi'
+import { MdPlayArrow, MdPause } from 'react-icons/md'
+
 import './style.css'
 
 import { connect } from "react-redux";
@@ -18,6 +18,7 @@ import { selectTime, selectDuration, selectPlayerState, selectVolume, selectModa
 import { setTime, setPlayerState, setVolume } from '../../redux/actions';
 import { Fragment } from 'react';
 import Slider from '../Slider';
+import { Component } from 'react';
 
 var styleControls = {
     width: '80%',
@@ -46,14 +47,15 @@ var seekbarStyleProgress = {
 
 var seekhandleStyle = {
     left: '100%',
-    top: '-6px',
-    marginLeft: '-8px',
-    width: '16px',
-    height: '16px',
+    top: '-10px',
+    marginLeft: '-12px',
+    width: '24px',
+    height: '24px',
     background: 'white',
     position: 'relative',
     borderRadius: '50%',
-    opacity: 0.9
+    border: '1px solid black',
+    opacity: 1.0
 }
 
 var seekbuttonStyle = {
@@ -73,6 +75,8 @@ const KEY = {
     FAST_FORWARD:       417,
     REWIND:             412,
 };
+
+let PlayIcon = MdPlayArrow;
 
 function VideoControls({ time,
     setTime,
@@ -192,6 +196,15 @@ function VideoControls({ time,
         document.onmouseup = null;
     }
 
+    useEffect(()=>{
+        if (playerState === 'play') {
+            PlayIcon = (MdPause);
+        }
+        else {
+            PlayIcon = (MdPlayArrow);
+        }
+    },[playerState])
+
     const onPlayClick = (event) => {
         if (playerState === 'play') {
             setPlayerState('pause');
@@ -206,13 +219,14 @@ function VideoControls({ time,
             {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} /> */}
             <MdReplay10 className='controls left' onClick={(event)=>{setTime(time-10); event.stopPropagation();}} />
             <MdReplay5 className='controls left' onClick={(event) => { setTime(time - 5); event.stopPropagation(); }} />
-            <img id="btn_play"
-                src={
-                    (playerState === 'pause') ?
-                        playicon : pauseicon
-                }
+            <PlayIcon
+                id="btn_play"
+                // src={
+                //     (playerState === 'pause') ?
+                //         playicon : pauseicon
+                // }
                 alt='error'
-                style={styleButton}
+                style={{...styleButton, color:'white'}}
                 onClick={onPlayClick}
                 onMouseEnter={(e) => {
                     mousein("Button");
@@ -246,10 +260,19 @@ function VideoControls({ time,
             </div>
             <p ref={timeLabel} className='controltime' />
             {player_controls}
-            <img id="full-screen"
-                src={fullicon}
+            <GiExpand
+                id="full-screen"
                 alt='error'
-                style={{ ...styleButton, bottom: '10px', position: 'absolute', right: '0'}}
+                style={{
+                    ...styleButton,
+                    bottom: '10px',
+                    position: 'absolute',
+                    right: '0',
+                    color:'white',
+                    paintOrder: 'stroke fill',
+                    strokeWidth: '20px',
+                    stroke: 'black'
+                }}
                 onClick={(e) => {
                     onFullscreen();
                     e.stopPropagation();

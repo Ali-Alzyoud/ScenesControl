@@ -36,3 +36,9 @@ li.video:hover{
   background-color: lightblue;
   cursor: pointer;
 }
+
+svg{
+  paint-order: stroke fill;
+  stroke-width: 1;
+  stroke: black;
+}

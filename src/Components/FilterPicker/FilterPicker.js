@@ -18,16 +18,17 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setVide
     const select = (index) => {
         setSelectedIndex(index);
         const selectedRecord = recordsItems[index];
-        SrtClass.ReadFile(API.endpoint + "/" + selectedRecord.subtitle).then((records) => {
+        const endPointURL = !selectedRecord.isAbsoluteLink ? API.endpoint + "/" : '';
+        SrtClass.ReadFile(endPointURL + selectedRecord.subtitle).then((records) => {
             setSubtitle(records);
         });
         if (selectedRecord.filterSrc) {
-            SceneGuideClass.ReadFile(API.endpoint + "/" + selectedRecord.filterSrc).then((records) => {
+            SceneGuideClass.ReadFile(endPointURL + selectedRecord.filterSrc).then((records) => {
                 setFilterItems(records);
             });
         }
         else {
-            setFilterItems(null);
+            setFilterItems([]);
         }
         if (selectedRecord.video) {
             setVideoSrc(selectedRecord.video);
