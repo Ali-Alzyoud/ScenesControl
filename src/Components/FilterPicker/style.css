@@ -80,9 +80,13 @@
     cursor: pointer;
 }
 
-.file-record > h2{
+.file-record .title{
     margin-left: 20px;
     font-size: 20px;
+}
+
+.file-record .ready{
+    background-color: green;
 }
 
 .file-record-icon{

@@ -12,7 +12,7 @@ import ToggleButton from './Components/ToggleButton'
 
 
 import { connect } from "react-redux";
-import { addFilterItems, setVideoSrc, setSubtitle } from './redux/actions'
+import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems } from './redux/actions'
 import { selectModalOpen, selectVideoIsLoading } from './redux/selectors'
 import Loader from './Components/Loader';
 
@@ -42,6 +42,7 @@ function App(props) {
     const paramsURL = window.location.hash;
 
     const params = paramsURL.split('/');
+    if (params.length == 0 || (params.length == 1 && params[0].length == 0)) return;
     if (paramsURL != '/' && params.length >= 2) {
       if (params[1] && params[1].length > 0) {
         videoURL = atob(params[1]);
@@ -54,13 +55,30 @@ function App(props) {
       }
     }
 
-    setVideoSrc(videoURL);
-    SrtClass.ReadFile(subtitleURL).then((records) => { setSubtitle(records) });
-    SceneGuideClass.ReadFile(filterURL).then((records) => {
-      addFilterItems(records);
-    });
+    if(videoURL){
+      setVideoSrc(videoURL);
+    }
+
+    if (subtitleURL.toLowerCase().startsWith('http')) {
+      SrtClass.ReadFile(subtitleURL).then((records) => {
+        setSubtitle(records)
+      });
+    } else {
+      setSubtitle(null);
+    }
+
+    if (filterURL.toLowerCase().startsWith('http')) {
+      SceneGuideClass.ReadFile(filterURL).then((records) => {
+        addFilterItems(records);
+      });
+    } else {
+      setFilterItems(null);
+    }
   };
 
+  useEffect(() => {
+    loadAll();
+  }, [])
 
   useEffect(() => {
     window.onhashchange = () => {

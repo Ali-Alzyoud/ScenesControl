@@ -34,6 +34,15 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setModa
         }
         close();
     }
+    const copy = (index) => {
+        const selectedRecord = recordsItems[index];
+        let str = window.location.origin + '#/'
+            + btoa(selectedRecord.video) + '/'
+            + btoa(selectedRecord.subtitle ? (API.endpoint + "/" + selectedRecord.subtitle) : '') + '/'
+            + btoa(selectedRecord.filterSrc ? (API.endpoint + "/" + selectedRecord.filterSrc): '');
+        navigator.clipboard.writeText(str);
+        alert('link written to clipboard')
+    }
     const textChanged = (e) => {
         setFilterText(e.target.value.toLowerCase());
         e.stopPropagation();
@@ -72,7 +81,8 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setModa
                                             index={index}
                                             readyToPlay={!!item.video}
                                             isSelected={selectedIndex !== undefined && selectedIndex == index}
-                                            select={select} />
+                                            select={select}
+                                            copy={copy}/>
                                 })
                                 :
                                 <div style={{ width: '100%', position: 'absolute', alignContent: 'center' }}>
