@@ -17,6 +17,10 @@
     background: white;
 }
 
+.box > *{
+    user-select: text;
+}
+
 .button {
     background-color: #7f7f7f;
     border: none;
