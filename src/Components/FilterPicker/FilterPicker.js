@@ -4,14 +4,14 @@ import FileRecord from './FileRecord'
 import * as API from '../../common/API/API'
 
 import { connect } from "react-redux";
-import { setFilterItems, setSubtitle, setModalOpen, setVideoSrc } from '../../redux/actions'
+import { setFilterItems, setSubtitle, setModalOpen, setVideoSrc, setVideoName, setDuration, setTime } from '../../redux/actions'
 import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass } from '../../common/SceneGuide'
 
 import "./style.css"
 import Loader from '../Loader';
 
-function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setModalOpen }) {
+function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setVideoName, setModalOpen, setDuration, setTime }) {
     const [recordsItems, setRecordsItems] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState();
     const [filterText, setFilterText] = useState();
@@ -31,6 +31,11 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setModa
         }
         if (selectedRecord.video) {
             setVideoSrc(selectedRecord.video);
+            const fileName = selectedRecord.video.replace(/^.*[\\\/]/, '') || 'sample';
+            setVideoName(fileName);
+            const getCurrentTime = localStorage.getItem(fileName) || 0;
+            setDuration(0);
+            setTime(Number(getCurrentTime));
         }
         close();
     }
@@ -98,6 +103,6 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setModa
 
 export default connect(
     null,
-    { setSubtitle, setFilterItems, setModalOpen, setVideoSrc }
+    { setSubtitle, setFilterItems, setModalOpen, setVideoSrc, setVideoName, setDuration, setTime }
 )(FilterPicker);
 

@@ -35,10 +35,22 @@ class VideoPlayer extends React.PureComponent {
     this.timer = null;
   }
 
+  componentDidMount(){
+    this.progressSave = setInterval(() => {
+      const {time, videoName} = this.props;
+      if (videoName && time)
+        localStorage.setItem(videoName, time);
+    }, 5000);
+  }
+
   componentWillUnmount(){
     if(this.timer){
       clearTimeout(this.timer);
       this.timer = null;
+    }
+    if(this.progressSave){
+      clearInterval(this.progressSave);
+      this.progressSave = null;
     }
   }
 
@@ -162,15 +174,9 @@ class VideoPlayer extends React.PureComponent {
           onSeeked={(event) => {
             const { currentTime } = this.player.current;
             setTime(currentTime);
-            localStorage.setItem(videoName, currentTime);
           }}
           onTimeUpdate={(event) => {
             setTime(event.target.currentTime);
-            if (this.localStorageUpdateCounter > 10) {
-              this.localStorageUpdateCounter = 0;
-              localStorage.setItem(videoName, event.target.currentTime);
-            }
-            this.localStorageUpdateCounter++;
           }}
         ></video>
         <VideoFilter blackScreen={blackScreen}/>

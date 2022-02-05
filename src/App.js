@@ -12,7 +12,7 @@ import ToggleButton from './Components/ToggleButton'
 
 
 import { connect } from "react-redux";
-import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems } from './redux/actions'
+import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems, setDuration, setTime, setVideoName } from './redux/actions'
 import { selectModalOpen, selectVideoIsLoading } from './redux/selectors'
 import Loader from './Components/Loader';
 
@@ -27,7 +27,7 @@ function App(props) {
   const filterSample = 'video/joker/f.txt'
   const subtitleSample = 'video/joker/s.srt'
 
-  const { addFilterItems, setVideoSrc, setSubtitle, modalOpen, isLoading } = props;
+  const { addFilterItems, setVideoSrc, setSubtitle, modalOpen, isLoading, setDuration, setTime } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [forceupdate, setForceUpdate] = useState(0);
@@ -56,7 +56,12 @@ function App(props) {
     }
 
     if(videoURL){
+      const fileName = videoURL.replace(/^.*[\\\/]/, '') || 'sample';
       setVideoSrc(videoURL);
+      setVideoName(fileName);
+      const getCurrentTime = localStorage.getItem(fileName) || 0;
+      setDuration(0);
+      setTime(Number(getCurrentTime));
     }
 
     if (subtitleURL.toLowerCase().startsWith('http')) {
@@ -144,5 +149,5 @@ const mapStateToProps = state => {
 
 export default connect(
   mapStateToProps,
-  { addFilterItems, setVideoSrc, setSubtitle }
+  { addFilterItems, setVideoSrc, setSubtitle, setDuration, setTime, setVideoName }
 )(App);

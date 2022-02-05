@@ -31,11 +31,9 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime,
         setVideoSrc(videoSrc);
         setVideoName(videoName);
 
-        const getCurrentTime = localStorage.getItem(videoName);
-        if (getCurrentTime) {
-            setDuration(0);
-            setTime(Number(getCurrentTime));
-        }
+        const getCurrentTime = localStorage.getItem(videoName) || 0;
+        setDuration(0);
+        setTime(Number(getCurrentTime));
         setkey(key + 1);
     }
     const openSubtitleFile = (e) => {
