@@ -7,7 +7,9 @@ import {MdContentCopy} from 'react-icons/md'
 
 export default function FileRecord({ imgSrc, title, link, index, isSelected, select, copy, readyToPlay }) {
     const click = () => {
-        window.open(link);
+        if(link){
+            window.open(link);
+        }
     }
     return (
         <div className={`file-record ${readyToPlay ? 'ready' : ''}`}>
