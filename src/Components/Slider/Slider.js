@@ -1,8 +1,8 @@
 import React, { Fragment, useRef } from 'react'
-import { FaVolumeUp } from 'react-icons/fa';
+import { FaVolumeMute, FaVolumeUp } from 'react-icons/fa';
 import './style.css'
 
-export default function Slider({ value, setValue }) {
+export default function Slider({ value, setValue, mute }) {
     const ref = useRef(null);
     return (
         <div>
@@ -24,7 +24,7 @@ export default function Slider({ value, setValue }) {
                         bottom: '0px'
                     }}></div>
             </div>
-            <FaVolumeUp style={{color:'white', marginTop:'5px'}}/>
+            {mute ? <FaVolumeMute style={{color:'white', marginTop:'5px'}}/>: <FaVolumeUp style={{color:'white', marginTop:'5px'}}/>}
         </div>
     )
 }

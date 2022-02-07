@@ -46,8 +46,7 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setVide
             + btoa(selectedRecord.video) + '/'
             + btoa(selectedRecord.subtitle ? (API.endpoint + "/" + selectedRecord.subtitle) : '') + '/'
             + btoa(selectedRecord.filterSrc ? (API.endpoint + "/" + selectedRecord.filterSrc): '');
-        navigator.clipboard.writeText(str);
-        alert('link written to clipboard')
+        window.location.href = str;
     }
     const textChanged = (e) => {
         setFilterText(e.target.value.toLowerCase());
