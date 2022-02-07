@@ -27,7 +27,7 @@ function App(props) {
   const filterSample = 'video/joker/f.txt'
   const subtitleSample = 'video/joker/s.srt'
 
-  const { addFilterItems, setVideoSrc, setSubtitle, modalOpen, isLoading, setDuration, setTime } = props;
+  const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, modalOpen, isLoading, setDuration, setTime } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [forceupdate, setForceUpdate] = useState(0);
@@ -59,7 +59,6 @@ function App(props) {
       const fileName = videoURL.replace(/^.*[\\\/]/, '') || 'sample';
       setVideoSrc(videoURL);
       setVideoName(fileName);
-      setDuration(0);
     }
 
     if (subtitleURL.toLowerCase().startsWith('http')) {
