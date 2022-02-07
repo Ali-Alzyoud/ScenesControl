@@ -9,7 +9,7 @@ export default function About({close}) {
                 <p> Creator : Ali M Alzyod </p>
                 <p> ali198724@gmail.com </p>
                 <p> https://github.com/Ali-Alzyoud/ScenesControl </p>
-                <p> Date : 2021 </p>
+                <p> App Version : (2022) 0.1v </p>
                 <br/>
                 <p className="bold"> Key Bindings Editing </p>
                 <div className='part'>
