@@ -34,9 +34,7 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setVide
             setVideoSrc(selectedRecord.video);
             const fileName = selectedRecord.video.replace(/^.*[\\\/]/, '') || 'sample';
             setVideoName(fileName);
-            const getCurrentTime = localStorage.getItem(fileName) || 0;
             setDuration(0);
-            setTime(Number(getCurrentTime));
         }
         close();
     }

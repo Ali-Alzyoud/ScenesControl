@@ -59,9 +59,7 @@ function App(props) {
       const fileName = videoURL.replace(/^.*[\\\/]/, '') || 'sample';
       setVideoSrc(videoURL);
       setVideoName(fileName);
-      const getCurrentTime = localStorage.getItem(fileName) || 0;
       setDuration(0);
-      setTime(Number(getCurrentTime));
     }
 
     if (subtitleURL.toLowerCase().startsWith('http')) {

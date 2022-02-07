@@ -8,7 +8,9 @@ export default function About({close}) {
                 <h1> Guided Scene Player/Editor </h1>
                 <p> Creator : Ali M Alzyod </p>
                 <p> ali198724@gmail.com </p>
-                <p> https://github.com/Ali-Alzyoud/ScenesControl </p>
+                <p>
+                <a className='box-links' href='https://github.com/Ali-Alzyoud/ScenesControl'> https://github.com/Ali-Alzyoud/ScenesControl </a>
+                </p>
                 <p> App Version : (2022) 0.1v </p>
                 <br/>
                 <p className="bold"> Key Bindings Editing </p>

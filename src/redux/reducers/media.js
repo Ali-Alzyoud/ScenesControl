@@ -11,7 +11,7 @@ const savedPlayerConfig = playerConfigJSON ? JSON.parse(playerConfigJSON) : {
 const initialState = {
   subtitle: [],
   videoSrc: null,
-  videoName: 'myFile',
+  videoName: '',
   time: 0,
   duration: 0,
   volume: 1.0,

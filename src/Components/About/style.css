@@ -21,6 +21,11 @@
     user-select: text;
 }
 
+.box-links{
+    float: none !important;
+    color: black !important;
+}
+
 .button {
     background-color: #7f7f7f;
     border: none;

@@ -14,7 +14,7 @@ import { MdPlayArrow, MdPause } from 'react-icons/md'
 import './style.css'
 
 import { connect } from "react-redux";
-import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen } from '../../redux/selectors';
+import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName } from '../../redux/selectors';
 import { setTime, setPlayerState, setVolume } from '../../redux/actions';
 import { Fragment } from 'react';
 import Slider from '../Slider';
@@ -88,6 +88,7 @@ function VideoControls({ time,
     volume,
     isMute,
     onFullscreen,
+    videoName,
     modalOpen
 }) {
 
@@ -207,11 +208,13 @@ function VideoControls({ time,
     },[playerState])
 
     const onPlayClick = (event) => {
-        if (playerState === 'play') {
-            setPlayerState('pause');
-        }
-        else {
-            setPlayerState('play');
+        if (videoName) {
+            if (playerState === 'play') {
+                setPlayerState('pause');
+            }
+            else {
+                setPlayerState('play');
+            }
         }
     }
 
@@ -306,7 +309,8 @@ const mapStateToProps = state => {
         playerState: selectPlayerState(state),
         volume: selectVolume(state),
         isMute: selectMute(state),
-        modalOpen: selectModalOpen(state)
+        modalOpen: selectModalOpen(state),
+        videoName: selectVideoName(state),
     };
 };
 

@@ -4,7 +4,7 @@ import VideoFilter from "./VideoFilter";
 import VideoSrt from "./VideoSRT";
 
 import { connect } from "react-redux";
-import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName } from '../../redux/selectors'
+import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName, selectVideoIsLoading } from '../../redux/selectors'
 import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume } from "../../redux/actions";
 
 const debounce = (func1, func, delay) => {
@@ -37,8 +37,8 @@ class VideoPlayer extends React.PureComponent {
 
   componentDidMount(){
     this.progressSave = setInterval(() => {
-      const {time, videoName} = this.props;
-      if (videoName && time)
+      const {time, videoName, isLoading} = this.props;
+      if (videoName && time && !isLoading)
         localStorage.setItem(videoName, time);
     }, 5000);
   }
@@ -132,10 +132,12 @@ class VideoPlayer extends React.PureComponent {
             this.timer = setTimeout(() => {
               this.clickCount = 0;
               this.timer = null;
-              if (playerState == 'play') {
-                setPlayerState('pause');
-              } else {
-                setPlayerState('play');
+              if (videoName) {
+                if (playerState == 'play') {
+                  setPlayerState('pause');
+                } else {
+                  setPlayerState('play');
+                }
               }
             }, 250);
           } else {
@@ -161,11 +163,12 @@ class VideoPlayer extends React.PureComponent {
           className={`player ${videoSrc ? '' : 'no-source'}`}
           src={videoSrc}
           ref={this.player}
-          onLoadedData={()=>{
+          onLoadedData={(event)=>{
             setVideoIsLoading(false);
-          }}
-          onCanPlay={(event) => {
+            const getCurrentTime = localStorage.getItem(videoName) || 0;
+            setTime(Number(getCurrentTime));
             setDuration(event.target.duration);
+            setPlayerState("pause");
           }}
           onSeeking={(event) => {
             const { currentTime } = this.player.current;
@@ -222,6 +225,7 @@ const mapStateToProps = state => {
     playerState: selectPlayerState(state),
     speed: selectSpeed(state),
     videoName: selectVideoName(state),
+    isLoading: selectVideoIsLoading(state),
   };
 };
 
