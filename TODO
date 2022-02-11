@@ -16,3 +16,11 @@ Video Format:
 
 Apps support:
 * Create native applications for IOS/Android
+
+
+
+Subtitle
+* View and edit subtitle text and durations
+* Save subtitle and load them
+* load  subtitle and view them top and bottom
+* sync subtitle (linear correction, time shifting)
