@@ -15,7 +15,7 @@ export default function FileRecord({ imgSrc, title, link, index, isSelected, sel
         <div className={`file-record ${readyToPlay ? 'ready' : ''}`}>
             <img src={imgSrc} onClick={click} />
             {readyToPlay ?
-                <div>
+                <div className='file-record-container'>
                     <h4 className='title ready'>{'Ready To Play'}</h4><br />
                     <h2 className='title'>{title}</h2>
                 </div>

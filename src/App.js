@@ -23,14 +23,9 @@ const KEY = {
 
 function App(props) {
 
-  const videoSample = 'video/joker/v.webm'
-  const filterSample = 'video/joker/f.txt'
-  const subtitleSample = 'video/joker/s.srt'
-
   const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, modalOpen, isLoading, setDuration, setTime } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
-  const [forceupdate, setForceUpdate] = useState(0);
   const [keyEvent, setKeyEvent] = useState(null);
 
   const ref = useRef(null);

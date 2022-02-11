@@ -85,6 +85,10 @@
     font-size: 20px;
 }
 
+.file-record-container{
+    text-align: left;
+}
+
 .file-record .ready{
     background-color: green;
 }
