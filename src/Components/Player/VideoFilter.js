@@ -29,10 +29,15 @@ function VideoFilter({
 
     useEffect(() => {
         if (blackScreen) {
-            setStyle({ ...FilterStyle, background: "black" });
-            return;
+            setStyle({ ...style, background: "black" });
         }
-        if (!records || !records.length) return;
+        else {
+            setStyle({ ...style, background: "transparent" });
+        }
+    }, [blackScreen]);
+
+    useEffect(() => {
+        if (!records || !records.length || blackScreen) return;
 
         var currentRecords = getRecordsAtTime(time);
         var mute = false;
@@ -98,7 +103,7 @@ function VideoFilter({
             setSpeed(1.0);
         }
 
-    }, [time, records, playerConfig, blackScreen]);
+    }, [time, records, playerConfig]);
 
     return <div style={style}></div>;
 }
