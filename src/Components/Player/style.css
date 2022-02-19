@@ -76,6 +76,32 @@ p.controltime {
     right: 0;
 }
 
+.video-filter{
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.video-filter-black{
+    background-color: black;
+}
+.video-filter-blur{
+    backdrop-filter: blur(15px);
+    width: 101%;
+}
+.video-filter-blur-extra{
+    backdrop-filter: blur(45px);
+    width: 101%;
+}
+.video-filter-blur-extreme{
+    backdrop-filter: blur(80px);
+    width: 101%;
+}
+
 @media only screen and (max-width: 1024px) {
     .playercontainer{
         width: 100%;

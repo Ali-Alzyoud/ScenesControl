@@ -5,16 +5,30 @@ import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig } from 
 import { setMute, setTime, setSpeed } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
 
+const FILTER_TYPE = {
+    NONE : 0,
+    BLUR : 1,
+    BLUR_EXTRA : 2,
+    BLUR_EXTREME : 3,
+    BLACK: 4,
+}
+Object.freeze(FILTER_TYPE);
 
-const FilterStyle = {
-    pointerEvents: "none",
-    position: "absolute",
-    left: 0,
-    top: 0,
-    width: "100%",
-    height: "100%",
-    zIndex: 2,
-};
+function getFilterClass(filterType) {
+    switch (filterType) {
+        case FILTER_TYPE.NONE:
+            return "";
+        case FILTER_TYPE.BLUR:
+            return "video-filter-blur";
+        case FILTER_TYPE.BLUR_EXTRA:
+            return "video-filter-blur-extra";
+        case FILTER_TYPE.BLUR_EXTREME:
+            return "video-filter-blur-extreme";
+        case FILTER_TYPE.BLACK:
+        return "video-filter-black";
+    }
+    return "";
+}
 
 function VideoFilter({
     records,
@@ -25,19 +39,17 @@ function VideoFilter({
     playerConfig,
     blackScreen
 }) {
-    const [style, setStyle] = useState(FilterStyle);
+
+    const [filterType, setFilterType] = useState(FILTER_TYPE.NONE);
 
     useEffect(() => {
-        if (blackScreen) {
-            setStyle({ ...style, background: "black" });
-        }
-        else {
-            setStyle({ ...style, background: "transparent" });
-        }
-    }, [blackScreen]);
+        if (blackScreen) return;
 
-    useEffect(() => {
-        if (!records || !records.length || blackScreen) return;
+        if(!records || !records.length){
+            if(filterType != FILTER_TYPE.NONE)
+                setFilterType(FILTER_TYPE.NONE);
+            return;
+        }
 
         var currentRecords = getRecordsAtTime(time);
         var mute = false;
@@ -83,19 +95,18 @@ function VideoFilter({
             return;
         }
 
-        if (blur || black || blurExtra || blurExtreme) {
+
             if (blur)
-                setStyle({ ...FilterStyle, backdropFilter: "blur(15px)", width: "101%" });
+                setFilterType(FILTER_TYPE.BLUR);
             else if (blurExtra)
-                setStyle({ ...FilterStyle, backdropFilter: "blur(45px)", width: "101%" });
+                setFilterType(FILTER_TYPE.BLUR_EXTRA);
             else if (blurExtreme)
-                setStyle({ ...FilterStyle, backdropFilter: "blur(80px)", width: "101%" });
-            else
-                setStyle({ ...FilterStyle, background: "black" });
-        }
-        else {
-            setStyle({ ...FilterStyle });
-        }
+                setFilterType(FILTER_TYPE.BLUR_EXTREME);
+            else if (black)
+                setFilterType(FILTER_TYPE.BLACK);
+            else if(filterType != FILTER_TYPE.NONE)
+                setFilterType(FILTER_TYPE.NONE);
+
 
         if (doubleSpeed) {
             setSpeed(2.0);
@@ -105,7 +116,7 @@ function VideoFilter({
 
     }, [time, records, playerConfig]);
 
-    return <div style={style}></div>;
+    return <div className={`video-filter ${blackScreen?"video-filter-black" : getFilterClass(filterType)} `}></div>;
 }
 
 
