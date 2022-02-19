@@ -85,11 +85,11 @@ function VideoFilter({
 
         if (blur || black || blurExtra || blurExtreme) {
             if (blur)
-                setStyle({ ...FilterStyle, backdropFilter: "blur(15px)" });
+                setStyle({ ...FilterStyle, backdropFilter: "blur(15px)", width: "101%" });
             else if (blurExtra)
-                setStyle({ ...FilterStyle, backdropFilter: "blur(45px)" });
+                setStyle({ ...FilterStyle, backdropFilter: "blur(45px)", width: "101%" });
             else if (blurExtreme)
-                setStyle({ ...FilterStyle, backdropFilter: "blur(80px)" });
+                setStyle({ ...FilterStyle, backdropFilter: "blur(80px)", width: "101%" });
             else
                 setStyle({ ...FilterStyle, background: "black" });
         }
