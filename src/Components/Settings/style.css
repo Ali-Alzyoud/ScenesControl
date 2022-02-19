@@ -37,7 +37,8 @@
 .settings-container-record{
     display: flex;
     flex-direction: row;
-    width: 100%;
+    width: 50%;
+    align-self: center;
     justify-content: space-evenly;
     margin-top: 5px;
     margin-bottom: 5px;
