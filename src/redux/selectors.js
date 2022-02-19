@@ -59,6 +59,10 @@ export const getFontConfig = (state) => {
     return state.settings.fontConfig;
 }
 
+export const getSyncConfig = (state) => {
+    return state.settings.syncConfig;
+}
+
 //HELPERS
 export const getSubtitleAtTime = (time) => {
     const subtitle = selectSubtitle(store.getState());

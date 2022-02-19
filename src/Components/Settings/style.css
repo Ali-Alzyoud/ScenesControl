@@ -21,6 +21,19 @@
     padding-bottom: 30px;
 }
 
+.settings-text-name{
+    min-width: 100px;
+    max-width: 100px;
+    width: 100px;
+    display: inline-block;
+}
+.settings-text-value{
+    min-width: 40px;
+    max-width: 40px;
+    width: 40px;
+    display: inline-block;
+}
+
 .settings-container-record{
     display: flex;
     flex-direction: row;
@@ -28,10 +41,14 @@
     justify-content: space-evenly;
     margin-top: 5px;
     margin-bottom: 5px;
+    background-color: gray;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 .add-margin{
     margin-top: 50px;
+    background-color: transparent;
 }
 
 .button {

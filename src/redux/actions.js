@@ -16,6 +16,7 @@ import {
   SET_PLAYER_STATE,
   SET_PLAYER_CONFIG,
   SET_FONT_CONFIG,
+  SET_SYNC_CONFIG,
   SET_MODAL_OPEN
 } from "./actionTypes";
 
@@ -122,4 +123,9 @@ export const updateFilterItem = (record, index) => ({
 export const setSettings_fontConfig = (fontConfig) => ({
   type: SET_FONT_CONFIG,
   payload: { fontConfig }
+});
+
+export const setSettings_syncConfig = (syncConfig) => ({
+  type: SET_SYNC_CONFIG,
+  payload: { syncConfig }
 });

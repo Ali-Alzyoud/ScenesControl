@@ -2,7 +2,7 @@ import React from 'react'
 import parser from  'html-react-parser'
 
 import { connect } from "react-redux";
-import { selectTime, selectSubtitle, getSubtitleAtTime, getFontConfig } from '../../redux/selectors';
+import { selectTime, selectSubtitle, getSubtitleAtTime, getFontConfig, getSyncConfig } from '../../redux/selectors';
 
 let style = {
     color: 'white',
@@ -10,7 +10,7 @@ let style = {
     backgroundColor: 'rgba(0,0,0,0.7)',
 };
 
-function VideoSRT({ subtitle, time, fontSize, fontTransparency }) {
+function VideoSRT({ subtitle, subtitleSync, time, fontSize, fontTransparency }) {
 
     style = {
         ...style,
@@ -19,7 +19,7 @@ function VideoSRT({ subtitle, time, fontSize, fontTransparency }) {
 
     return (
         <div style={style}>
-            {parser(getSubtitleAtTime(time).join('\n'))}
+            {parser(getSubtitleAtTime(time + subtitleSync).join('\n'))}
         </div>
     )
 }
@@ -30,7 +30,8 @@ const mapStateToProps = state => {
     const time = selectTime(state);
     const fontSize = getFontConfig(state).size;
     const fontTransparency = getFontConfig(state).transparency;
-    return { subtitle, time, fontSize, fontTransparency };
+    const subtitleSync = getSyncConfig(state).subtitleSync;
+    return { subtitle, time, fontSize, fontTransparency, subtitleSync };
   };
 
 export default connect(mapStateToProps)(VideoSRT);
