@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { FaSave, FaPlus, FaFastForward, FaFastBackward } from 'react-icons/fa'
 import FilterRecord from './FilterRecord'
 import { SceneGuideRecord, SceneGuideClass } from '../../common/SceneGuide'
@@ -18,10 +18,25 @@ const KEY = {
 
 };
 
-function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, modalOpen }) {
+function FilterFileEditor(props) {
+    const { records, time, videoName, addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, modalOpen } = props;
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [key, setKey] = useState(0);
     const [keyEvent, setKeyEvent] = useState(null);
+    const selectNext = useRef(null);
+
+    useEffect(()=>{
+        if(selectNext.current){
+            selectime("from");
+            selectNext.current = false;
+        }
+    },[selectedRecord]);
+
+    useEffect(()=>{
+        if(selectNext.current){
+            selectItem(props.records[0]);
+        }
+    },[records && records.length]);
 
     useEffect(() => {
         if(modalOpen || !keyEvent) return;
@@ -45,12 +60,24 @@ function FilterFileEditor({ records, time, videoName, addFilterItems, removeFilt
                 break;
             case KEY.OPEN_BRACKET:
                 {
-                    selectime("from");
+                    if(selectedRecord){
+                        selectime("from");
+                    } else {
+                        addItem();
+                        selectNext.current = true;
+                    }
                 }
                 break;
             case KEY.CLOSE_BRACKET:
                 {
-                    selectime("to");
+                    if(selectedRecord){
+                        selectime("to");
+                        setSelectedRecord(null);
+                    } else {
+                        setSelectedRecord(props.records[0]);
+                        selectime("to");
+                        setSelectedRecord(null);
+                    }
                 }
                 break;
         }
