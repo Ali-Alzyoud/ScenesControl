@@ -59,6 +59,27 @@ SceneType.ToString = function (value) {
     }
 }
 
+class SceneGeometry{
+    constructor(l,t,w,h){
+        this.left = l || 0;
+        this.top = t || 0;
+        this.width = w || 0;
+        this.height = h || 0;
+    }
+    static FromString(str){
+        const values = str.split('/');
+        const l = Number(values[0]);
+        const t = Number(values[1]);
+        const w = Number(values[2]);
+        const h = Number(values[3]);
+        return new SceneGeometry(l,t,w,h);
+
+    }
+    toString(){
+        return this.left+'/'+this.top+'/'+this.width+'/'+this.height;
+    }
+}
+
 
 
 
@@ -77,6 +98,7 @@ var SceneGuideRecord = function (from, to, intensity, type) {
     this.Type = type;
     this.Intensity = intensity;
     this.id = id++;
+    this.geometries = [];
 }
 SceneGuideRecord.FromString = function (content) {
     var v = new SceneGuideRecord("00:00:00.000", "00:00:00.000", SceneIntensity.Low, SceneType.Violence);
@@ -86,10 +108,14 @@ SceneGuideRecord.FromString = function (content) {
 SceneGuideRecord.prototype.toString = function () {
     var str = "";
     str += this.From + '\n' + this.To + '\n' + this.Type + '\n' + this.Intensity + '\n';
+    for(const g in this.geometries){
+        str += g.toString() + '\n';
+    }
     return str;
 }
 SceneGuideRecord.prototype.fromString = function (lines) {
-    for (var i = 0; i < Math.min(lines.length, 4); i++) {
+    let i = 0;
+    for (i = 0; i < Math.min(lines.length, 4); i++) {
         if (i === 0)
             this.From = lines[i];
         else if (i === 1)
@@ -101,6 +127,11 @@ SceneGuideRecord.prototype.fromString = function (lines) {
             this.Intensity = SceneIntensity.FromString(lines[i]);
         }
     }
+    while(lines[i]){
+        this.geometries.push(SceneGeometry.FromString(lines[i]));
+        i++;
+    }
+    return i;
 }
 
 SceneGuideRecord.ContainTime = function (record, time) {
@@ -172,10 +203,13 @@ class SceneGuideClass
         const records = [];
         content = content.replaceAll('\r','')
         var lines = content.split('\n');
-        for (var i = 0; i < lines.length; i += 5) {
-            var array = lines.slice(i, i + 4);
+        for (var i = 0; i < lines.length;) {
+            let k = i+1;
+            while(k < lines.length && lines[k] != '') k++;
+            var array = lines.slice(i, k);
             if (array.length < 4) break;
             records.push(SceneGuideRecord.FromString(array));
+            i=k+1;
         }
         return records;
     }

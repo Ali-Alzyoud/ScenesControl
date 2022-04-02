@@ -107,7 +107,7 @@ class VideoPlayer extends React.PureComponent {
   };
 
   render = () => {
-    const { videoSrc, setTime, setDuration, videoName, setPlayerState, setVideoIsLoading, playerState, setVolume, volume} = this.props;
+    const { videoSrc, setTime, setDuration, videoName, setPlayerState, setVideoIsLoading, playerState, setVolume, volume, enableEditMode} = this.props;
     const {time, duration, visible, blackScreen} = this.state;
     return (
       <div className={`playercontainer ${visible ? '' : 'hidden'}`}
@@ -182,7 +182,7 @@ class VideoPlayer extends React.PureComponent {
             setTime(event.target.currentTime);
           }}
         ></video>
-        <VideoFilter blackScreen={blackScreen}/>
+        <VideoFilter blackScreen={blackScreen} enableEditMode={enableEditMode}/>
         <div
           style={{
             display: "grid",

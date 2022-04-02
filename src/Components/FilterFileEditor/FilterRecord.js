@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { SceneIntensity, SceneType } from '../../common/SceneGuide'
-import {FaMinus, FaPen, FaSquare} from 'react-icons/fa'
+import {FaBuilding, FaMinus, FaPen, FaPlusSquare, FaRegPlusSquare, FaSquare} from 'react-icons/fa'
 
 export default function FilterRecord({record, index, isSelected, removeItem, selectItem, updateItem}) {
     var fromDates = record.From.split(":");
@@ -13,7 +13,8 @@ export default function FilterRecord({record, index, isSelected, removeItem, sel
         tm : toDates[1],
         ts : toDates[2],
         type : record.Type,
-        intensity : record.Intensity
+        intensity : record.Intensity,
+        geometries : record.geometries
     });
 
     const inputChange = (e) => {
@@ -39,6 +40,10 @@ export default function FilterRecord({record, index, isSelected, removeItem, sel
 
     const onBlur = () => {
         updateItem(record);
+    }
+
+    const onDrawRect = () => {
+
     }
 
     return (
@@ -72,9 +77,14 @@ export default function FilterRecord({record, index, isSelected, removeItem, sel
             </div>
             </td>
             <td>
-            <div className='container select' onClick={onSelect} style={{margin:'0 auto'}}>
-                {isSelected ? <FaPen className='middle'/> : <FaSquare className='middle'/>} 
-            </div>
+                <div className='container select' onClick={onDrawRect} style={{ margin: '0 auto' }}>
+                    {(record.geometries.length > 0) ? <FaPlusSquare className='middle' /> : <FaRegPlusSquare className='middle' />}
+                </div>
+            </td>
+            <td>
+                <div className='container select' onClick={onSelect} style={{ margin: '0 auto' }}>
+                    {isSelected ? <FaPen className='middle' /> : <FaSquare className='middle' />}
+                </div>
             </td>
         </tr >
     )

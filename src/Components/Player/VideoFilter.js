@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 
 import { connect } from "react-redux";
 import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig } from '../../redux/selectors';
@@ -37,10 +37,76 @@ function VideoFilter({
     setTime,
     setSpeed,
     playerConfig,
-    blackScreen
+    blackScreen,
+    enableEditMode
 }) {
 
     const [filterType, setFilterType] = useState(FILTER_TYPE.NONE);
+    const editor = useRef(null);
+    const rect = useRef(null);
+    const divFilter = useRef(null);
+    const [mouseEvent, setMouseEvent] = useState(null);
+
+
+    useEffect(()=>{
+        if(!mouseEvent || mouseEvent.length<2) return;
+        const e = mouseEvent[1];
+        const x = e.clientX - divFilter.current.getBoundingClientRect().x;
+        const y = e.clientY - divFilter.current.getBoundingClientRect().y;
+        if(mouseEvent[0] == 'down'){
+            if(enableEditMode){
+                editor.current = true;
+                console.log(e);
+                rect.current = {};
+                rect.current.left =x;
+                rect.current.top = y;
+                rect.current.width = 0;
+                rect.current.height = 0;
+            }
+        } else if(mouseEvent[0] == 'move'){
+            if(enableEditMode && editor.current){
+                rect.current.width = x - rect.current.left;
+                rect.current.height = y - rect.current.top;
+            }
+        } else if(mouseEvent[0] == 'up'){
+            if(enableEditMode && editor.current){
+                console.log(rect.current);
+                editor.current = false;
+            }
+        }
+    },[mouseEvent]);
+
+    const onDown = useCallback(
+        (e) => {
+            setMouseEvent(['down',e])
+        },
+        [],
+    );
+    const onMove = useCallback(
+        (e) => {
+            setMouseEvent(['move',e])
+        },
+        [],
+    );
+    const onUp = useCallback(
+        (e) => {
+            setMouseEvent(['up',e])
+        },
+        [],
+    );
+
+    useEffect(()=>{
+        if(enableEditMode){
+            document.addEventListener('mousedown', onDown);
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        } else {
+            document.removeEventListener('mousedown', onDown);
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        }
+    },[enableEditMode])
+    
 
     useEffect(() => {
         if (blackScreen) return;
@@ -116,7 +182,17 @@ function VideoFilter({
 
     }, [time, records, playerConfig]);
 
-    return <div className={`video-filter ${blackScreen?"video-filter-black" : getFilterClass(filterType)} `}></div>;
+    return <div ref={divFilter} className={`video-filter ${blackScreen?"video-filter-black" : getFilterClass(filterType)} `}>
+        {rect.current && <div style={{
+            position:'absolute',
+            background:'rgba(0,0,0,0.5)',
+            zIndex:3333,
+            left:rect.current.left+'px',
+            top:rect.current.top+'px',
+            width:rect.current.width+'px',
+            height:rect.current.height+'px',
+        }}></div>}
+    </div>;
 }
 
 
