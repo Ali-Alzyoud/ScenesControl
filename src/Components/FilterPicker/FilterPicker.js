@@ -11,7 +11,16 @@ import { SceneGuideClass } from '../../common/SceneGuide'
 import "./style.css"
 import Loader from '../Loader';
 
-function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setVideoName, setModalOpen, setDuration, setTime }) {
+function FilterPicker({
+    close,
+    setFilterItems,
+    setSubtitle,
+    setVideoSrc,
+    setVideoName,
+    setModalOpen,
+    setDuration,
+    setTime
+}) {
     const [recordsItems, setRecordsItems] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState();
     const [filterText, setFilterText] = useState();

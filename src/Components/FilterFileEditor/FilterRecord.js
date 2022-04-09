@@ -84,6 +84,7 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
                 <select className='selectType' onBlurCapture={onBlur} onChange={inputChange} name='type' value={state.type}>
                         <option value={SceneType.Violence}  selected={record.Type === SceneType.Violence}>{SceneType.Violence}</option>
                         <option value={SceneType.Nudity}    selected={record.Type === SceneType.Nudity}>{SceneType.Nudity}</option>
+                        <option value={SceneType.Sex}    selected={record.Type === SceneType.Sex}>{SceneType.Sex}</option>
                         <option value={SceneType.Profanity} selected={record.Type === SceneType.Profanity}>{SceneType.Profanity}</option>
                 </select>
             </td>

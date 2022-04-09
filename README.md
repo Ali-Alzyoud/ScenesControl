@@ -42,7 +42,7 @@ Notes:
 Let’s say you are watching a movie in your device
 This file will contains description about scenes parent guide. Like:
 
-- Category                      : Violence, Nudity, Profanity, etc.
+- Category                      : Violence, Nudity, Sex, Profanity, etc.
 - intensity                     : Intense level (Hight,  LOW) scale.
 - Suggested behavior            : Blur, Skip, Mute, .. etc.
 

@@ -19,6 +19,8 @@ export const SET_SYNC_CONFIG = "SET_SYNC_CONFIG";
 export const SET_MODAL_OPEN = "SET_MODAL_OPEN";
 export const SET_DRAWING_ENABLED = "SET_DRAWING_ENABLED";
 export const SET_DRAWING_RECT = "SET_DRAWING_RECT";
+export const SET_TOAST_TEXT = "SET_TOAST_TEXT";
+export const SET_TOAST_TIMEOUT = "SET_TOAST_TIMEOUT";
 
 export const PLAYER_ACTION = {
     BLUR : 'Blur',

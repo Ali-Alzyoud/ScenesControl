@@ -6,6 +6,7 @@ import VideoSrt from "./VideoSRT";
 import { connect } from "react-redux";
 import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName, selectVideoIsLoading, selectDrawingEnabled } from '../../redux/selectors'
 import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume } from "../../redux/actions";
+import ToastMessage from "../Toast";
 
 const debounce = (func1, func, delay) => {
   let inDebounce;
@@ -221,6 +222,7 @@ class VideoPlayer extends React.PureComponent {
             />
           </div>
         </div>
+        <ToastMessage/>
       </div>
     );
   };

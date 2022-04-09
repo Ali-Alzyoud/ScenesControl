@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaSave, FaPlus, FaFastForward, FaFastBackward } from 'react-icons/fa'
 import FilterRecord from './FilterRecord'
-import { SceneGuideRecord, SceneGuideClass } from '../../common/SceneGuide'
+import { SceneGuideRecord, SceneGuideClass, SceneType } from '../../common/SceneGuide'
 
 import { connect } from "react-redux";
 import { selectTime, selectRecords, selectVideoName, selectModalOpen } from '../../redux/selectors';
-import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled } from '../../redux/actions';
+import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled, setToastText } from '../../redux/actions';
 import {FaMinus} from 'react-icons/fa'
 
 import './style.css'
@@ -16,11 +16,25 @@ const KEY = {
     R: 82,
     OPEN_BRACKET: 219,
     CLOSE_BRACKET: 221,
-
+    ONE: 49,
+    TWO: 50,
+    THREE: 51,
+    FOUR: 52,
 };
 
 function FilterFileEditor(props) {
-    const { records, time, videoName, addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, modalOpen, setDrawingEnabled } = props;
+    const {
+        records,
+        time,
+        videoName,
+        addFilterItems,
+        removeFilterIndex,
+        removeAllFilters,
+        updateFilterItem,
+        modalOpen,
+        setDrawingEnabled,
+        setToastText
+    } = props;
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [key, setKey] = useState(0);
     const [keyEvent, setKeyEvent] = useState(null);
@@ -62,6 +76,26 @@ function FilterFileEditor(props) {
             case KEY.R:
                 {
                     setDrawingEnabled(true);
+                }
+                break;
+            case KEY.ONE:
+                {
+                    selectType(SceneType.Sex);
+                }
+                break;
+            case KEY.TWO:
+                {
+                    selectType(SceneType.Nudity);
+                }
+                break;
+            case KEY.THREE:
+                {
+                    selectType(SceneType.Violence);
+                }
+                break;
+            case KEY.FOUR:
+                {
+                    selectType(SceneType.Profanity);
                 }
                 break;
             case KEY.OPEN_BRACKET:
@@ -155,6 +189,17 @@ function FilterFileEditor(props) {
         updateItem(selectedRecord, index);
     }
 
+    const selectType = (type) => {
+        if (!selectedRecord) return;
+
+        const index = records.indexOf(selectedRecord);
+        if (index === -1) return;
+
+        setToastText(type);
+        selectedRecord.Type = type;
+        updateItem(selectedRecord, index);
+    }
+
     const updateItem = (record, index) => {
         if (!record || index === -1) return;
         updateFilterItem(record, index);
@@ -222,4 +267,4 @@ const mapStateToProps = state => {
     return { records, time, videoName, modalOpen };
 };
 
-export default connect(mapStateToProps, { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled })(FilterFileEditor);
+export default connect(mapStateToProps, { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled, setToastText })(FilterFileEditor);

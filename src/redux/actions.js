@@ -19,7 +19,9 @@ import {
   SET_SYNC_CONFIG,
   SET_MODAL_OPEN,
   SET_DRAWING_ENABLED,
-  SET_DRAWING_RECT
+  SET_DRAWING_RECT,
+  SET_TOAST_TEXT,
+  SET_TOAST_TIMEOUT
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
@@ -140,4 +142,15 @@ export const setDrawingEnabled = (enabled) => ({
 export const setDrawingRect = (rect) => ({
   type: SET_DRAWING_RECT,
   payload: { rect }
+});
+
+
+export const setToastText = (text) => ({
+  type: SET_TOAST_TEXT,
+  payload: { text }
+});
+
+export const setToastTimeout = (timeout) => ({
+  type: SET_TOAST_TIMEOUT,
+  payload: { timeout }
 });

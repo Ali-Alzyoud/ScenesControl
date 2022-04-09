@@ -6,6 +6,7 @@ const SceneIntensity = {
 const SceneType = {
     Violence: "violence",
     Nudity: "nudity",
+    Sex: "sex",
     Profanity: "profanity"
 }
 
@@ -39,6 +40,8 @@ SceneType.FromString = function (value) {
             return SceneType.Violence;
         case SceneType.Nudity:
             return SceneType.Nudity;
+        case SceneType.Sex:
+            return SceneType.Sex;
         case SceneType.Profanity:
             return SceneType.Profanity;
         default:
@@ -52,6 +55,8 @@ SceneType.ToString = function (value) {
             return SceneType.Violence;
         case SceneType.Nudity:
             return SceneType.Nudity;
+        case SceneType.Sex:
+            return SceneType.Sex;
         case SceneType.Profanity:
             return SceneType.Profanity;
         default:

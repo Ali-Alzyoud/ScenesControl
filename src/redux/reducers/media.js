@@ -5,6 +5,7 @@ const playerConfigJSON = localStorage.getItem("playerConfig");
 const savedPlayerConfig = playerConfigJSON ? JSON.parse(playerConfigJSON) : {
   violence: [PLAYER_ACTION.BLUR, PLAYER_ACTION.NOACTION],
   nudity: [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
+  sex: [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
   profanity: [PLAYER_ACTION.NOACTION, PLAYER_ACTION.MUTE],
 }
 

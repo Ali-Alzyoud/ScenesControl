@@ -72,6 +72,15 @@ export const selectDrawingRect = (state) => {
     return state.drawing.rect;
 }
 
+//TOAST
+export const selectToastText = (state) => {
+    return state.toast.text;
+}
+
+export const selectToastTimeout = (state) => {
+    return state.toast.timeout;
+}
+
 //HELPERS
 export const getSubtitleAtTime = (time) => {
     const subtitle = selectSubtitle(store.getState());
