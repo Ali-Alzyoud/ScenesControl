@@ -114,7 +114,7 @@ function App(props) {
       }
       <div style={{ opacity: isLoading ? 0 : 1 }}>
         <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
-          <Player enableEditMode={showEditor}/>
+          <Player/>
         </div>
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>

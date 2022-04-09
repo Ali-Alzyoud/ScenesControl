@@ -17,7 +17,9 @@ import {
   SET_PLAYER_CONFIG,
   SET_FONT_CONFIG,
   SET_SYNC_CONFIG,
-  SET_MODAL_OPEN
+  SET_MODAL_OPEN,
+  SET_DRAWING_ENABLED,
+  SET_DRAWING_RECT
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
@@ -128,4 +130,14 @@ export const setSettings_fontConfig = (fontConfig) => ({
 export const setSettings_syncConfig = (syncConfig) => ({
   type: SET_SYNC_CONFIG,
   payload: { syncConfig }
+});
+
+export const setDrawingEnabled = (enabled) => ({
+  type: SET_DRAWING_ENABLED,
+  payload: { enabled }
+});
+
+export const setDrawingRect = (rect) => ({
+  type: SET_DRAWING_RECT,
+  payload: { rect }
 });

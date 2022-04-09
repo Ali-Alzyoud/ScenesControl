@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 
 import { connect } from "react-redux";
-import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig } from '../../redux/selectors';
-import { setMute, setTime, setSpeed } from "../../redux/actions";
+import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, selectDrawingEnabled } from '../../redux/selectors';
+import { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
+import { GiAnticlockwiseRotation } from "react-icons/gi";
 
 const FILTER_TYPE = {
     NONE : 0,
@@ -38,7 +39,9 @@ function VideoFilter({
     setSpeed,
     playerConfig,
     blackScreen,
-    enableEditMode
+    enableEditMode,
+    setDrawingRect,
+    setDrawingEnabled
 }) {
 
     const [filterType, setFilterType] = useState(FILTER_TYPE.NONE);
@@ -46,6 +49,7 @@ function VideoFilter({
     const rect = useRef(null);
     const divFilter = useRef(null);
     const [mouseEvent, setMouseEvent] = useState(null);
+    const [recordRect, setRecordRect] = useState(null);
 
 
     useEffect(()=>{
@@ -72,6 +76,12 @@ function VideoFilter({
             if(enableEditMode && editor.current){
                 console.log(rect.current);
                 editor.current = false;
+                const rectangle = {};
+                rectangle.x = (rect.current.left/divFilter.current.getBoundingClientRect().width*100).toFixed(3);
+                rectangle.y = (rect.current.top/divFilter.current.getBoundingClientRect().height*100).toFixed(3);
+                rectangle.w = (rect.current.width/divFilter.current.getBoundingClientRect().width*100).toFixed(3);
+                rectangle.h = (rect.current.height/divFilter.current.getBoundingClientRect().height*100).toFixed(3);
+                setDrawingRect(rectangle);
             }
         }
     },[mouseEvent]);
@@ -91,6 +101,7 @@ function VideoFilter({
     const onUp = useCallback(
         (e) => {
             setMouseEvent(['up',e])
+            setDrawingEnabled(false);
         },
         [],
     );
@@ -112,6 +123,7 @@ function VideoFilter({
         if (blackScreen) return;
 
         if(!records || !records.length){
+            setRecordRect(null);
             if(filterType != FILTER_TYPE.NONE)
                 setFilterType(FILTER_TYPE.NONE);
             return;
@@ -129,6 +141,7 @@ function VideoFilter({
 
         for (var i = 0; i < currentRecords.length; i++) {
             var record = currentRecords[i];
+            setRecordRect(record.geometries[0]);
             if (playerConfig[record.Type][0] === PLAYER_ACTION.MUTE || playerConfig[record.Type][1] === PLAYER_ACTION.MUTE) {
                 mute = true;
             }
@@ -182,8 +195,10 @@ function VideoFilter({
 
     }, [time, records, playerConfig]);
 
-    return <div ref={divFilter} className={`video-filter ${blackScreen?"video-filter-black" : getFilterClass(filterType)} `}>
-        {rect.current && <div style={{
+    const class2 = `${blackScreen?"video-filter-black" : getFilterClass(filterType)}`;
+
+    return <div ref={divFilter} className={`video-filter ${(!recordRect || blackScreen) ? class2 : ''}`}>
+        {enableEditMode && rect.current && <div style={{
             position:'absolute',
             background:'rgba(0,0,0,0.5)',
             zIndex:3333,
@@ -192,6 +207,15 @@ function VideoFilter({
             width:rect.current.width+'px',
             height:rect.current.height+'px',
         }}></div>}
+        {recordRect && <div style={{
+            position:'absolute',
+            zIndex:10,
+            left:recordRect.left+'%',
+            top:recordRect.top+'%',
+            width:recordRect.width+'%',
+            height:recordRect.height+'%',
+        }}
+        className={class2}></div>}
     </div>;
 }
 
@@ -200,7 +224,8 @@ const mapStateToProps = state => {
     const records = selectRecords(state);
     const time = selectTime(state);
     const playerConfig = selectPlayerConfig(state);
-    return { records, time, playerConfig };
+    const enableEditMode = selectDrawingEnabled(state);
+    return { records, time, playerConfig, enableEditMode };
 };
 
-export default connect(mapStateToProps, { setMute, setTime, setSpeed })(VideoFilter);
+export default connect(mapStateToProps, { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled })(VideoFilter);

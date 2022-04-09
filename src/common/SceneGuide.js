@@ -108,7 +108,8 @@ SceneGuideRecord.FromString = function (content) {
 SceneGuideRecord.prototype.toString = function () {
     var str = "";
     str += this.From + '\n' + this.To + '\n' + this.Type + '\n' + this.Intensity + '\n';
-    for(const g in this.geometries){
+    for( let i = 0;i < this.geometries.length; i++){
+        const g = this.geometries[i];
         str += g.toString() + '\n';
     }
     return str;
@@ -235,4 +236,4 @@ class SceneGuideClass
     }
 }
 
-export { SceneGuideClass, SceneGuideRecord, SceneIntensity, SceneType };
+export { SceneGuideClass, SceneGuideRecord, SceneGeometry, SceneIntensity, SceneType };

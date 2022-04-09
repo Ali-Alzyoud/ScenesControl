@@ -1,10 +1,15 @@
-import React, { useState } from 'react'
-import { SceneIntensity, SceneType } from '../../common/SceneGuide'
+import React, { useState, useEffect, memo } from 'react'
+import { SceneGeometry, SceneIntensity, SceneType } from '../../common/SceneGuide'
 import {FaBuilding, FaMinus, FaPen, FaPlusSquare, FaRegPlusSquare, FaSquare} from 'react-icons/fa'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { setDrawingEnabled, setDrawingRect } from '../../redux/actions';
+import { selectDrawingRect } from '../../redux/selectors';
 
-export default function FilterRecord({record, index, isSelected, removeItem, selectItem, updateItem}) {
+function FilterRecord({record, index, isSelected, removeItem, selectItem, updateItem}) {
     var fromDates = record.From.split(":");
     var toDates = record.To.split(":");
+    const dispatch = useDispatch();
+    const rect = useSelector(selectDrawingRect, shallowEqual);
     const [state, setState] = useState({
         fh : fromDates[0],
         fm : fromDates[1],
@@ -16,6 +21,21 @@ export default function FilterRecord({record, index, isSelected, removeItem, sel
         intensity : record.Intensity,
         geometries : record.geometries
     });
+
+    useEffect(() => {
+      console.log("UPDATED!!!!!");
+    }, [])
+    
+
+    useEffect(() => {
+      if(rect){
+        record.geometries.splice(0, record.geometries.length);
+        record.geometries.push(new SceneGeometry(rect.x, rect.y, rect.w, rect.h));
+        updateItem(record);
+        dispatch(setDrawingRect(null));
+      }
+    }, [rect]);
+    
 
     const inputChange = (e) => {
         const newState = {...state, [e.target.name]:e.target.value};
@@ -43,7 +63,9 @@ export default function FilterRecord({record, index, isSelected, removeItem, sel
     }
 
     const onDrawRect = () => {
-
+        if(isSelected){
+            dispatch(setDrawingEnabled(true));
+        }
     }
 
     return (
@@ -89,3 +111,5 @@ export default function FilterRecord({record, index, isSelected, removeItem, sel
         </tr >
     )
 }
+
+export default memo(FilterRecord);
