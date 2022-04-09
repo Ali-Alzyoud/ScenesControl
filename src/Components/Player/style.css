@@ -15,6 +15,10 @@ p.controltime {
     position: relative;
 }
 
+.drawing-mode{
+    cursor:crosshair;
+}
+
 .hidden{
     cursor: none;
 }

@@ -17,6 +17,8 @@ export const UPDATE_ITEM = "UPDATE_ITEM";
 export const SET_FONT_CONFIG = "SET_FONT_CONFIG";
 export const SET_SYNC_CONFIG = "SET_SYNC_CONFIG";
 export const SET_MODAL_OPEN = "SET_MODAL_OPEN";
+export const SET_DRAWING_ENABLED = "SET_DRAWING_ENABLED";
+export const SET_DRAWING_RECT = "SET_DRAWING_RECT";
 
 export const PLAYER_ACTION = {
     BLUR : 'Blur',

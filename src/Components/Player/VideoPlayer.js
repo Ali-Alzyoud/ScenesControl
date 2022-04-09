@@ -4,7 +4,7 @@ import VideoFilter from "./VideoFilter";
 import VideoSrt from "./VideoSRT";
 
 import { connect } from "react-redux";
-import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName, selectVideoIsLoading } from '../../redux/selectors'
+import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName, selectVideoIsLoading, selectDrawingEnabled } from '../../redux/selectors'
 import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume } from "../../redux/actions";
 
 const debounce = (func1, func, delay) => {
@@ -26,6 +26,7 @@ class VideoPlayer extends React.PureComponent {
       duration: 0,
       visible: true,
       blackScreen: false,
+      ignoreNextMouseEvent: false,
     };
     this.player = createRef();
     this.control = createRef();
@@ -55,8 +56,13 @@ class VideoPlayer extends React.PureComponent {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { time, playerState, volume, mute, speed } = this.props;
+    const { time, playerState, volume, mute, speed, isDrawingEnabled } = this.props;
 
+    if(isDrawingEnabled && !this.state.ignoreNextMouseEvent){
+      clearTimeout(this.timer);
+      this.timer = null;
+      this.setState({ignoreNextMouseEvent: true});
+    }
     if (this.props.videoSrc !== prevProps.videoSrc) {
       this.setState({
         time,
@@ -107,10 +113,10 @@ class VideoPlayer extends React.PureComponent {
   };
 
   render = () => {
-    const { videoSrc, setTime, setDuration, videoName, setPlayerState, setVideoIsLoading, playerState, setVolume, volume, enableEditMode} = this.props;
+    const { videoSrc, setTime, setDuration, videoName, setPlayerState, setVideoIsLoading, playerState, setVolume, volume, isDrawingEnabled} = this.props;
     const {time, duration, visible, blackScreen} = this.state;
     return (
-      <div className={`playercontainer ${visible ? '' : 'hidden'}`}
+      <div className={`playercontainer ${visible ? '' : 'hidden'} ${isDrawingEnabled?' drawing-mode':' '}`}
         onPointerMove={debounce(
           () => {
             this.setState({visible: true});
@@ -128,6 +134,10 @@ class VideoPlayer extends React.PureComponent {
         )}
         onClick={() => {
           this.clickCount++;
+          if(this.state.ignoreNextMouseEvent){
+            this.setState({ignoreNextMouseEvent: false});
+            return;
+          }
           if (this.clickCount === 1) {
             this.timer = setTimeout(() => {
               this.clickCount = 0;
@@ -182,7 +192,7 @@ class VideoPlayer extends React.PureComponent {
             setTime(event.target.currentTime);
           }}
         ></video>
-        <VideoFilter blackScreen={blackScreen} enableEditMode={enableEditMode}/>
+        <VideoFilter blackScreen={blackScreen}/>
         <div
           style={{
             display: "grid",
@@ -226,6 +236,7 @@ const mapStateToProps = state => {
     speed: selectSpeed(state),
     videoName: selectVideoName(state),
     isLoading: selectVideoIsLoading(state),
+    isDrawingEnabled: selectDrawingEnabled(state),
   };
 };
 

@@ -31,14 +31,10 @@ function FilterPicker({ close, setFilterItems, setSubtitle, setVideoSrc, setVide
             setFilterItems([]);
         }
         if (selectedRecord.video) {
-            API.getStream().then((file)=>{
-                console.log(file);
-                setVideoSrc(file);
-                const fileName = selectedRecord.video.replace(/^.*[\\\/]/, '') || 'sample';
-                setVideoName(fileName);
-                setDuration(0);
-            });
-           
+            setVideoSrc(selectedRecord.video);
+            const fileName = selectedRecord.video.replace(/^.*[\\\/]/, '') || 'sample';
+            setVideoName(fileName);
+            setDuration(0);
         }
         close();
     }

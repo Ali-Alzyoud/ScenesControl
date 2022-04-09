@@ -5,7 +5,7 @@ import { SceneGuideRecord, SceneGuideClass } from '../../common/SceneGuide'
 
 import { connect } from "react-redux";
 import { selectTime, selectRecords, selectVideoName, selectModalOpen } from '../../redux/selectors';
-import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem } from '../../redux/actions';
+import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled } from '../../redux/actions';
 import {FaMinus} from 'react-icons/fa'
 
 import './style.css'
@@ -13,13 +13,14 @@ import './style.css'
 const KEY = {
     N: 78,
     S: 83,
+    R: 82,
     OPEN_BRACKET: 219,
     CLOSE_BRACKET: 221,
 
 };
 
 function FilterFileEditor(props) {
-    const { records, time, videoName, addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, modalOpen } = props;
+    const { records, time, videoName, addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, modalOpen, setDrawingEnabled } = props;
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [key, setKey] = useState(0);
     const [keyEvent, setKeyEvent] = useState(null);
@@ -56,6 +57,11 @@ function FilterFileEditor(props) {
                     {
                         selectItem(records[0]);
                     }
+                }
+                break;
+            case KEY.R:
+                {
+                    setDrawingEnabled(true);
                 }
                 break;
             case KEY.OPEN_BRACKET:
@@ -216,4 +222,4 @@ const mapStateToProps = state => {
     return { records, time, videoName, modalOpen };
 };
 
-export default connect(mapStateToProps, { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem })(FilterFileEditor);
+export default connect(mapStateToProps, { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled })(FilterFileEditor);

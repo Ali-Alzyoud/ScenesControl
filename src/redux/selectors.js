@@ -63,6 +63,15 @@ export const getSyncConfig = (state) => {
     return state.settings.syncConfig;
 }
 
+//Drawing
+export const selectDrawingEnabled = (state) => {
+    return state.drawing.enabled;
+}
+
+export const selectDrawingRect = (state) => {
+    return state.drawing.rect;
+}
+
 //HELPERS
 export const getSubtitleAtTime = (time) => {
     const subtitle = selectSubtitle(store.getState());
