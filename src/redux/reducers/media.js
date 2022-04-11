@@ -2,11 +2,13 @@ import { SET_SUBTITLE, VIDEO_SRC, VIDEO_IS_LOADING, VIDEO_SRC_NAME, SET_TIME, SE
 
 
 const playerConfigJSON = localStorage.getItem("playerConfig");
-const savedPlayerConfig = playerConfigJSON ? JSON.parse(playerConfigJSON) : {
+const savedConfig = playerConfigJSON ? JSON.parse(playerConfigJSON): {};
+const savedPlayerConfig = {
   violence: [PLAYER_ACTION.BLUR, PLAYER_ACTION.NOACTION],
   nudity: [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
   sex: [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
   profanity: [PLAYER_ACTION.NOACTION, PLAYER_ACTION.MUTE],
+  ...savedConfig,
 }
 
 const initialState = {

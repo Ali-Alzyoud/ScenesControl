@@ -21,21 +21,18 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
         intensity : record.Intensity,
         geometries : record.geometries
     });
-
-    useEffect(() => {
-      console.log("UPDATED!!!!!");
-    }, [])
     
 
     useEffect(() => {
-      if(rect){
+      if(rect && isSelected){
         record.geometries.splice(0, record.geometries.length);
-        record.geometries.push(new SceneGeometry(rect.x, rect.y, rect.w, rect.h));
+        if(rect.w > 0 && rect.h > 0){
+            record.geometries.push(new SceneGeometry(rect.x, rect.y, rect.w, rect.h));
+        }
         updateItem(record);
         dispatch(setDrawingRect(null));
       }
     }, [rect]);
-    
 
     const inputChange = (e) => {
         const newState = {...state, [e.target.name]:e.target.value};

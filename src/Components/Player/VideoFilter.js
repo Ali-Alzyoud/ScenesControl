@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 
-import { connect } from "react-redux";
-import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, selectDrawingEnabled } from '../../redux/selectors';
+import { connect, useSelector } from "react-redux";
+import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, selectDrawingEnabled, selectDrawingRect } from '../../redux/selectors';
 import { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
 import { GiAnticlockwiseRotation } from "react-icons/gi";
@@ -50,6 +50,7 @@ function VideoFilter({
     const divFilter = useRef(null);
     const [mouseEvent, setMouseEvent] = useState(null);
     const [recordRect, setRecordRect] = useState(null);
+    const originalPoint = useRef({x:0,y:0});
 
 
     useEffect(()=>{
@@ -62,6 +63,8 @@ function VideoFilter({
                 editor.current = true;
                 console.log(e);
                 rect.current = {};
+                originalPoint.current.x = x;
+                originalPoint.current.y = y;
                 rect.current.left =x;
                 rect.current.top = y;
                 rect.current.width = 0;
@@ -69,8 +72,11 @@ function VideoFilter({
             }
         } else if(mouseEvent[0] == 'move'){
             if(enableEditMode && editor.current){
-                rect.current.width = x - rect.current.left;
-                rect.current.height = y - rect.current.top;
+                rect.current.width = Math.abs(x - originalPoint.current.x);
+                rect.current.height = Math.abs(y - originalPoint.current.y);
+
+                rect.current.left = Math.min(x, originalPoint.current.x);
+                rect.current.top = Math.min(y, originalPoint.current.y);
             }
         } else if(mouseEvent[0] == 'up'){
             if(enableEditMode && editor.current){
