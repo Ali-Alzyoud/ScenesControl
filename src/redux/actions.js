@@ -21,7 +21,8 @@ import {
   SET_DRAWING_ENABLED,
   SET_DRAWING_RECT,
   SET_TOAST_TEXT,
-  SET_TOAST_TIMEOUT
+  SET_TOAST_TIMEOUT,
+  SET_SELECTED_ITEMS
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
@@ -101,6 +102,11 @@ export const setVideoIsLoading = (videoIsLoading) => {
 
 export const addFilterItems = records => ({
   type: ADD_ITEMS,
+  payload: { records }
+});
+
+export const setSelectedFilterItems = records => ({
+  type: SET_SELECTED_ITEMS,
   payload: { records }
 });
 

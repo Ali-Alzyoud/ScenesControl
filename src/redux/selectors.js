@@ -54,6 +54,10 @@ export const selectVideoIsLoading = (state) => {
     return state.media.videoIsLoading;
 }
 
+export const selectSelectedFilterdItems = (state) => {
+    return state.sceneFilter.selectedRecords;
+}
+
 //Settings
 export const getFontConfig = (state) => {
     return state.settings.fontConfig;

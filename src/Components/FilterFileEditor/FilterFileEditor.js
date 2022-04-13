@@ -5,7 +5,7 @@ import { SceneGuideRecord, SceneGuideClass, SceneType } from '../../common/Scene
 
 import { connect } from "react-redux";
 import { selectTime, selectRecords, selectVideoName, selectModalOpen } from '../../redux/selectors';
-import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled, setToastText } from '../../redux/actions';
+import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled, setToastText, setSelectedFilterItems } from '../../redux/actions';
 import {FaMinus} from 'react-icons/fa'
 
 import './style.css'
@@ -33,7 +33,8 @@ function FilterFileEditor(props) {
         updateFilterItem,
         modalOpen,
         setDrawingEnabled,
-        setToastText
+        setToastText,
+        setSelectedFilterItems
     } = props;
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [key, setKey] = useState(0);
@@ -52,6 +53,12 @@ function FilterFileEditor(props) {
             selectItem(props.records[0]);
         }
     },[records && records.length]);
+
+    useEffect(()=>{
+        return ()=>{
+            setSelectedFilterItems(null);
+        }
+    }, []);
 
     useEffect(() => {
         if(modalOpen || !keyEvent) return;
@@ -163,14 +170,17 @@ function FilterFileEditor(props) {
         const index = records.indexOf(record);
         if (index === -1) {
             setSelectedRecord(null);
+            setSelectedFilterItems(null);
             return;
         }
 
         if (records[index] === selectedRecord) {
             setSelectedRecord(null);
+            setSelectedFilterItems(null);
         }
         else {
             setSelectedRecord(record);
+            setSelectedFilterItems([record]);
         }
     }
 
@@ -267,4 +277,13 @@ const mapStateToProps = state => {
     return { records, time, videoName, modalOpen };
 };
 
-export default connect(mapStateToProps, { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled, setToastText })(FilterFileEditor);
+export default connect(mapStateToProps, 
+    { 
+        addFilterItems,
+        removeFilterIndex,
+        removeAllFilters,
+        updateFilterItem,
+        setDrawingEnabled,
+        setToastText,
+        setSelectedFilterItems
+    })(FilterFileEditor);

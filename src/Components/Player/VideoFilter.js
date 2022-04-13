@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 
 import { connect, useSelector } from "react-redux";
-import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, selectDrawingEnabled, selectDrawingRect } from '../../redux/selectors';
+import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, selectDrawingEnabled, selectSelectedFilterdItems  } from '../../redux/selectors';
 import { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
-import { GiAnticlockwiseRotation } from "react-icons/gi";
 
 const FILTER_TYPE = {
     NONE : 0,
@@ -41,7 +40,8 @@ function VideoFilter({
     blackScreen,
     enableEditMode,
     setDrawingRect,
-    setDrawingEnabled
+    setDrawingEnabled,
+    selectedRecords
 }) {
 
     const [filterType, setFilterType] = useState(FILTER_TYPE.NONE);
@@ -213,6 +213,17 @@ function VideoFilter({
             width:rect.current.width+'px',
             height:rect.current.height+'px',
         }}></div>}
+
+    {selectedRecords.length>0 && selectedRecords[0].geometries.length > 0 && <div style={{
+            position:'absolute',
+            background:'rgba(200,50,50,0.5)',
+            zIndex:3333,
+            left:selectedRecords[0].geometries[0].left+'%',
+            top:selectedRecords[0].geometries[0].top+'%',
+            width:selectedRecords[0].geometries[0].width+'%',
+            height:selectedRecords[0].geometries[0].height+'%',
+        }}></div>}
+
         {recordRect && <div style={{
             position:'absolute',
             zIndex:10,
@@ -231,7 +242,8 @@ const mapStateToProps = state => {
     const time = selectTime(state);
     const playerConfig = selectPlayerConfig(state);
     const enableEditMode = selectDrawingEnabled(state);
-    return { records, time, playerConfig, enableEditMode };
+    const selectedRecords = selectSelectedFilterdItems(state);
+    return { records, time, playerConfig, enableEditMode, selectedRecords };
 };
 
 export default connect(mapStateToProps, { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled })(VideoFilter);

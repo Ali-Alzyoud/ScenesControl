@@ -1,7 +1,8 @@
-import { ADD_ITEMS, SET_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM } from "../actionTypes";
+import { ADD_ITEMS, SET_ITEMS, SET_SELECTED_ITEMS, REMOVE_ITEM_INDEX, REMOVE_ALL, UPDATE_ITEM } from "../actionTypes";
 
 const initialState = {
   records: [],
+  selectedRecords: [],
 };
 
 const SceneFilter = (state = initialState, action) => {
@@ -18,6 +19,13 @@ const SceneFilter = (state = initialState, action) => {
       return {
         ...state,
         records: (records && records.length > 0) ? [...records] : [],
+      };
+    }
+    case SET_SELECTED_ITEMS: {
+      const { records } = action.payload;
+      return {
+        ...state,
+        selectedRecords: (records && records.length > 0) ? [...records] : [],
       };
     }
     case REMOVE_ITEM_INDEX: {

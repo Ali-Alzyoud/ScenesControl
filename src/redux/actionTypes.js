@@ -11,6 +11,7 @@ export const SET_PLAYER_STATE = "SET_PLAYER_STATE";
 export const SET_PLAYER_CONFIG = "SET_PLAYER_CONFIG";
 export const ADD_ITEMS = "ADD_ITEMS";
 export const SET_ITEMS = "SET_ITEMS";
+export const SET_SELECTED_ITEMS = "SET_SELECTED_ITEMS";
 export const REMOVE_ITEM_INDEX = "REMOVE_ITEM_INDEX";
 export const REMOVE_ALL = "REMOVE_ALL";
 export const UPDATE_ITEM = "UPDATE_ITEM";
