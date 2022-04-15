@@ -1,6 +1,6 @@
 import React, { useState, useEffect, memo } from 'react'
 import { SceneGeometry, SceneIntensity, SceneType } from '../../common/SceneGuide'
-import {FaBuilding, FaMinus, FaPen, FaPlusSquare, FaRegPlusSquare, FaSquare} from 'react-icons/fa'
+import {FaBuilding, FaMinus, FaMinusSquare, FaPen, FaPlusSquare, FaRegMinusSquare, FaRegPlusSquare, FaSquare} from 'react-icons/fa'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { setDrawingEnabled, setDrawingRect } from '../../redux/actions';
 import { selectDrawingRect } from '../../redux/selectors';
@@ -25,7 +25,6 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
 
     useEffect(() => {
       if(rect && isSelected){
-        record.geometries.splice(0, record.geometries.length);
         if(rect.width > 0 && rect.height > 0){
             record.geometries.push(new SceneGeometry(rect.left, rect.top, rect.width, rect.height));
         }
@@ -65,6 +64,13 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
         }
     }
 
+    const onRemoveRect = () => {
+        if(isSelected){
+            record.geometries.pop();
+            updateItem(record);
+        }
+    }
+
     return (
         <tr>
             <td>
@@ -99,6 +105,11 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
             <td>
                 <div className='container select' onClick={onDrawRect} style={{ margin: '0 auto' }}>
                     {(record.geometries.length > 0) ? <FaPlusSquare className='middle' /> : <FaRegPlusSquare className='middle' />}
+                </div>
+            </td>
+            <td>
+                <div className='container select' onClick={onRemoveRect} style={{ margin: '0 auto' }}>
+                    <FaRegMinusSquare className='middle' />
                 </div>
             </td>
             <td>

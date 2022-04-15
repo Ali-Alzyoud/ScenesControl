@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useLayoutEffect } from "react";
 
 import { connect, useSelector } from "react-redux";
-import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, selectDrawingEnabled, selectSelectedFilterdItems  } from '../../redux/selectors';
+import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, selectDrawingEnabled, selectSelectedFilterdItems } from '../../redux/selectors';
 import { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
 
 const FILTER_TYPE = {
-    NONE : 0,
-    BLUR : 1,
-    BLUR_EXTRA : 2,
-    BLUR_EXTREME : 3,
+    NONE: 0,
+    BLUR: 1,
+    BLUR_EXTRA: 2,
+    BLUR_EXTREME: 3,
     BLACK: 4,
 }
 Object.freeze(FILTER_TYPE);
@@ -25,7 +25,7 @@ function getFilterClass(filterType) {
         case FILTER_TYPE.BLUR_EXTREME:
             return "video-filter-blur-extreme";
         case FILTER_TYPE.BLACK:
-        return "video-filter-black";
+            return "video-filter-black";
     }
     return "";
 }
@@ -50,46 +50,47 @@ function VideoFilter({
     const rect = useRef(null);
     const divFilter = useRef(null);
     const [mouseEvent, setMouseEvent] = useState(null);
-    const [recordRect, setRecordRect] = useState(null);
-    const originalPoint = useRef({x:0,y:0});
+    const [recordRects, setRecordRects] = useState([]);
+    const originalPoint = useRef({ x: 0, y: 0 });
+    const [forceUpdate, setForceUpdate] = useState(0);
 
 
-    useEffect(()=>{
-        if(!mouseEvent || mouseEvent.length<2) return;
+    useEffect(() => {
+        if (!mouseEvent || mouseEvent.length < 2) return;
         const e = mouseEvent[1];
         const x = e.clientX - divFilter.current.getBoundingClientRect().x;
         const y = e.clientY - divFilter.current.getBoundingClientRect().y;
-        if(mouseEvent[0] == 'down'){
-            if(enableEditMode){
+        if (mouseEvent[0] == 'down') {
+            if (enableEditMode) {
                 editor.current = true;
                 console.log(e);
                 rect.current = {};
                 originalPoint.current.x = x;
                 originalPoint.current.y = y;
-                rect.current.left =x;
+                rect.current.left = x;
                 rect.current.top = y;
                 rect.current.width = 0;
                 rect.current.height = 0;
             }
-        } else if(mouseEvent[0] == 'move'){
-            if(enableEditMode && editor.current){
+        } else if (mouseEvent[0] == 'move') {
+            if (enableEditMode && editor.current) {
                 rect.current.width = Math.abs(x - originalPoint.current.x);
                 rect.current.height = Math.abs(y - originalPoint.current.y);
 
                 rect.current.left = Math.min(x, originalPoint.current.x);
                 rect.current.top = Math.min(y, originalPoint.current.y);
             }
-        } else if(mouseEvent[0] == 'up'){
-            if(enableEditMode && editor.current){
+        } else if (mouseEvent[0] == 'up') {
+            if (enableEditMode && editor.current) {
                 editor.current = false;
 
                 const rectangle = convertToVideo(rect.current);
                 setDrawingRect(rectangle);
+                rect.current = null;
             }
         }
-    },[mouseEvent]);
+    }, [mouseEvent]);
 
-    //ali.m ????
     const convertToVideo = (rect) => {
         const { width, height } = divFilter.current.getBoundingClientRect();
         const aspectRatio = height / width;
@@ -97,14 +98,14 @@ function VideoFilter({
         let videoH = 0;
         let videoW = 0;
 
-        if(videoAspectRatio > aspectRatio){
+        if (videoAspectRatio > aspectRatio) {
             videoH = height;
-            videoW = height * 1/videoAspectRatio;
+            videoW = height * 1 / videoAspectRatio;
         } else {
             videoH = width * videoAspectRatio;
             videoW = width;
         }
-        
+
         const heightDif = (height - videoH) / 2;
         const widthDif = (width - videoW) / 2;
 
@@ -117,6 +118,7 @@ function VideoFilter({
 
         return rectangle;
     }
+
     const convertFromVideo = (rect) => {
         const { width, height } = divFilter.current.getBoundingClientRect();
         const aspectRatio = height / width;
@@ -124,14 +126,14 @@ function VideoFilter({
         let videoH = 0;
         let videoW = 0;
 
-        if(videoAspectRatio > aspectRatio){
+        if (videoAspectRatio > aspectRatio) {
             videoH = height;
-            videoW = height * 1/videoAspectRatio;
+            videoW = height * 1 / videoAspectRatio;
         } else {
             videoH = width * videoAspectRatio;
             videoW = width;
         }
-        
+
         const heightDif = (height - videoH) / 2;
         const widthDif = (width - videoW) / 2;
 
@@ -143,7 +145,7 @@ function VideoFilter({
         let r_height = rect.height / 100;
 
         rectangle.left = r_left + widthDif;
-        rectangle.top =  r_top + heightDif;
+        rectangle.top = r_top + heightDif;
         rectangle.width = r_width * videoW;
         rectangle.height = r_height * videoH;
 
@@ -152,26 +154,36 @@ function VideoFilter({
 
     const onDown = useCallback(
         (e) => {
-            setMouseEvent(['down',e])
+            setMouseEvent(['down', e])
         },
         [],
     );
     const onMove = useCallback(
         (e) => {
-            setMouseEvent(['move',e])
+            setMouseEvent(['move', e])
         },
         [],
     );
     const onUp = useCallback(
         (e) => {
-            setMouseEvent(['up',e])
+            setMouseEvent(['up', e])
             setDrawingEnabled(false);
         },
         [],
     );
 
-    useEffect(()=>{
-        if(enableEditMode){
+    useLayoutEffect(() => {
+        function updateSize() {
+            setForceUpdate(Math.random());
+        }
+        window.addEventListener('resize', updateSize);
+
+        return () => window.removeEventListener('resize', updateSize);
+
+    }, [])
+
+    useEffect(() => {
+        if (enableEditMode) {
             document.addEventListener('mousedown', onDown);
             document.addEventListener('mousemove', onMove);
             document.addEventListener('mouseup', onUp);
@@ -180,15 +192,15 @@ function VideoFilter({
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onUp);
         }
-    },[enableEditMode])
-    
+    }, [enableEditMode])
+
 
     useEffect(() => {
         if (blackScreen) return;
 
-        if(!records || !records.length){
-            setRecordRect(null);
-            if(filterType != FILTER_TYPE.NONE)
+        if (!records || !records.length) {
+            setRecordRects([]);
+            if (filterType != FILTER_TYPE.NONE)
                 setFilterType(FILTER_TYPE.NONE);
             return;
         }
@@ -205,7 +217,7 @@ function VideoFilter({
 
         for (var i = 0; i < currentRecords.length; i++) {
             var record = currentRecords[i];
-            setRecordRect(record.geometries[0]);
+            setRecordRects(record.geometries);
             if (playerConfig[record.Type][0] === PLAYER_ACTION.MUTE || playerConfig[record.Type][1] === PLAYER_ACTION.MUTE) {
                 mute = true;
             }
@@ -239,16 +251,16 @@ function VideoFilter({
         }
 
 
-            if (blur)
-                setFilterType(FILTER_TYPE.BLUR);
-            else if (blurExtra)
-                setFilterType(FILTER_TYPE.BLUR_EXTRA);
-            else if (blurExtreme)
-                setFilterType(FILTER_TYPE.BLUR_EXTREME);
-            else if (black)
-                setFilterType(FILTER_TYPE.BLACK);
-            else if(filterType != FILTER_TYPE.NONE)
-                setFilterType(FILTER_TYPE.NONE);
+        if (blur)
+            setFilterType(FILTER_TYPE.BLUR);
+        else if (blurExtra)
+            setFilterType(FILTER_TYPE.BLUR_EXTRA);
+        else if (blurExtreme)
+            setFilterType(FILTER_TYPE.BLUR_EXTREME);
+        else if (black)
+            setFilterType(FILTER_TYPE.BLACK);
+        else if (filterType != FILTER_TYPE.NONE)
+            setFilterType(FILTER_TYPE.NONE);
 
 
         if (doubleSpeed) {
@@ -259,43 +271,51 @@ function VideoFilter({
 
     }, [time, records, playerConfig]);
 
-    const class2 = `${blackScreen?"video-filter-black" : getFilterClass(filterType)}`;
+    const class2 = `${blackScreen ? "video-filter-black" : getFilterClass(filterType)}`;
 
-    let selectedRect = null;
-    if(selectedRecords.length>0 && selectedRecords[0].geometries.length > 0){
-        selectedRect = convertFromVideo(selectedRecords[0].geometries[0]);
+    let selectedRects = null;
+    if (selectedRecords.length > 0 && selectedRecords[0].geometries.length > 0) {
+        selectedRects = [];
+        for (let i = 0; i < selectedRecords[0].geometries.length; i++) {
+            selectedRects.push(convertFromVideo(selectedRecords[0].geometries[i]));
+        }
     }
 
-    return <div ref={divFilter} className={`video-filter ${(!recordRect || blackScreen) ? class2 : ''}`}>
+    return <div ref={divFilter} className={`video-filter ${(recordRects.length == 0 || blackScreen) ? class2 : ''}`}>
         {enableEditMode && rect.current && <div style={{
-            position:'absolute',
-            background:'rgba(0,0,0,0.5)',
-            zIndex:3333,
-            left:rect.current.left+'px',
-            top:rect.current.top+'px',
-            width:rect.current.width+'px',
-            height:rect.current.height+'px',
+            position: 'absolute',
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 3333,
+            left: rect.current.left + 'px',
+            top: rect.current.top + 'px',
+            width: rect.current.width + 'px',
+            height: rect.current.height + 'px',
         }}></div>}
 
-    {selectedRect && <div style={{
-            position:'absolute',
-            background:'rgba(200,50,50,0.5)',
-            zIndex:3333,
-            left:selectedRect.left+'px',
-            top:selectedRect.top+'px',
-            width:selectedRect.width+'px',
-            height:selectedRect.height+'px',
-        }}></div>}
+        {selectedRects && selectedRects.map((selectedRect) => {
+            return <div style={{
+                position: 'absolute',
+                zIndex: 3333,
+                background: 'rgba(200,50,50,0.5)',
+                left: selectedRect.left + 'px',
+                top: selectedRect.top + 'px',
+                width: selectedRect.width + 'px',
+                height: selectedRect.height + 'px',
+            }}></div>
+        })}
 
-        {recordRect && <div style={{
-            position:'absolute',
-            zIndex:10,
-            left:recordRect.left+'%',
-            top:recordRect.top+'%',
-            width:recordRect.width+'%',
-            height:recordRect.height+'%',
-        }}
-        className={class2}></div>}
+        {recordRects && recordRects.map((record) => {
+            record = convertFromVideo(record);
+            return <div style={{
+                position: 'absolute',
+                zIndex: 3333,
+                left: record.left + 'px',
+                top: record.top + 'px',
+                width: record.width + 'px',
+                height: record.height + 'px',
+            }}
+                className={class2}></div>
+        })}
     </div>;
 }
 
