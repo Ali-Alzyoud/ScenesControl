@@ -41,7 +41,8 @@ function VideoFilter({
     enableEditMode,
     setDrawingRect,
     setDrawingEnabled,
-    selectedRecords
+    selectedRecords,
+    videoAspectRatio
 }) {
 
     const [filterType, setFilterType] = useState(FILTER_TYPE.NONE);
@@ -80,17 +81,74 @@ function VideoFilter({
             }
         } else if(mouseEvent[0] == 'up'){
             if(enableEditMode && editor.current){
-                console.log(rect.current);
                 editor.current = false;
-                const rectangle = {};
-                rectangle.x = (rect.current.left/divFilter.current.getBoundingClientRect().width*100).toFixed(3);
-                rectangle.y = (rect.current.top/divFilter.current.getBoundingClientRect().height*100).toFixed(3);
-                rectangle.w = (rect.current.width/divFilter.current.getBoundingClientRect().width*100).toFixed(3);
-                rectangle.h = (rect.current.height/divFilter.current.getBoundingClientRect().height*100).toFixed(3);
+
+                const rectangle = convertToVideo(rect.current);
                 setDrawingRect(rectangle);
             }
         }
     },[mouseEvent]);
+
+    //ali.m ????
+    const convertToVideo = (rect) => {
+        const { width, height } = divFilter.current.getBoundingClientRect();
+        const aspectRatio = height / width;
+
+        let videoH = 0;
+        let videoW = 0;
+
+        if(videoAspectRatio > aspectRatio){
+            videoH = height;
+            videoW = height * 1/videoAspectRatio;
+        } else {
+            videoH = width * videoAspectRatio;
+            videoW = width;
+        }
+        
+        const heightDif = (height - videoH) / 2;
+        const widthDif = (width - videoW) / 2;
+
+        const rectangle = {};
+
+        rectangle.left = ((rect.left - widthDif) / videoW * 100).toFixed(3);
+        rectangle.top = ((rect.top - heightDif) / videoH * 100).toFixed(3);
+        rectangle.width = (rect.width / videoW * 100).toFixed(3);
+        rectangle.height = (rect.height / videoH * 100).toFixed(3);
+
+        return rectangle;
+    }
+    const convertFromVideo = (rect) => {
+        const { width, height } = divFilter.current.getBoundingClientRect();
+        const aspectRatio = height / width;
+
+        let videoH = 0;
+        let videoW = 0;
+
+        if(videoAspectRatio > aspectRatio){
+            videoH = height;
+            videoW = height * 1/videoAspectRatio;
+        } else {
+            videoH = width * videoAspectRatio;
+            videoW = width;
+        }
+        
+        const heightDif = (height - videoH) / 2;
+        const widthDif = (width - videoW) / 2;
+
+        const rectangle = {};
+
+        let r_left = rect.left * videoW / 100;
+        let r_top = rect.top * videoH / 100;
+        let r_width = rect.width / 100;
+        let r_height = rect.height / 100;
+
+        rectangle.left = r_left + widthDif;
+        rectangle.top =  r_top + heightDif;
+        rectangle.width = r_width * videoW;
+        rectangle.height = r_height * videoH;
+
+        return rectangle;
+    }
 
     const onDown = useCallback(
         (e) => {
@@ -203,6 +261,11 @@ function VideoFilter({
 
     const class2 = `${blackScreen?"video-filter-black" : getFilterClass(filterType)}`;
 
+    let selectedRect = null;
+    if(selectedRecords.length>0 && selectedRecords[0].geometries.length > 0){
+        selectedRect = convertFromVideo(selectedRecords[0].geometries[0]);
+    }
+
     return <div ref={divFilter} className={`video-filter ${(!recordRect || blackScreen) ? class2 : ''}`}>
         {enableEditMode && rect.current && <div style={{
             position:'absolute',
@@ -214,14 +277,14 @@ function VideoFilter({
             height:rect.current.height+'px',
         }}></div>}
 
-    {selectedRecords.length>0 && selectedRecords[0].geometries.length > 0 && <div style={{
+    {selectedRect && <div style={{
             position:'absolute',
             background:'rgba(200,50,50,0.5)',
             zIndex:3333,
-            left:selectedRecords[0].geometries[0].left+'%',
-            top:selectedRecords[0].geometries[0].top+'%',
-            width:selectedRecords[0].geometries[0].width+'%',
-            height:selectedRecords[0].geometries[0].height+'%',
+            left:selectedRect.left+'px',
+            top:selectedRect.top+'px',
+            width:selectedRect.width+'px',
+            height:selectedRect.height+'px',
         }}></div>}
 
         {recordRect && <div style={{

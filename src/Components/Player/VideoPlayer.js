@@ -39,6 +39,7 @@ class VideoPlayer extends React.PureComponent {
 
   componentDidMount(){
     this.progressSave = setInterval(() => {
+
       const {time, videoName, isLoading} = this.props;
       if (videoName && time && !isLoading)
         localStorage.setItem(videoName, time);
@@ -193,7 +194,11 @@ class VideoPlayer extends React.PureComponent {
             setTime(event.target.currentTime);
           }}
         ></video>
-        <VideoFilter blackScreen={blackScreen}/>
+        <VideoFilter blackScreen={blackScreen} videoAspectRatio={
+          this.player.current && this.player.current.videoWidth ?
+            this.player.current.videoHeight / this.player.current.videoWidth :
+            1
+        } />
         <div
           style={{
             display: "grid",

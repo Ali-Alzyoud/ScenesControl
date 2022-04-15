@@ -9,7 +9,7 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
     var fromDates = record.From.split(":");
     var toDates = record.To.split(":");
     const dispatch = useDispatch();
-    const rect = useSelector(selectDrawingRect, shallowEqual);
+    const rect = useSelector(selectDrawingRect);
     const [state, setState] = useState({
         fh : fromDates[0],
         fm : fromDates[1],
@@ -26,8 +26,8 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
     useEffect(() => {
       if(rect && isSelected){
         record.geometries.splice(0, record.geometries.length);
-        if(rect.w > 0 && rect.h > 0){
-            record.geometries.push(new SceneGeometry(rect.x, rect.y, rect.w, rect.h));
+        if(rect.width > 0 && rect.height > 0){
+            record.geometries.push(new SceneGeometry(rect.left, rect.top, rect.width, rect.height));
         }
         updateItem(record);
         dispatch(setDrawingRect(null));
