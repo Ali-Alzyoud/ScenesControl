@@ -27,6 +27,10 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
         setPlayerConfig({[e.target.name]: [firstValue, e.target.value]});
     }
 
+    const onChangeFilerRect = (e) => {
+        setPlayerConfig({[e.target.name]: e.target.value == "false" ? false : true});
+    }
+
     const options_video = [
         <option value={PLAYER_ACTION.BLUR}>{PLAYER_ACTION.BLUR}</option>,
         <option value={PLAYER_ACTION.BLUR_EXTRA}>{PLAYER_ACTION.BLUR_EXTRA}</option>,
@@ -83,6 +87,15 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
                     {options_audio.map((option) => option)}
                 </select>
             </div>
+
+            <div className='item' style={{ paddingRight: '170px' }}>
+                <span>Filter Area</span>
+                <select onChange={onChangeFilerRect} name='filterRect' value={playerConfig.filterRect}>
+                <option value={true}>true</option>
+                <option value={false}>false</option>
+                </select>
+            </div>
+
         </div>
     )
 }

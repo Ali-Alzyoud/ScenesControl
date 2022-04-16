@@ -215,6 +215,9 @@ function VideoFilter({
         var doubleSpeed = false;
         var skipRecord = null;
 
+        if (currentRecords.length == 0){
+            setRecordRects([]);
+        }
         for (var i = 0; i < currentRecords.length; i++) {
             var record = currentRecords[i];
             setRecordRects(record.geometries);
@@ -281,7 +284,7 @@ function VideoFilter({
         }
     }
 
-    return <div ref={divFilter} className={`video-filter ${(recordRects.length == 0 || blackScreen) ? class2 : ''}`}>
+    return <div ref={divFilter} className={`video-filter ${(!playerConfig.filterRect || recordRects.length == 0 || blackScreen) ? class2 : ''}`}>
         {enableEditMode && rect.current && <div style={{
             position: 'absolute',
             background: 'rgba(0,0,0,0.5)',
@@ -304,10 +307,11 @@ function VideoFilter({
             }}></div>
         })}
 
-        {recordRects && recordRects.map((record) => {
+        {playerConfig.filterRect && recordRects && recordRects.length > 0 && recordRects.map((record) => {
             record = convertFromVideo(record);
             return <div style={{
                 position: 'absolute',
+                background:'rgba(128,128,128,0.1)',
                 zIndex: 3333,
                 left: record.left + 'px',
                 top: record.top + 'px',

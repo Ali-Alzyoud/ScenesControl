@@ -8,6 +8,7 @@ const savedPlayerConfig = {
   nudity: [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
   sex: [PLAYER_ACTION.SKIP, PLAYER_ACTION.MUTE],
   profanity: [PLAYER_ACTION.NOACTION, PLAYER_ACTION.MUTE],
+  filterRect: true,
   ...savedConfig,
 }
 
