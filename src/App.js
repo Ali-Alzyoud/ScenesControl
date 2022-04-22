@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState, useEffect, useRef, Fragment } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Player } from './Components/Player';
 
 
@@ -23,65 +23,66 @@ const KEY = {
 
 function App(props) {
 
-  const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, modalOpen, isLoading, setDuration, setTime } = props;
+  const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [keyEvent, setKeyEvent] = useState(null);
 
   const ref = useRef(null);
 
-  const loadAll = () => {
-    let videoURL = '';
-    let subtitleURL = '';
-    let filterURL = '';
-    const paramsURL = window.location.hash;
+  const loadAll = useCallback(
+    () => {
+      let videoURL = '';
+      let subtitleURL = '';
+      let filterURL = '';
+      const paramsURL = window.location.hash;
 
-    const params = paramsURL.split('/');
-    if (params.length == 0 || (params.length == 1 && params[0].length == 0)) return;
-    if (paramsURL != '/' && params.length >= 2) {
-      if (params[1] && params[1].length > 0) {
-        videoURL = atob(params[1]);
+      const params = paramsURL.split('/');
+      if (params.length === 0 || (params.length === 1 && params[0].length === 0)) return;
+      if (paramsURL !== '/' && params.length >= 2) {
+        if (params[1] && params[1].length > 0) {
+          videoURL = atob(params[1]);
+        }
+        if (params[2] && params[2].length > 0) {
+          subtitleURL = atob(params[2]);
+        }
+        if (params[3] && params[3].length > 0) {
+          filterURL = atob(params[3]);
+        }
       }
-      if (params[2] && params[2].length > 0) {
-        subtitleURL = atob(params[2]);
+
+      if (videoURL) {
+        const fileName = videoURL.replace(/^.*[\\\/]/, '') || 'sample';
+        setVideoSrc(videoURL);
+        setVideoName(fileName);
       }
-      if (params[3] && params[3].length > 0) {
-        filterURL = atob(params[3]);
+
+      if (subtitleURL.toLowerCase().startsWith('http')) {
+        SrtClass.ReadFile(subtitleURL).then((records) => {
+          setSubtitle(records)
+        });
+      } else {
+        setSubtitle([]);
       }
-    }
 
-    if(videoURL){
-      const fileName = videoURL.replace(/^.*[\\\/]/, '') || 'sample';
-      setVideoSrc(videoURL);
-      setVideoName(fileName);
-    }
-
-    if (subtitleURL.toLowerCase().startsWith('http')) {
-      SrtClass.ReadFile(subtitleURL).then((records) => {
-        setSubtitle(records)
-      });
-    } else {
-      setSubtitle([]);
-    }
-
-    if (filterURL.toLowerCase().startsWith('http')) {
-      SceneGuideClass.ReadFile(filterURL).then((records) => {
-        addFilterItems(records);
-      });
-    } else {
-      setFilterItems([]);
-    }
-  };
+      if (filterURL.toLowerCase().startsWith('http')) {
+        SceneGuideClass.ReadFile(filterURL).then((records) => {
+          addFilterItems(records);
+        });
+      } else {
+        setFilterItems([]);
+      }
+    }, []);
 
   useEffect(() => {
     loadAll();
-  }, [])
+  }, [loadAll])
 
   useEffect(() => {
     window.onhashchange = () => {
       loadAll();
     }
-  }, []);
+  }, [loadAll]);
 
   useEffect(() => {
     const { modalOpen } = props;
@@ -114,7 +115,7 @@ function App(props) {
       }
       <div style={{ opacity: isLoading ? 0 : 1 }}>
         <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
-          <Player/>
+          <Player />
         </div>
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>

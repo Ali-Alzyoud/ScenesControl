@@ -211,7 +211,7 @@ class SceneGuideClass
         var lines = content.split('\n');
         for (var i = 0; i < lines.length;) {
             let k = i+1;
-            while(k < lines.length && lines[k] != '') k++;
+            while(k < lines.length && lines[k] !== '') k++;
             var array = lines.slice(i, k);
             if (array.length < 4) break;
             records.push(SceneGuideRecord.FromString(array));

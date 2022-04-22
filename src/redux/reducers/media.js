@@ -39,7 +39,7 @@ const Media = (state = initialState, action) => {
       return {
         ...state,
         videoSrc: videoSrc,
-        videoIsLoading: videoSrc!=state.videoSrc,
+        videoIsLoading: videoSrc!==state.videoSrc,
       };
     }
     case VIDEO_IS_LOADING: {

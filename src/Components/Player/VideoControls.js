@@ -16,9 +16,7 @@ import './style.css'
 import { connect } from "react-redux";
 import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName } from '../../redux/selectors';
 import { setTime, setPlayerState, setVolume } from '../../redux/actions';
-import { Fragment } from 'react';
 import Slider from '../Slider';
-import { Component } from 'react';
 
 var styleControls = {
     width: '80%',

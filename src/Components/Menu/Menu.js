@@ -84,9 +84,9 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime,
                 <button className="dropbtn">File
                 </button>
                 <div className="dropdown-content">
-                    <input className='hidden' key={key} ref={videoInput} type='file' onChange={openVideoFile} />
-                    <input className='hidden' key={key} ref={subtitleInput} type='file' onChange={openSubtitleFile} />
-                    <input className='hidden' key={key} ref={filterInput} type='file' onChange={openFilterFile} />
+                    <input className='hidden' key={key+"_1"} ref={videoInput} type='file' onChange={openVideoFile} />
+                    <input className='hidden' key={key+"_2"} ref={subtitleInput} type='file' onChange={openSubtitleFile} />
+                    <input className='hidden' key={key+"_3"} ref={filterInput} type='file' onChange={openFilterFile} />
                     <a href="#" onClick={() => videoInput.current.click()}>Open video</a>
                     <a href="#" onClick={() => subtitleInput.current.click()}>Open subtitle</a>
                     <a href="#" onClick={() => filterInput.current.click()}>Open filter</a>

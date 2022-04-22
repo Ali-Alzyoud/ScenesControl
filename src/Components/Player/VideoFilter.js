@@ -200,7 +200,7 @@ function VideoFilter({
 
         if (!records || !records.length) {
             setRecordRects([]);
-            if (filterType != FILTER_TYPE.NONE)
+            if (filterType !== FILTER_TYPE.NONE)
                 setFilterType(FILTER_TYPE.NONE);
             return;
         }
@@ -262,7 +262,7 @@ function VideoFilter({
             setFilterType(FILTER_TYPE.BLUR_EXTREME);
         else if (black)
             setFilterType(FILTER_TYPE.BLACK);
-        else if (filterType != FILTER_TYPE.NONE)
+        else if (filterType !== FILTER_TYPE.NONE)
             setFilterType(FILTER_TYPE.NONE);
 
 

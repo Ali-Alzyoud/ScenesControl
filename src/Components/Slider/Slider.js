@@ -1,4 +1,4 @@
-import React, { Fragment, useRef } from 'react'
+import React, { useRef } from 'react'
 import { FaVolumeMute, FaVolumeUp } from 'react-icons/fa';
 import './style.css'
 

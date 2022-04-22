@@ -30,7 +30,6 @@ class VideoPlayer extends React.PureComponent {
       ignoreNextMouseEvent: false,
     };
     this.player = createRef();
-    this.control = createRef();
     this.hideTimer = null;
     this.localStorageUpdateCounter = 0;
     this.clickCount = 0;
@@ -101,7 +100,7 @@ class VideoPlayer extends React.PureComponent {
       }
       this.setState({ visible: true });
     }
-    if(this.player.current.playbackRate != speed){
+    if(this.player.current.playbackRate !== speed){
       this.player.current.playbackRate = speed;
     }
   }
@@ -217,7 +216,6 @@ class VideoPlayer extends React.PureComponent {
           </div>
           <div className='controlscontainer'>
             <VideoControls
-              ref={this.control}
               style={{ width: "80%" }}
               playAction={this.playAction}
               currentTime={time}
