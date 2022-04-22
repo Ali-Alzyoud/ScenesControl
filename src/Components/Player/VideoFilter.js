@@ -288,7 +288,7 @@ function VideoFilter({
         {enableEditMode && rect.current && <div style={{
             position: 'absolute',
             background: 'rgba(0,0,0,0.5)',
-            zIndex: 3333,
+            zIndex: 10,
             left: rect.current.left + 'px',
             top: rect.current.top + 'px',
             width: rect.current.width + 'px',
@@ -298,7 +298,7 @@ function VideoFilter({
         {selectedRects && selectedRects.map((selectedRect) => {
             return <div style={{
                 position: 'absolute',
-                zIndex: 3333,
+                zIndex: 10,
                 background: 'rgba(200,50,50,0.5)',
                 left: selectedRect.left + 'px',
                 top: selectedRect.top + 'px',
@@ -311,8 +311,8 @@ function VideoFilter({
             record = convertFromVideo(record);
             return <div style={{
                 position: 'absolute',
-                background:'rgba(128,128,128,0.1)',
-                zIndex: 3333,
+                background: filterType == FILTER_TYPE.BLACK ? 'black' : 'rgba(128,128,128,0.1)',
+                zIndex: 10,
                 left: record.left + 'px',
                 top: record.top + 'px',
                 width: record.width + 'px',

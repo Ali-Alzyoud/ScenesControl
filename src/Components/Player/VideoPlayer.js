@@ -160,6 +160,7 @@ class VideoPlayer extends React.PureComponent {
           }
         }}
         onWheel={(event)=>{
+          if(!document.fullscreenElement) return;
           event.stopPropagation();
           setVolume(volume + event.deltaY * -0.0005);
         }}
