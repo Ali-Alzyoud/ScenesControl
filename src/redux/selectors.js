@@ -10,6 +10,10 @@ export const selectSubtitle = (state) => {
     return state.media.subtitle;
 }
 
+export const selectSubtitleSync = (state) => {
+    return state.media.subtitleSync;
+}
+
 export const selectVideoSrc = (state) => {
     return state.media.videoSrc;
 }
@@ -88,6 +92,11 @@ export const selectToastTimeout = (state) => {
 //HELPERS
 export const getSubtitleAtTime = (time) => {
     const subtitle = selectSubtitle(store.getState());
+    return SrtClass.GetContentAt(subtitle, time);
+}
+
+export const getSubtitleSyncAtTime = (time) => {
+    const subtitle = selectSubtitleSync(store.getState());
     return SrtClass.GetContentAt(subtitle, time);
 }
 

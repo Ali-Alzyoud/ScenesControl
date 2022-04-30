@@ -1,4 +1,5 @@
 export const SET_SUBTITLE = "SET_SUBTITLE";
+export const SET_SUBTITLE_SYNC = "SET_SUBTITLE_SYNC";
 export const VIDEO_SRC = "VIDEO_SRC";
 export const VIDEO_SRC_NAME = "VIDEO_SRC_NAME";
 export const VIDEO_IS_LOADING = "VIDEO_IS_LOADING";

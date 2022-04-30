@@ -7,16 +7,18 @@ import FilterPicker from '../FilterPicker'
 
 
 import { connect } from "react-redux";
-import { setFilterItems, setVideoSrc, setSubtitle, setVideoName, setTime, setDuration } from '../../redux/actions'
+import { setFilterItems, setVideoSrc, setSubtitle,setSubtitleSync, setVideoName, setTime, setDuration } from '../../redux/actions'
 
 import './menu.css'
 
-function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime, setDuration }) {
+function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubtitleSync, setTime, setDuration }) {
     const videoInput = useRef(null);
     const subtitleInput = useRef(null);
+    const subtitleSyncInput= useRef(null);
     const filterInput = useRef(null);
     const videoInputURL = useRef(null);
     const subtitleInputURL = useRef(null);
+    const subtitleSyncInputURL = useRef(null);
     const filterInputURL = useRef(null);
     const [key, setkey] = useState(0);
     const [about, setabout] = useState(false);
@@ -43,6 +45,13 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime,
         });
         setkey(key + 1);
     }
+    const openSubtitleFileSync = (e) => {
+        if (e.target.files.length < 1) return;
+        SrtClass.ReadFile(URL.createObjectURL(e.target.files[0])).then((records) => {
+            setSubtitleSync(records);
+        });
+        setkey(key + 1);
+    }
     const openFilterFile = (e) => {
         if (e.target.files.length < 1) return;
         const filterURL = URL.createObjectURL(e.target.files[0]);
@@ -61,6 +70,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime,
     const loadURLS = () => {
         const vidURL = videoInputURL.current.value;
         const subURL = subtitleInputURL.current.value;
+        const subSyncURL = subtitleSyncInput.current.value;
         const filURL = filterInputURL.current.value;
 
         if (vidURL) {
@@ -77,6 +87,11 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime,
                 setSubtitle(records);
             });
         }
+        if (subSyncURL){
+            SrtClass.ReadFile(subSyncURL).then((records) => {
+                setSubtitleSync(records);
+            });
+        }
     }
     return (
         <div className="navbar">
@@ -86,9 +101,11 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime,
                 <div className="dropdown-content">
                     <input className='hidden' key={key+"_1"} ref={videoInput} type='file' onChange={openVideoFile} />
                     <input className='hidden' key={key+"_2"} ref={subtitleInput} type='file' onChange={openSubtitleFile} />
+                    <input className='hidden' key={key+"_2"} ref={subtitleSyncInput} type='file' onChange={openSubtitleFileSync} />
                     <input className='hidden' key={key+"_3"} ref={filterInput} type='file' onChange={openFilterFile} />
                     <a href="#" onClick={() => videoInput.current.click()}>Open video</a>
                     <a href="#" onClick={() => subtitleInput.current.click()}>Open subtitle</a>
+                    <a href="#" onClick={() => subtitleSyncInput.current.click()}>Open subtitle Sync</a>
                     <a href="#" onClick={() => filterInput.current.click()}>Open filter</a>
                 </div>
             </div>
@@ -102,6 +119,10 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime,
                     <span>{'Subtitle :'}</span>
                     <input ref={subtitleInputURL} type='text' />
                     <br />
+                    {/* <br />
+                    <span>{'Subtitle Sync :'}</span>
+                    <input ref={subtitleSyncInputURL} type='text' />
+                    <br /> */}
                     <span>{'Filter :'}</span>
                     <input ref={filterInputURL} type='text' />
                     <br />
@@ -129,5 +150,5 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setTime,
 
 export default connect(
     null,
-    { setVideoSrc, setVideoName, setSubtitle, setFilterItems, setTime, setDuration }
+    { setVideoSrc, setVideoName, setSubtitle, setSubtitleSync, setFilterItems, setTime, setDuration }
 )(Menu);

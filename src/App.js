@@ -15,6 +15,7 @@ import { connect } from "react-redux";
 import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems, setDuration, setTime, setVideoName } from './redux/actions'
 import { selectModalOpen, selectVideoIsLoading } from './redux/selectors'
 import Loader from './Components/Loader';
+import SubtitleEditor from './Components/SubtitleEditor/SubtitleEditor';
 
 const KEY = {
   E: 69,
@@ -26,6 +27,7 @@ function App(props) {
   const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
+  const [showSubtitle, setShowSubtitle] = useState(false);
   const [keyEvent, setKeyEvent] = useState(null);
 
   const ref = useRef(null);
@@ -119,9 +121,15 @@ function App(props) {
         </div>
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
+        <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>Subtitle</ToggleButton>
         {showEditor &&
           <div className='filter-container'>
             <FilterEditor />
+          </div>
+        }
+        {showSubtitle &&
+          <div className='filter-container'>
+            <SubtitleEditor />
           </div>
         }
         {showConfig &&

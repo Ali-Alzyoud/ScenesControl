@@ -22,13 +22,22 @@ import {
   SET_DRAWING_RECT,
   SET_TOAST_TEXT,
   SET_TOAST_TIMEOUT,
-  SET_SELECTED_ITEMS
+  SET_SELECTED_ITEMS,
+  SET_SUBTITLE_SYNC
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
   type: SET_SUBTITLE,
   payload: {
     subtitle
+  }
+});
+
+
+export const setSubtitleSync = subtitleSync => ({
+  type: SET_SUBTITLE_SYNC,
+  payload: {
+    subtitleSync
   }
 });
 

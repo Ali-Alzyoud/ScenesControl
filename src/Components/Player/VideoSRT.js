@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { Fragment, useMemo } from 'react'
 import parser from  'html-react-parser'
 
 import { connect } from "react-redux";
-import { selectTime, selectSubtitle, getSubtitleAtTime, getFontConfig, getSyncConfig } from '../../redux/selectors';
+import { selectTime, selectSubtitle, getSubtitleAtTime, getFontConfig, getSyncConfig, getSubtitleSyncAtTime } from '../../redux/selectors';
 
 let style = {
     color: 'white',
@@ -12,15 +12,30 @@ let style = {
 
 function VideoSRT({ subtitle, subtitleSync, time, fontSize, fontTransparency }) {
 
-    style = {
-        ...style,
-        backgroundColor: 'rgba(0,0,0,'+ fontTransparency +')',
-        fontSize : fontSize + 'px'};
+    const style1 = useMemo(() => {
+        return {
+            ...style,
+            backgroundColor: 'rgba(0,0,0,'+ fontTransparency +')',
+            fontSize : fontSize + 'px'
+        }
+    }, [fontTransparency, fontSize]);
 
+    const style2 = useMemo(() => {
+        return {
+            ...style,
+            backgroundColor: 'rgba(128,0,0,'+ fontTransparency +')',
+            fontSize : fontSize + 'px'
+        }
+    }, [fontTransparency, fontSize]);
     return (
-        <div style={style}>
-            {parser(getSubtitleAtTime(time + subtitleSync).join('\n'))}
-        </div>
+        <Fragment>
+            <div style={style1}>
+                {parser(getSubtitleAtTime(time - subtitleSync).join('\n'))}
+            </div>
+            <div style={style2}>
+                {parser(getSubtitleSyncAtTime(time).join('\n'))}
+            </div>
+        </Fragment>
     )
 }
 

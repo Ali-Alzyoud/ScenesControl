@@ -10,6 +10,7 @@
 
 .settings-container-box{
     position: absolute;
+    opacity: 0.6;
     left: 20%;
     top: 20%;
     width: 60%;
