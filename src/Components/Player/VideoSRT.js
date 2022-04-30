@@ -10,7 +10,7 @@ let style = {
     backgroundColor: 'rgba(0,0,0,0.7)',
 };
 
-function VideoSRT({ subtitle, subtitleSync, time, fontSize, fontTransparency }) {
+function VideoSRT({ subtitle, subtitleDelay, subtitleSlope, time, fontSize, fontTransparency }) {
 
     const style1 = useMemo(() => {
         return {
@@ -30,7 +30,7 @@ function VideoSRT({ subtitle, subtitleSync, time, fontSize, fontTransparency }) 
     return (
         <Fragment>
             <div style={style1}>
-                {parser(getSubtitleAtTime(time - subtitleSync).join('\n'))}
+                {parser(getSubtitleAtTime(time * subtitleSlope - subtitleDelay).join('\n'))}
             </div>
             <div style={style2}>
                 {parser(getSubtitleSyncAtTime(time).join('\n'))}
@@ -45,8 +45,9 @@ const mapStateToProps = state => {
     const time = selectTime(state);
     const fontSize = getFontConfig(state).size;
     const fontTransparency = getFontConfig(state).transparency;
-    const subtitleSync = getSyncConfig(state).subtitleSync;
-    return { subtitle, time, fontSize, fontTransparency, subtitleSync };
+    const subtitleDelay = getSyncConfig(state).subtitleDelay;
+    const subtitleSlope = getSyncConfig(state).subtitleSlope;
+    return { subtitle, time, fontSize, fontTransparency, subtitleDelay, subtitleSlope };
   };
 
 export default connect(mapStateToProps)(VideoSRT);

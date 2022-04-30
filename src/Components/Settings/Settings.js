@@ -30,7 +30,7 @@ function Settings({ close, fontConfig, syncConfig, setSettings_fontConfig, setSe
             setSettings_syncConfig(
                 {
                     ...syncConfig,
-                    subtitleSync: syncConfig.subtitleSync + 0.5,
+                    subtitleDelay: syncConfig.subtitleDelay + 0.5,
                 }
                 );
     }
@@ -38,7 +38,7 @@ function Settings({ close, fontConfig, syncConfig, setSettings_fontConfig, setSe
         setSettings_syncConfig(
             {
                 ...syncConfig,
-                subtitleSync: syncConfig.subtitleSync - 0.5,
+                subtitleDelay: syncConfig.subtitleDelay - 0.5,
             }
         );
     }
@@ -73,7 +73,7 @@ function Settings({ close, fontConfig, syncConfig, setSettings_fontConfig, setSe
                     <span className='settings-text-name'>Subtitle-Sync</span>
                     <span>
                         <button onClick={decSubSync}>-</button>
-                        <span className='settings-text-value'>{(syncConfig.subtitleSync).toFixed(1) + "s"}</span>
+                        <span className='settings-text-value'>{(syncConfig.subtitleDelay).toFixed(1) + "s"}</span>
                         <button onClick={incSubSync}>+</button>
                     </span>
                 </div>

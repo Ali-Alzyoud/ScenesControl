@@ -11,18 +11,22 @@ const timeToString = (time) => {
     return hh + ":" + mm + ":" + ss + "." + ms;
 }
 
-function SubtitleRecord({record}) {
+function SubtitleRecord({record, dontChange}) {
     const time = useSelector(state => {
-        const delay = getSyncConfig(state).subtitleSync;
+        const delay = getSyncConfig(state).subtitleDelay;
         return delay;
-    })
+    });
+    const slope = useSelector(state => {
+        const slope = getSyncConfig(state).subtitleSlope;
+        return slope;
+    });
     return (
         <tr key={record.from + "_" +time}>
             <td>
-                {timeToString(record.from + time * 1000)}
+                {timeToString(dontChange ? record.from : (record.from * slope + time * 1000))}
             </td>
             <td>
-                {timeToString(record.to + time * 1000)}
+                {timeToString(dontChange ? record.to: (record.to * slope + time * 1000))}
             </td>
             <td>
                 <p>

@@ -8,7 +8,8 @@ const savedFontConfig = fontConfigJSON ? JSON.parse(fontConfigJSON) : {
 };
 
 const syncConfig = {
-  subtitleSync: 0,
+  subtitleDelay: 0,
+  subtitleSlope: 1,
 };
 
 const initialState = {
