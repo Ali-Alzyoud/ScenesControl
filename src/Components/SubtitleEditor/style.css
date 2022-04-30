@@ -59,6 +59,11 @@ input.bkLong {
     margin-right: 20px;
 }
 
+.rect{
+    width: 80px;
+    height: 40px;
+}
+
 .red{
     background-color: red;
 }
