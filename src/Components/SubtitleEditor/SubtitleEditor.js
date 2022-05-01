@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react'
 import { FaSave, FaPlus, FaMinus } from 'react-icons/fa'
 import { connect, useDispatch, useSelector } from "react-redux";
+import SrtClass from '../../common/SrtClass';
 import { setSettings_syncConfig } from '../../redux/actions';
-import { getSyncConfig, selectSubtitle, selectSubtitleSync } from '../../redux/selectors';
+import { getSyncConfig, selectSubtitle, selectSubtitleSync, selectVideoName } from '../../redux/selectors';
 
 import './style.css'
 import SubtitleRecord from './SubtitleRecord';
@@ -15,14 +16,26 @@ function SubtitleEditor(props) {
 
     const syncConfig = useSelector(getSyncConfig)
     const dispatch = useDispatch();
+    const  videoName =  useSelector(selectVideoName);
 
     const saveItems = () => {
-        // const element = document.createElement("a");
-        // const file = new Blob([SceneGuideClass.ToString(records)], { type: 'text/plain' });
-        // element.href = URL.createObjectURL(file);
-        // element.download = videoName+".txt";
-        // document.body.appendChild(element); // Required for this to work in FireFox
-        // element.click();
+        const subtitleToSave = [];
+        const time = syncConfig.subtitleDelay;
+        const slope = syncConfig.subtitleSlope;
+
+        subtitle.map((record, index) => {
+            record.from = record.from * slope + time * 1000;
+            record.to = record.to * slope + time * 1000;
+            subtitleToSave.push(record);
+        })
+        const element = document.createElement("a");
+        const file = new Blob([SrtClass.ToString(subtitle)], { type: 'text/plain' });
+        element.href = URL.createObjectURL(file);
+
+        const filename = videoName ? videoName.split('.').slice(0, -1).join('.') : "untitled";
+        element.download = filename+".srt";
+        document.body.appendChild(element); // Required for this to work in FireFox
+        element.click();
     }
 
     const sync = () => {
@@ -123,18 +136,18 @@ function SubtitleEditor(props) {
                 <FaSave className='middle' />
             </div>
             <br /><br />
-            <div className='container' onClick={delayInc}>
+            <div className='container small' onClick={delayInc}>
                 <FaPlus className='middle' />
             </div>
-            <span>Delay {syncConfig.subtitleDelay}</span>
-            <div className='container' onClick={delayDec}>
+            <span className='middle-text'>Delay {String(syncConfig.subtitleDelay.toFixed(2)).padStart(5,0)}</span>
+            <div className='container small' onClick={delayDec}>
                 <FaMinus className='middle' />
             </div>
-            <div className='container' onClick={slopeInc}>
+            <div className='container small' onClick={slopeInc}>
                 <FaPlus className='middle' />
             </div>
-            <span>Slope {syncConfig.subtitleSlope}</span>
-            <div className='container' onClick={slopeDec}>
+            <span className='middle-text'>Slope {syncConfig.subtitleSlope.toFixed(2)}</span>
+            <div className='container small' onClick={slopeDec}>
                 <FaMinus className='middle' />
             </div>
             <br /><br />

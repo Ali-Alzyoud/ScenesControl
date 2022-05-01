@@ -59,9 +59,21 @@ input.bkLong {
     margin-right: 20px;
 }
 
+.small{
+    width: 30px;
+    height: 30px;
+}
+
+.middle-text{
+    height: 30px;
+    vertical-align: bottom;
+    display: inline-block;
+}
+
 .rect{
     width: 80px;
     height: 40px;
+    border-radius: 20px;
 }
 
 .red{

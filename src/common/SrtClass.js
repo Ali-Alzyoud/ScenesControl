@@ -71,6 +71,35 @@ class SrtClass {
     return records;
   }
 
+  static timeToString = (time, useComma = false) => {
+    const hh = String(Math.floor(time / 60 / 60 / 1000)).padStart(2, 0);
+    const mm = String(Math.floor(time / 60 / 1000)%60).padStart(2, 0);
+    const ss = String(Math.floor(time / 1000)%60).padStart(2, 0);
+    const ms = String(Math.floor(time % 1000)).padStart(3, 0);
+
+    return hh + ":" + mm + ":" + ss + (useComma ? "," : ".") + ms;
+  }
+
+  static ToString = function (records) {
+    var str = "";
+    for (var i = 0; i < records.length; i++) {
+      const record = records[i];
+      str += i + 1;
+      str += "\n"
+
+      str += SrtClass.timeToString(record.from, true);
+      str += " --> ";
+      str += SrtClass.timeToString(record.to, true);
+      str += "\n"
+      for (let j = 0; j < record.content.length; j++) {
+        str +=record.content[j];
+        str += "\n"
+      }
+      str += "\n"
+    }
+    return str;
+  }
+
   static GetContentAt(records, time) {
     time *= 1000;
     //ali.m FIXME, use binary search + sort records
