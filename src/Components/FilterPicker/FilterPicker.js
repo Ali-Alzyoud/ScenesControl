@@ -49,10 +49,11 @@ function FilterPicker({
     }
     const copy = (index) => {
         const selectedRecord = recordsItems[index];
+        const endPointURL = !selectedRecord.isAbsoluteLink ? API.endpoint + "/" : '';
         let str = window.location.origin + '#/'
             + btoa(selectedRecord.video) + '/'
-            + btoa(selectedRecord.subtitle ? (API.endpoint + "/" + selectedRecord.subtitle) : '') + '/'
-            + btoa(selectedRecord.filterSrc ? (API.endpoint + "/" + selectedRecord.filterSrc): '');
+            + btoa(selectedRecord.subtitle ? (endPointURL + selectedRecord.subtitle) : '') + '/'
+            + btoa(selectedRecord.filterSrc ? (endPointURL + selectedRecord.filterSrc): '');
         window.location.href = str;
     }
     const textChanged = (e) => {
