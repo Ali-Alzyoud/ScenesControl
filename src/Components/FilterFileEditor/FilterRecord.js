@@ -31,7 +31,7 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
         updateItem(record);
         dispatch(setDrawingRect(null));
       }
-    }, [rect]);
+    }, [rect, isSelected]);
 
     const inputChange = (e) => {
         const newState = {...state, [e.target.name]:e.target.value};

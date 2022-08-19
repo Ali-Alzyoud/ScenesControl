@@ -120,10 +120,12 @@ function FilterFileEditor(props) {
                     if(selectedRecord){
                         selectime("to");
                         setSelectedRecord(null);
+                        selectItem(null)
                     } else {
                         setSelectedRecord(props.records[0]);
                         selectime("to");
                         setSelectedRecord(null);
+                        selectItem(null)
                     }
                 }
                 break;

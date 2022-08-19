@@ -13,7 +13,7 @@ import ToggleButton from './Components/ToggleButton'
 
 import { connect } from "react-redux";
 import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems, setDuration, setTime, setVideoName } from './redux/actions'
-import { selectModalOpen, selectVideoIsLoading } from './redux/selectors'
+import { selectModalOpen, selectVideoIsLoading, selectVideoName } from './redux/selectors'
 import Loader from './Components/Loader';
 import SubtitleEditor from './Components/SubtitleEditor/SubtitleEditor';
 
@@ -24,7 +24,7 @@ const KEY = {
 
 function App(props) {
 
-  const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading } = props;
+  const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading, videoName } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
@@ -119,6 +119,7 @@ function App(props) {
         <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
           <Player />
         </div>
+        <div style={{marginTop:'15px', marginBottom:'15px'}} >{videoName}</div>
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
         <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>Subtitle</ToggleButton>
@@ -145,7 +146,8 @@ function App(props) {
 const mapStateToProps = state => {
   const modalOpen = selectModalOpen(state);
   const isLoading = selectVideoIsLoading(state);
-  return { modalOpen, isLoading };
+  const videoName = (selectVideoName(state) || "").replace(/\.[^/.]+$/, "");
+  return { modalOpen, isLoading, videoName };
 };
 
 export default connect(

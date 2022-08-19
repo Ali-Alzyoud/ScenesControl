@@ -63,7 +63,6 @@ function VideoFilter({
         if (mouseEvent[0] == 'down') {
             if (enableEditMode) {
                 editor.current = true;
-                console.log(e);
                 rect.current = {};
                 originalPoint.current.x = x;
                 originalPoint.current.y = y;
@@ -89,7 +88,7 @@ function VideoFilter({
                 rect.current = null;
             }
         }
-    }, [mouseEvent]);
+    }, [mouseEvent, enableEditMode]);
 
     const convertToVideo = (rect) => {
         const { width, height } = divFilter.current.getBoundingClientRect();
