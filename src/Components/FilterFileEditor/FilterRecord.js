@@ -44,6 +44,7 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
         record.To = to;
         record.Type = type;
         record.Intensity = intensity;
+        updateItem({...record});
     }
 
     const onRemove = () => {

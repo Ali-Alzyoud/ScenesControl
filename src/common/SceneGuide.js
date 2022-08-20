@@ -10,6 +10,8 @@ const SceneType = {
     Profanity: "profanity"
 }
 
+export const SCENETYPE_ARRAY = Object.values(SceneType);
+
 SceneIntensity.FromString = function (value) {
     switch (value) {
         case SceneIntensity.High:

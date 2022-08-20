@@ -20,6 +20,8 @@ const KEY = {
     TWO: 50,
     THREE: 51,
     FOUR: 52,
+    ARROW_UP: 38,
+    ARROW_DOWN: 40,
 };
 
 function FilterFileEditor(props) {
@@ -87,7 +89,7 @@ function FilterFileEditor(props) {
                 break;
             case KEY.ONE:
                 {
-                    selectType(SceneType.Sex);
+                    selectType(SceneType.Violence);
                 }
                 break;
             case KEY.TWO:
@@ -97,12 +99,36 @@ function FilterFileEditor(props) {
                 break;
             case KEY.THREE:
                 {
-                    selectType(SceneType.Violence);
+                    selectType(SceneType.Sex);
                 }
                 break;
             case KEY.FOUR:
                 {
                     selectType(SceneType.Profanity);
+                }
+                break;
+            case KEY.ARROW_UP:
+                {
+                    if (selectedRecord?.Type) {
+                        if (selectedRecord.Type == SceneType.Profanity)
+                            selectType(SceneType.Sex);
+                        else if (selectedRecord.Type == SceneType.Sex)
+                            selectType(SceneType.Nudity);
+                        else if (selectedRecord.Type == SceneType.Nudity)
+                            selectType(SceneType.Violence);
+                    }
+                }
+                break;
+            case KEY.ARROW_DOWN:
+                {
+                    if (selectedRecord?.Type) {
+                        if (selectedRecord.Type == SceneType.Violence)
+                            selectType(SceneType.Nudity);
+                        else if (selectedRecord.Type == SceneType.Nudity)
+                            selectType(SceneType.Sex);
+                        else if (selectedRecord.Type == SceneType.Sex)
+                            selectType(SceneType.Profanity);
+                    }
                 }
                 break;
             case KEY.OPEN_BRACKET:

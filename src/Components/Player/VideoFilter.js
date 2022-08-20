@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef, useCallback, useLayoutEffect } from "react";
+import React, { useEffect, useState, useRef, useCallback, useLayoutEffect, useMemo, Fragment } from "react";
 
 import { connect, useSelector } from "react-redux";
 import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, selectDrawingEnabled, selectSelectedFilterdItems } from '../../redux/selectors';
 import { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
+import { SCENETYPE_ARRAY } from "../../common/SceneGuide";
 
 const FILTER_TYPE = {
     NONE: 0,
@@ -214,7 +215,7 @@ function VideoFilter({
         var doubleSpeed = false;
         var skipRecord = null;
 
-        if (currentRecords.length == 0){
+        if (currentRecords.length == 0) {
             setRecordRects([]);
         }
         for (var i = 0; i < currentRecords.length; i++) {
@@ -294,6 +295,17 @@ function VideoFilter({
             height: rect.current.height + 'px',
         }}></div>}
 
+        {selectedRecords?.[0] && <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', left: 0, top: "20%", width: '100%', height: '100%', position: 'absolute' }}>
+            {SCENETYPE_ARRAY.map((item, index) => {
+                const selectedFilter = selectedRecords?.[0];
+                const isSelected = item == selectedFilter.Type;
+                return <Fragment>
+                    <div key={selectedFilter.Type + index} style={{ width: '100px', display: 'inline-block', backgroundColor: isSelected ? "rgba(255,0,0,0.5)" : "rgba(10,10,10,0.5)", color:'white'}}>{item}</div>
+                </Fragment>
+            })
+            }
+        </div>}
+
         {selectedRects && selectedRects.map((selectedRect) => {
             return <div style={{
                 position: 'absolute',
@@ -328,6 +340,7 @@ const mapStateToProps = state => {
     const time = selectTime(state);
     const playerConfig = selectPlayerConfig(state);
     const enableEditMode = selectDrawingEnabled(state);
+
     const selectedRecords = selectSelectedFilterdItems(state);
     return { records, time, playerConfig, enableEditMode, selectedRecords };
 };
