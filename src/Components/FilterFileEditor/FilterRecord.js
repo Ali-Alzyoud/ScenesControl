@@ -1,8 +1,8 @@
-import React, { useState, useEffect, memo } from 'react'
+import React, { useState, useEffect, memo, useCallback } from 'react'
 import { SceneGeometry, SceneIntensity, SceneType } from '../../common/SceneGuide'
 import {FaBuilding, FaMinus, FaMinusSquare, FaPen, FaPlusSquare, FaRegMinusSquare, FaRegPlusSquare, FaSquare} from 'react-icons/fa'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { setDrawingEnabled, setDrawingRect } from '../../redux/actions';
+import { setDrawingEnabled, setDrawingRect, setTime } from '../../redux/actions';
 import { selectDrawingRect } from '../../redux/selectors';
 
 function FilterRecord({record, index, isSelected, removeItem, selectItem, updateItem}) {
@@ -72,8 +72,16 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
         }
     }
 
+    const onDoubleClick = useCallback(
+      () => {
+        dispatch(setTime(record.endTime()));
+      },
+      [record],
+    )
+    
+
     return (
-        <tr>
+        <tr onDoubleClick={onDoubleClick}>
             <td>
                 <input onBlurCapture={onBlur} onChange={inputChange} className='bk'     name='fh' value={state.fh} />&nbsp;:&nbsp;
                 <input onBlurCapture={onBlur} onChange={inputChange} className='bk'     name='fm' value={state.fm} />&nbsp;:&nbsp;
