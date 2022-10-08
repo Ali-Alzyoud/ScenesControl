@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { MdForward5 } from 'react-icons/md'
 import { MdForward10 } from 'react-icons/md'
@@ -69,9 +69,9 @@ const KEY = {
     RIGHT: 39,
     F: 70,
 
-    MEDIA_PLAY_PAUSE:   179,
-    FAST_FORWARD:       417,
-    REWIND:             412,
+    MEDIA_PLAY_PAUSE: 179,
+    FAST_FORWARD: 417,
+    REWIND: 412,
 };
 
 let PlayIcon = MdPlayArrow;
@@ -80,6 +80,7 @@ function VideoControls({ time,
     setTime,
     duration,
     visible,
+    visibleAudio,
     playerState,
     setPlayerState,
     setVolume,
@@ -94,11 +95,8 @@ function VideoControls({ time,
     const seekbutton = useRef(null);
     const seekbar = useRef(null);
     const timeLabel = useRef(null);
-    let style;
-    if (visible)
-        style = { ...styleControls, opacity: 1};
-    else
-        style = { ...styleControls, opacity: 0 };
+    const style = useMemo(() => { return { ...styleControls, opacity: visible ? 1 : 0 } }, [visible]);
+    const styleAudio = useMemo(() => { return { opacity: (visibleAudio || visible) ? 1 : 0 } }, [visibleAudio, visible]);
 
     const [styleHandle, setStyleHandle] = useState(seekhandleStyle);
     const [styleButton, setStyleButton] = useState(seekbuttonStyle);
@@ -124,33 +122,33 @@ function VideoControls({ time,
     }, [time, duration]);
 
     useEffect(() => {
-        if(modalOpen || !keyEvent) return;
+        if (modalOpen || !keyEvent) return;
         let jump = keyEvent.shiftKey ? 1 : 5;
-            if (keyEvent.ctrlKey) jump*=2;
-            if (keyEvent.altKey) jump/=2;
+        if (keyEvent.ctrlKey) jump *= 2;
+        if (keyEvent.altKey) jump /= 2;
 
-            switch (keyEvent.keyCode) {
-                case KEY.SPACE:
-                case KEY.SPACE_ANDROID_V_KB:
-                case KEY.MEDIA_PLAY_PAUSE:
-                    onPlayClick()
-                    break;
-                case KEY.LEFT:
-                case KEY.REWIND:
-                    setTime(time - jump)
-                    break;
-                case KEY.RIGHT:
-                case KEY.FAST_FORWARD:
-                    setTime(time + jump)
-                    break;
-                case KEY.F:
-                    onFullscreen()
-                    break;
-            }
+        switch (keyEvent.keyCode) {
+            case KEY.SPACE:
+            case KEY.SPACE_ANDROID_V_KB:
+            case KEY.MEDIA_PLAY_PAUSE:
+                onPlayClick()
+                break;
+            case KEY.LEFT:
+            case KEY.REWIND:
+                setTime(time - jump)
+                break;
+            case KEY.RIGHT:
+            case KEY.FAST_FORWARD:
+                setTime(time + jump)
+                break;
+            case KEY.F:
+                onFullscreen()
+                break;
+        }
     }, [keyEvent]);
 
     useEffect(() => {
-        
+
         const handleKeyDown = (e) => {
             setKeyEvent(e);
         }
@@ -196,14 +194,14 @@ function VideoControls({ time,
         document.onpointerup = null;
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         if (playerState === 'play') {
             PlayIcon = (MdPause);
         }
         else {
             PlayIcon = (MdPlayArrow);
         }
-    },[playerState])
+    }, [playerState])
 
     const onPlayClick = (event) => {
         if (videoName) {
@@ -219,7 +217,7 @@ function VideoControls({ time,
     const player_controls = (
         <div className='main-controls'>
             {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} /> */}
-            <MdReplay10 className='controls left' onClick={(event)=>{setTime(time-10); event.stopPropagation();}} />
+            <MdReplay10 className='controls left' onClick={(event) => { setTime(time - 10); event.stopPropagation(); }} />
             <MdReplay5 className='controls left' onClick={(event) => { setTime(time - 5); event.stopPropagation(); }} />
             <PlayIcon
                 id="btn_play"
@@ -228,7 +226,7 @@ function VideoControls({ time,
                 //         playicon : pauseicon
                 // }
                 alt='error'
-                style={{...styleButton, color:'white'}}
+                style={{ ...styleButton, color: 'white' }}
                 onClick={onPlayClick}
                 onPointerEnter={(e) => {
                     mousein("Button");
@@ -240,53 +238,56 @@ function VideoControls({ time,
                 }}
             />
             <MdForward5 className='controls right' onClick={(event) => { setTime(time + 5); event.stopPropagation(); }} />
-            <MdForward10 className='controls right' onClick={(event)=>{setTime(time+10);  event.stopPropagation();}} />
+            <MdForward10 className='controls right' onClick={(event) => { setTime(time + 10); event.stopPropagation(); }} />
             {/* <MdForward30 className='controls right' onClick={()=>{setTime(time+30)}} /> */}
         </div>
     );
     return (
-        <div style={style} ref={ref}>
-            <div className='seekbar' style={seekbarStyle} ref={seekbar} onPointerDown={mousedown} onPointerUp={cleanDocEvents} onClick={e=>e.stopPropagation()}>
-                <div style={{ ...styleProgress, width: (progress * 100) + '%' }}>
-                    <div style={styleHandle}
-                        ref={seekbutton}
-                        onPointerEnter={() => { mousein("Handle") }}
-                        onPointerLeave={() => { mouseout("Handle") }}
-                        onPointerDown={(e) => {
-                            document.onpointermove = mouseMove;
-                            document.onpointerup = cleanDocEvents;
-                            document.onclick = e => e.stopPropagation()
-                            e.stopPropagation();
-                        }}
-                        onClick={(e)=>{
-                            e.stopPropagation();
-                        }}
-                    />
+
+        <div ref={ref}>
+            <div style={style}>
+                <div className='seekbar' style={seekbarStyle} ref={seekbar} onPointerDown={mousedown} onPointerUp={cleanDocEvents} onClick={e => e.stopPropagation()}>
+                    <div style={{ ...styleProgress, width: (progress * 100) + '%' }}>
+                        <div style={styleHandle}
+                            ref={seekbutton}
+                            onPointerEnter={() => { mousein("Handle") }}
+                            onPointerLeave={() => { mouseout("Handle") }}
+                            onPointerDown={(e) => {
+                                document.onpointermove = mouseMove;
+                                document.onpointerup = cleanDocEvents;
+                                document.onclick = e => e.stopPropagation()
+                                e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                            }}
+                        />
+                    </div>
                 </div>
-            </div>
-            <p ref={timeLabel} className='controltime' />
-            {player_controls}
-            <GiExpand
-                id="full-screen"
-                alt='error'
-                style={{
-                    ...styleButton,
-                    bottom: '10px',
-                    position: 'absolute',
-                    right: '0',
-                    color:'white',
-                    paintOrder: 'stroke fill',
-                    strokeWidth: '20px',
-                    stroke: 'black'
-                }}
-                onClick={(e) => {
-                    onFullscreen();
-                    e.stopPropagation();
-                }}
-                onPointerEnter={() => { mousein("Button") }}
-                onPointerLeave={() => { mouseout("Button") }}
+                <p ref={timeLabel} className='controltime' />
+                {player_controls}
+                <GiExpand
+                    id="full-screen"
+                    alt='error'
+                    style={{
+                        ...styleButton,
+                        bottom: '10px',
+                        position: 'absolute',
+                        right: '0',
+                        color: 'white',
+                        paintOrder: 'stroke fill',
+                        strokeWidth: '20px',
+                        stroke: 'black'
+                    }}
+                    onClick={(e) => {
+                        onFullscreen();
+                        e.stopPropagation();
+                    }}
+                    onPointerEnter={() => { mousein("Button") }}
+                    onPointerLeave={() => { mouseout("Button") }}
                 />
-                <div className='controls-volume'>
+            </div>
+            <div className='controls-volume' style={styleAudio}>
                 <Slider
                     value={volume * 100}
                     mute={isMute}
@@ -295,7 +296,7 @@ function VideoControls({ time,
                             setVolume(v);
                         }
                     } />
-                </div>
+            </div>
         </div>
     );
 }

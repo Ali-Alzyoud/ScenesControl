@@ -16,7 +16,7 @@ function SubtitleEditor(props) {
 
     const syncConfig = useSelector(getSyncConfig)
     const dispatch = useDispatch();
-    const  videoName =  useSelector(selectVideoName);
+    const videoName = useSelector(selectVideoName);
 
     const saveItems = () => {
         const subtitleToSave = [];
@@ -33,33 +33,33 @@ function SubtitleEditor(props) {
         element.href = URL.createObjectURL(file);
 
         const filename = videoName ? videoName.split('.').slice(0, -1).join('.') : "untitled";
-        element.download = filename+".srt";
+        element.download = filename + ".srt";
         document.body.appendChild(element); // Required for this to work in FireFox
         element.click();
     }
 
     const sync = () => {
-        if(subtitleRecords1.length == 1 && subtitleRecords2.length ==1){
+        if (subtitleRecords1.length == 1 && subtitleRecords2.length == 1) {
             const recordSrc = subtitleRecords1[0];
             const recordDst = subtitleRecords2[0];
             const time = (recordDst.from - recordSrc.from);
             dispatch(setSettings_syncConfig({
                 ...syncConfig,
-                subtitleDelay: time/1000,
+                subtitleDelay: time / 1000,
                 subtitleSlope: 1,
             }));
-        } else if(subtitleRecords1.length == 2 && subtitleRecords2.length == 2){
-            const recordSrc1From = Math.min(subtitleRecords1[0].from,subtitleRecords1[1].from);
-            const recordSrc2From = Math.max(subtitleRecords1[0].from,subtitleRecords1[1].from);
-            const recordDst1From = Math.min(subtitleRecords2[0].from,subtitleRecords2[1].from);
-            const recordDst2From = Math.max(subtitleRecords2[0].from,subtitleRecords2[1].from);
+        } else if (subtitleRecords1.length == 2 && subtitleRecords2.length == 2) {
+            const recordSrc1From = Math.min(subtitleRecords1[0].from, subtitleRecords1[1].from);
+            const recordSrc2From = Math.max(subtitleRecords1[0].from, subtitleRecords1[1].from);
+            const recordDst1From = Math.min(subtitleRecords2[0].from, subtitleRecords2[1].from);
+            const recordDst2From = Math.max(subtitleRecords2[0].from, subtitleRecords2[1].from);
             const timeDurationSrc = Math.abs(recordSrc1From - recordSrc2From);
             const timeDurationDst = Math.abs(recordDst1From - recordDst2From);
-            const slope = timeDurationDst/timeDurationSrc;
+            const slope = timeDurationDst / timeDurationSrc;
             const delay = recordDst1From - slope * recordSrc1From;
             dispatch(setSettings_syncConfig({
                 ...syncConfig,
-                subtitleDelay: delay/1000,
+                subtitleDelay: delay / 1000,
                 subtitleSlope: slope,
             }));
         } else {
@@ -107,28 +107,49 @@ function SubtitleEditor(props) {
     const [subtitleRecords1, setSubtitleRecords1] = useState([]);
     const [subtitleRecords2, setSubtitleRecords2] = useState([]);
 
-    const onCheckSubtitle1 = useCallback( (record, checked) => {
-        if(checked){
-            setSubtitleRecords1(prev => [...prev,record])
+    const onCheckSubtitle1 = useCallback((record, checked) => {
+        if (checked) {
+            setSubtitleRecords1(prev => [...prev, record])
         } else {
             setSubtitleRecords1(subtitleRecords1.filter((item) => {
                 return item.from != record.from
             }));
         }
-      },[]);
+    }, []);
+
+    const translate = useCallback(
+        () => {
+            (async () => {
+                const res = await fetch("https://libretranslate.com/translate", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        q: "\nIt's extremely dangerous.\nAny news on my grandson?\nNo change.\nHe hasn't woken up.\nA father's job is to protect his family.\nWhen Wataru was on that roof...\n(POLICEMAN TALKING OVER SPEAKER)\nWhere was his father?\nWataru is lucky.\nYou never know what horrible fate",
+                        source: "en",
+                        target: "ar",
+                        format: "text",
+                        api_key: ""
+                    }),
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                console.log(await res.json());
+            })();
+        },
+        [],
+    )
 
     const onCheckSubtitle2 = useCallback(
         (record, checked) => {
-          if(checked){
-            setSubtitleRecords2(prev => [...prev,record])
-          } else {
-              setSubtitleRecords2(subtitleRecords2.filter((item) => {
-                  return item.from != record.from
-              }));
-          }
+            if (checked) {
+                setSubtitleRecords2(prev => [...prev, record])
+            } else {
+                setSubtitleRecords2(subtitleRecords2.filter((item) => {
+                    return item.from != record.from
+                }));
+            }
         },
         [],
-      )
+    )
 
     return (
         <div className='editor-container'>
@@ -139,7 +160,7 @@ function SubtitleEditor(props) {
             <div className='container small' onClick={delayInc}>
                 <FaPlus className='middle' />
             </div>
-            <span className='middle-text'>Delay {String(syncConfig.subtitleDelay.toFixed(2)).padStart(5,0)}</span>
+            <span className='middle-text'>Delay {String(syncConfig.subtitleDelay.toFixed(2)).padStart(5, 0)}</span>
             <div className='container small' onClick={delayDec}>
                 <FaMinus className='middle' />
             </div>
@@ -154,6 +175,9 @@ function SubtitleEditor(props) {
             <div className='container rect' onClick={sync}>
                 <span className='middle'>Sync</span>
             </div>
+            <div className='container rect' onClick={translate}>
+                <span className='middle'>Translate</span>
+            </div>
             <div className='table-container'>
                 <table style={{ float: hasSyncSubtitleFile ? 'left' : 'unset', marginRight: '20px' }}>
                     <tr>
@@ -163,7 +187,7 @@ function SubtitleEditor(props) {
                     </tr>
                     {
                         subtitle.map((record, index) => {
-                            return <SubtitleRecord record={record} onCheck={onCheckSubtitle1}/>
+                            return <SubtitleRecord record={record} onCheck={onCheckSubtitle1} />
                         })
                     }
                 </table>
@@ -176,7 +200,7 @@ function SubtitleEditor(props) {
                         </tr>
                         {
                             subtitleSync.map((record, index) => {
-                                return <SubtitleRecord record={record} dontChange={true} onCheck={onCheckSubtitle2}/>
+                                return <SubtitleRecord record={record} dontChange={true} onCheck={onCheckSubtitle2} />
                             })
                         }
                     </table>}

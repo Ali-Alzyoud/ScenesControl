@@ -1,4 +1,4 @@
-import React, {createRef} from "react";
+import React, { createRef } from "react";
 import VideoControls from "./VideoControls";
 import VideoFilter from "./VideoFilter";
 import VideoSrt from "./VideoSRT";
@@ -26,6 +26,7 @@ class VideoPlayer extends React.PureComponent {
       time: 0,
       duration: 0,
       visible: true,
+      visibleAudio: false,
       blackScreen: false,
       ignoreNextMouseEvent: false,
     };
@@ -36,21 +37,21 @@ class VideoPlayer extends React.PureComponent {
     this.timer = null;
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.progressSave = setInterval(() => {
 
-      const {time, videoName, isLoading} = this.props;
+      const { time, videoName, isLoading } = this.props;
       if (videoName && time && !isLoading)
         localStorage.setItem(videoName, time);
     }, 5000);
   }
 
-  componentWillUnmount(){
-    if(this.timer){
+  componentWillUnmount() {
+    if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
-    if(this.progressSave){
+    if (this.progressSave) {
       clearInterval(this.progressSave);
       this.progressSave = null;
     }
@@ -59,22 +60,23 @@ class VideoPlayer extends React.PureComponent {
   componentDidUpdate(prevProps, prevState) {
     const { time, playerState, volume, mute, speed, isDrawingEnabled } = this.props;
 
-    if(isDrawingEnabled && !this.state.ignoreNextMouseEvent){
+    if (isDrawingEnabled && !this.state.ignoreNextMouseEvent) {
       clearTimeout(this.timer);
       this.timer = null;
-      this.setState({ignoreNextMouseEvent: true});
+      this.setState({ ignoreNextMouseEvent: true });
     }
     if (this.props.videoSrc !== prevProps.videoSrc) {
       this.setState({
         time,
         visible: true,
+        visibleAudio: true,
         blackScreen: false,
       });
     }
-    if (Math.abs(time - this.player.current.currentTime) > 0.5){
+    if (Math.abs(time - this.player.current.currentTime) > 0.5) {
       this.player.current.currentTime = time;
     }
-    if (mute || Math.abs(volume - this.player.current.volume) > 0.01){
+    if (mute || Math.abs(volume - this.player.current.volume) > 0.01) {
       if (mute) {
         this.player.current.volume = 0;
       }
@@ -82,25 +84,24 @@ class VideoPlayer extends React.PureComponent {
         this.player.current.volume = volume;
       }
     }
-    if ((playerState === 'play') && this.player.current.paused){
+    if ((playerState === 'play') && this.player.current.paused) {
       this.player.current.play();
-      this.setState({blackScreen: false});
+      this.setState({ blackScreen: false });
       clearTimeout(this.hideTimer);
       this.hideTimer = setTimeout(() => {
-        this.setState({ visible: false });
+        this.setState({ visible: false, visibleAudio: false });
         this.hideTimer = null;
       }, 1000);
     }
-    else if ((playerState === 'pause') && !this.player.current.paused){
+    else if ((playerState === 'pause') && !this.player.current.paused) {
       this.player.current.pause();
-      if(this.hideTimer)
-      {
+      if (this.hideTimer) {
         clearTimeout(this.hideTimer);
         this.hideTimer = null;
       }
-      this.setState({ visible: true });
+      this.setState({ visible: true, visibleAudio: true });
     }
-    if(this.player.current.playbackRate !== speed){
+    if (this.player.current.playbackRate !== speed) {
       this.player.current.playbackRate = speed;
     }
   }
@@ -114,19 +115,19 @@ class VideoPlayer extends React.PureComponent {
   };
 
   render = () => {
-    const { videoSrc, setTime, setDuration, videoName, setPlayerState, setVideoIsLoading, playerState, setVolume, volume, isDrawingEnabled} = this.props;
-    const {time, duration, visible, blackScreen} = this.state;
+    const { videoSrc, setTime, setDuration, videoName, setPlayerState, setVideoIsLoading, playerState, setVolume, volume, isDrawingEnabled } = this.props;
+    const { time, duration, visible, visibleAudio, blackScreen } = this.state;
     return (
-      <div className={`playercontainer ${visible ? '' : 'hidden'} ${isDrawingEnabled?' drawing-mode':' '}`}
+      <div className={`playercontainer ${visible ? '' : 'hidden'} ${isDrawingEnabled ? ' drawing-mode' : ' '}`}
         onPointerMove={debounce(
           () => {
-            this.setState({visible: true});
+            this.setState({ visible: true });
           },
           () => {
             if (this.player.current) {
               clearTimeout(this.hideTimer);
               this.hideTimer = setTimeout(() => {
-                this.setState({visible: this.player.current.paused});
+                this.setState({ visible: this.player.current.paused, visibleAudio: this.player.current.paused});
                 this.hideTimer = null;
               }, 1000);
             }
@@ -135,8 +136,8 @@ class VideoPlayer extends React.PureComponent {
         )}
         onClick={() => {
           this.clickCount++;
-          if(this.state.ignoreNextMouseEvent){
-            this.setState({ignoreNextMouseEvent: false});
+          if (this.state.ignoreNextMouseEvent) {
+            this.setState({ ignoreNextMouseEvent: false });
             return;
           }
           if (this.clickCount === 1) {
@@ -158,13 +159,19 @@ class VideoPlayer extends React.PureComponent {
             this.onFullscreen();
           }
         }}
-        onWheel={(event)=>{
-          if(!document.fullscreenElement) return;
+        onWheel={(event) => {
+          if (!document.fullscreenElement) return;
           event.stopPropagation();
           setVolume(volume + event.deltaY * -0.0005);
+          this.setState({ visibleAudio: true })
+          clearTimeout(this.hideTimer);
+          this.hideTimer = setTimeout(() => {
+            this.setState({ visible: this.player.current.paused, visibleAudio: this.player.current.paused});
+            this.hideTimer = null;
+          }, 1000);
         }}
-        onPointerDown={(e)=>{
-          if(e.button == 1){
+        onPointerDown={(e) => {
+          if (e.button == 1) {
             this.setState({ blackScreen: !blackScreen }, () => {
               setPlayerState('pause');
             });
@@ -175,7 +182,7 @@ class VideoPlayer extends React.PureComponent {
           className={`player ${videoSrc ? '' : 'no-source'}`}
           src={videoSrc}
           ref={this.player}
-          onLoadedData={(event)=>{
+          onLoadedData={(event) => {
             setVideoIsLoading(false);
             const getCurrentTime = localStorage.getItem(videoName) || 0;
             setTime(Number(getCurrentTime));
@@ -221,12 +228,13 @@ class VideoPlayer extends React.PureComponent {
               currentTime={time}
               duration={duration}
               visible={visible}
+              visibleAudio={visibleAudio}
               onFullscreen={this.onFullscreen}
               state={playerState}
             />
           </div>
         </div>
-        <ToastMessage/>
+        <ToastMessage />
       </div>
     );
   };
