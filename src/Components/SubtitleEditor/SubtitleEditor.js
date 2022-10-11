@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useRef } from 'react'
 import { FaSave, FaPlus, FaMinus } from 'react-icons/fa'
 import { connect, useDispatch, useSelector } from "react-redux";
 import SrtClass from '../../common/SrtClass';
-import { setSettings_syncConfig } from '../../redux/actions';
+import { setSettings_syncConfig, setSubtitle } from '../../redux/actions';
 import { getSyncConfig, selectSubtitle, selectSubtitleSync, selectVideoName } from '../../redux/selectors';
+import store from '../../redux/store';
 
 import './style.css'
 import SubtitleRecord from './SubtitleRecord';
@@ -17,6 +18,8 @@ function SubtitleEditor(props) {
     const syncConfig = useSelector(getSyncConfig)
     const dispatch = useDispatch();
     const videoName = useSelector(selectVideoName);
+    const [reRender, setReRender] = useState(false);
+    const checkBox = useRef(null);
 
     const saveItems = () => {
         const subtitleToSave = [];
@@ -117,26 +120,41 @@ function SubtitleEditor(props) {
         }
     }, []);
 
-    const translate = useCallback(
-        () => {
-            (async () => {
-                const res = await fetch("https://libretranslate.com/translate", {
+    const translate = async () => {
+        const newSubtitle = [...subtitle];
+        const SIZE = 5;
+        for (let i = 0; i < subtitle.length; i += SIZE) {
+            const items = subtitle.slice(i, i + SIZE);
+            const resProm = [];
+            for (let it = 0; it < (SIZE || items.length); it++) {
+                resProm.push(fetch("http://91.92.136.127/t/translate", {
                     method: "POST",
                     body: JSON.stringify({
-                        q: "\nIt's extremely dangerous.\nAny news on my grandson?\nNo change.\nHe hasn't woken up.\nA father's job is to protect his family.\nWhen Wataru was on that roof...\n(POLICEMAN TALKING OVER SPEAKER)\nWhere was his father?\nWataru is lucky.\nYou never know what horrible fate",
+                        q: items[it]?.content?.join?.('\n') || '',
                         source: "en",
                         target: "ar",
                         format: "text",
                         api_key: ""
                     }),
                     headers: { "Content-Type": "application/json" }
-                });
+                }));
+            }
+            const res = await Promise.all(resProm);
 
-                console.log(await res.json());
-            })();
-        },
-        [],
-    )
+            for (let it = 0; it < res.length; it++) {
+                const record = newSubtitle[i + it];
+                const text = (await res[it].json())?.translatedText;
+                if(checkBox.current.checked){
+                    record.content = [record.content?.join?.('\n'), text];
+                } else {
+                    record.content = [text];
+                }
+            }
+            store.dispatch(setSubtitle(newSubtitle));
+            setReRender((i + 1) / subtitle.length);
+        }
+    }
+    
 
     const onCheckSubtitle2 = useCallback(
         (record, checked) => {
@@ -176,8 +194,13 @@ function SubtitleEditor(props) {
                 <span className='middle'>Sync</span>
             </div>
             <div className='container rect' onClick={translate}>
-                <span className='middle'>Translate</span>
+                <span className='middle'>Translate<span style={{fontSize:12}}>&nbsp;{(reRender*100).toFixed(2)}%</span></span>
             </div>
+            <br/>
+            <br/>
+            <input type='checkbox' ref={checkBox}/><span>Keep original subtitle when translate</span>
+            <br/>
+            <br/>
             <div className='table-container'>
                 <table style={{ float: hasSyncSubtitleFile ? 'left' : 'unset', marginRight: '20px' }}>
                     <tr>
@@ -187,7 +210,7 @@ function SubtitleEditor(props) {
                     </tr>
                     {
                         subtitle.map((record, index) => {
-                            return <SubtitleRecord record={record} onCheck={onCheckSubtitle1} />
+                            return <SubtitleRecord key={`${index}_${reRender}`} record={record} onCheck={onCheckSubtitle1} />
                         })
                     }
                 </table>
