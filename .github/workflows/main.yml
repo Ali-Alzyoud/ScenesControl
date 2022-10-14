@@ -28,6 +28,6 @@ jobs:
           cd WORK/ScenesControl/
           git pull 
           npm i
-          npm build
+          npm run build
           cd build
           cp -a . /var/www/html/
