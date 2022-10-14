@@ -96,7 +96,7 @@ function VideoControls({ time,
     const seekbar = useRef(null);
     const timeLabel = useRef(null);
     const style = useMemo(() => { return { ...styleControls, opacity: visible ? 1 : 0 } }, [visible]);
-    const styleAudio = useMemo(() => { return { opacity: (visibleAudio || visible) ? 1 : 0 } }, [visibleAudio, visible]);
+    const styleAudio = useMemo(() => { return { zIndex: 100, opacity: (visibleAudio || visible) ? 1 : 0 } }, [visibleAudio, visible]);
 
     const [styleHandle, setStyleHandle] = useState(seekhandleStyle);
     const [styleButton, setStyleButton] = useState(seekbuttonStyle);
