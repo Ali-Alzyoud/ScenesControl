@@ -29,4 +29,5 @@ jobs:
           git pull 
           npm i
           npm build
+          cd build
           cp -a . /var/www/html/
