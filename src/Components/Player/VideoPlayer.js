@@ -46,7 +46,7 @@ class VideoPlayer extends React.PureComponent {
     }
     if (e.key == 2) {
       this.setState({
-        blackScreen: !this.state.blackScreen
+        blurScreen: !this.state.blurScreen
       })
     }
   }
