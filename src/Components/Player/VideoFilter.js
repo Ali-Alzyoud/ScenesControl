@@ -39,6 +39,7 @@ function VideoFilter({
     setSpeed,
     playerConfig,
     blackScreen,
+    blurScreen,
     enableEditMode,
     setDrawingRect,
     setDrawingEnabled,
@@ -198,11 +199,39 @@ function VideoFilter({
     useEffect(() => {
         if (blackScreen) return;
 
-        if (!records || !records.length) {
+        if(blurScreen){
             setRecordRects([]);
-            if (filterType !== FILTER_TYPE.NONE)
-                setFilterType(FILTER_TYPE.NONE);
+            switch (playerConfig.rightclick[0]) {
+                case PLAYER_ACTION.BLACK:
+                    setFilterType(FILTER_TYPE.BLACK)
+                    break;
+                case PLAYER_ACTION.BLUR:
+                    setFilterType(FILTER_TYPE.BLUR)
+                    break;
+                case PLAYER_ACTION.BLUR_EXTRA:
+                    setFilterType(FILTER_TYPE.BLUR_EXTRA)
+                    break;
+                case PLAYER_ACTION.BLUR_EXTREME:
+                    setFilterType(FILTER_TYPE.BLUR_EXTREME)
+                    break;
+                case PLAYER_ACTION.BLUR_EXTREME_X2:
+                    setSpeed(2.0);
+                    setFilterType(FILTER_TYPE.BLUR_EXTREME)
+                    break;
+                default:
+                    break;
+            }
+            if(playerConfig.rightclick[1] == PLAYER_ACTION.MUTE){
+                setMute(true);
+            }
             return;
+        } else {
+            if (!records || !records.length) {
+                setRecordRects([]);
+                if (filterType !== FILTER_TYPE.NONE)
+                    setFilterType(FILTER_TYPE.NONE);
+                return;
+            }
         }
 
         var currentRecords = getRecordsAtTime(time);
@@ -272,7 +301,7 @@ function VideoFilter({
             setSpeed(1.0);
         }
 
-    }, [time, records, playerConfig]);
+    }, [time, records, playerConfig, blurScreen]);
 
     const class2 = `${blackScreen ? "video-filter-black" : getFilterClass(filterType)}`;
 

@@ -28,6 +28,7 @@ class VideoPlayer extends React.PureComponent {
       visible: true,
       visibleAudio: false,
       blackScreen: false,
+      blurScreen: false,
       ignoreNextMouseEvent: false,
     };
     this.player = createRef();
@@ -37,6 +38,19 @@ class VideoPlayer extends React.PureComponent {
     this.timer = null;
   }
 
+  keyHandler = (e) => {
+    if (e.key == 1) {
+      this.setState({
+        blackScreen: !this.state.blackScreen
+      })
+    }
+    if (e.key == 2) {
+      this.setState({
+        blackScreen: !this.state.blackScreen
+      })
+    }
+  }
+
   componentDidMount() {
     this.progressSave = setInterval(() => {
 
@@ -44,9 +58,13 @@ class VideoPlayer extends React.PureComponent {
       if (videoName && time && !isLoading)
         localStorage.setItem(videoName, time);
     }, 5000);
+
+    
+    document.addEventListener('keydown',this.keyHandler);
   }
 
   componentWillUnmount() {
+    document.removeEventListener('keydown',this.keyHandler);
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -71,6 +89,7 @@ class VideoPlayer extends React.PureComponent {
         visible: true,
         visibleAudio: true,
         blackScreen: false,
+        blurScreen: false,
       });
     }
     if (Math.abs(time - this.player.current.currentTime) > 0.5) {
@@ -116,7 +135,7 @@ class VideoPlayer extends React.PureComponent {
 
   render = () => {
     const { videoSrc, setTime, setDuration, videoName, setPlayerState, setVideoIsLoading, playerState, setVolume, volume, isDrawingEnabled } = this.props;
-    const { time, duration, visible, visibleAudio, blackScreen } = this.state;
+    const { time, duration, visible, visibleAudio, blackScreen, blurScreen } = this.state;
     return (
       <div className={`playercontainer ${visible ? '' : 'hidden'} ${isDrawingEnabled ? ' drawing-mode' : ' '}`}
         onPointerMove={debounce(
@@ -176,6 +195,9 @@ class VideoPlayer extends React.PureComponent {
               setPlayerState('pause');
             });
           }
+          if (e.button == 2) {
+            this.setState({ blurScreen: !blurScreen }, () => {});
+          }
         }}
       >
         <video
@@ -201,7 +223,7 @@ class VideoPlayer extends React.PureComponent {
             setTime(event.target.currentTime);
           }}
         ></video>
-        <VideoFilter blackScreen={blackScreen} videoAspectRatio={
+        <VideoFilter blackScreen={blackScreen} blurScreen={blurScreen} videoAspectRatio={
           this.player.current && this.player.current.videoWidth ?
             this.player.current.videoHeight / this.player.current.videoWidth :
             1

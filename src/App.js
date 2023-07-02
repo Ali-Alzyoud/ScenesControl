@@ -22,6 +22,10 @@ const KEY = {
   C: 67,
 };
 
+(()=>{
+  document.addEventListener('contextmenu', event => event.preventDefault());
+})()
+
 function App(props) {
 
   const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading, videoName } = props;

@@ -16,6 +16,7 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
         if(e.target.name === 'nudity') secondValue = playerConfig.nudity[1];
         else if(e.target.name === 'sex') secondValue = playerConfig.sex[1];
         else if(e.target.name === 'profanity') secondValue = playerConfig.profanity[1];
+        else if(e.target.name === 'rightclick') secondValue = playerConfig.rightclick[1];
         setPlayerConfig({[e.target.name]: [e.target.value, secondValue]});
     }
 
@@ -24,6 +25,7 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
         if(e.target.name === 'nudity') firstValue = playerConfig.nudity[0];
         else if(e.target.name === 'sex') firstValue = playerConfig.sex[0];
         else if(e.target.name === 'profanity') firstValue = playerConfig.profanity[0];
+        else if(e.target.name === 'rightclick') firstValue = playerConfig.rightclick[0];
         setPlayerConfig({[e.target.name]: [firstValue, e.target.value]});
     }
 
@@ -84,6 +86,16 @@ function ConfigEditor({playerConfig, setPlayerConfig}) {
                     {options_video.map((option) => option)}
                 </select>
                 <select onChange={onChange2} name='profanity' value={playerConfig.profanity[1]}>
+                    {options_audio.map((option) => option)}
+                </select>
+            </div>
+
+            <div className='item'>
+                <span>RightClick</span>
+                <select onChange={onChange} name='rightclick' value={playerConfig.rightclick[0]}>
+                    {options_video.map((option) => option)}
+                </select>
+                <select onChange={onChange2} name='rightclick' value={playerConfig.rightclick[1]}>
                     {options_audio.map((option) => option)}
                 </select>
             </div>
