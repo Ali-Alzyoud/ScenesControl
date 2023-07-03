@@ -221,9 +221,7 @@ function VideoFilter({
                 default:
                     break;
             }
-            if(playerConfig.rightclick[1] == PLAYER_ACTION.MUTE){
-                setMute(true);
-            }
+            setMute(playerConfig.rightclick[1] == PLAYER_ACTION.MUTE);
             return;
         } else {
             if (!records || !records.length) {
