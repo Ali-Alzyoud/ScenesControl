@@ -247,7 +247,10 @@ function VideoFilter({
         }
         for (var i = 0; i < currentRecords.length; i++) {
             var record = currentRecords[i];
-            setRecordRects(record.geometries);
+            setRecordRects((oldItems)=>{
+                return [oldItems.geometries,...record.geometries];
+            });
+            
             if (playerConfig[record.Type][0] === PLAYER_ACTION.MUTE || playerConfig[record.Type][1] === PLAYER_ACTION.MUTE) {
                 mute = true;
             }
