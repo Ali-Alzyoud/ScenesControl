@@ -11,7 +11,7 @@ export default function About({close}) {
                 <p>
                 <a className='box-links' href='https://github.com/Ali-Alzyoud/ScenesControl'> https://github.com/Ali-Alzyoud/ScenesControl </a>
                 </p>
-                <p> App Version : (2022) 0.1v </p>
+                <p> App Version : (2024) 0.2v </p>
                 <br/>
                 <p className="bold"> Key Bindings Editing </p>
                 <div className='part'>

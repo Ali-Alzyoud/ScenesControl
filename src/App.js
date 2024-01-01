@@ -123,7 +123,7 @@ function App(props) {
         <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
           <Player />
         </div>
-        <div style={{marginTop:'15px', marginBottom:'15px'}} >{videoName}</div>
+        <p style={{marginTop:'15px', marginBottom:'15px'}} >{videoName}</p>
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
         <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>Subtitle</ToggleButton>
