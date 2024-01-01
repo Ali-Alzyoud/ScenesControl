@@ -121,6 +121,14 @@ function VideoFilter({
     }
 
     const convertFromVideo = (rect) => {
+        if(!rect){
+            const rectangle = {};
+            rectangle.left = 0;
+            rectangle.top = 0;
+            rectangle.width = 0;
+            rectangle.height = 0;
+            return rectangle;
+        }
         const { width, height } = divFilter.current.getBoundingClientRect();
         const aspectRatio = height / width;
 
@@ -245,12 +253,11 @@ function VideoFilter({
         if (currentRecords.length == 0) {
             setRecordRects([]);
         }
+        let geometries=[];
         for (var i = 0; i < currentRecords.length; i++) {
             var record = currentRecords[i];
-            setRecordRects((oldItems)=>{
-                return [oldItems.geometries,...record.geometries];
-            });
-            
+            geometries = [...geometries, ...record.geometries];
+
             if (playerConfig[record.Type][0] === PLAYER_ACTION.MUTE || playerConfig[record.Type][1] === PLAYER_ACTION.MUTE) {
                 mute = true;
             }
@@ -276,10 +283,11 @@ function VideoFilter({
             }
         }
 
+        setRecordRects(geometries);
         setMute(mute);
 
         if (skip) {
-            setTime(skipRecord.endTime() + 0.01);
+            setTime(skipRecord.endTime() + 0.1);
             return;
         }
 
