@@ -7,6 +7,8 @@ import { connect } from "react-redux";
 import { setFilterItems, setSubtitle, setModalOpen, setVideoSrc, setVideoName, setDuration, setTime } from '../../redux/actions'
 
 import "./style.css"
+import SrtClass from '../../common/SrtClass';
+import { SceneGuideClass } from '../../common/SceneGuide';
 
 function FilterPicker({
     close,
@@ -35,6 +37,14 @@ function FilterPicker({
     const copy = ({image,video,srt,filter}) => {
         setVideoSrc(video);
         setVideoName(video);
+        setSubtitle(srt);
+        SrtClass.ReadFile(srt).then((records) => {
+            setSubtitle(records);
+        });
+        SceneGuideClass.ReadFile(filter).then((records) => {
+            setFilterItems(records);
+        });
+
         close();
     }
     return (
