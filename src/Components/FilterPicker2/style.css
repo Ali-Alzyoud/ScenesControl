@@ -1,0 +1,103 @@
+.filters-container{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 10;
+}
+
+.filters-container-close{
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 20px;
+    background-color: #ddd;
+    right:-20px;
+    top:-20px;
+}
+
+.filters-container-search{
+    width: 40px;
+    height: 40px;
+}
+
+.filters-container-close:hover {
+    background-color: #fff;
+}
+
+.filters-container-body{
+    position: absolute;
+    left: 10%;
+    top: 5%;
+    height: 90%;
+    width: 80%;
+    background: lightgray;
+}
+
+.filters-container-input-container{
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+    width: 50%;
+}
+
+.filters-container-input{
+    width: 100%;
+}
+
+.filter-files{
+    overflow: auto;
+    height: 77%;
+    margin-top: 50px;
+}
+
+.file-record{
+    height: 120px;
+    width: 500px;
+    margin: auto;
+    display: flex;
+    background: darkgray;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.file-record.ready{
+    background-color: aquamarine;
+}
+
+.file-record > img{
+    height: 120px;
+    width: 120px;
+    background-color: gray;
+    object-fit: contain;
+}
+
+.file-record > img:hover{
+    cursor: pointer;
+}
+
+.file-record .title{
+    margin-left: 20px;
+    font-size: 20px;
+}
+
+.file-record-container{
+    text-align: left;
+}
+
+.file-record .ready{
+    background-color: green;
+}
+
+.file-record-icon{
+    height:100%;
+    margin-right:10px;
+}
+
+.file-record-icon:hover{
+    cursor: pointer;
+}
