@@ -54,50 +54,51 @@
     margin-top: 50px;
 }
 
-.file-record{
+.file-record2{
     height: 120px;
-    width: 500px;
+    width: 300px;
     margin: auto;
     display: flex;
     background: darkgray;
     margin-top: 10px;
     margin-bottom: 10px;
     align-items: center;
+    cursor:pointer;
 }
 
-.file-record.ready{
+.file-record2.ready{
     background-color: aquamarine;
 }
 
-.file-record > img{
-    height: 120px;
+.file-record2 > img{
+    height: 100px;
     width: 120px;
     background-color: gray;
     object-fit: contain;
 }
 
-.file-record > img:hover{
+.file-record2 > img:hover{
     cursor: pointer;
 }
 
-.file-record .title{
+.file-record2 .title{
     margin-left: 20px;
-    font-size: 20px;
+    font-size: 14px;
 }
 
-.file-record-container{
+.file-record2-container{
     text-align: left;
 }
 
-.file-record .ready{
+.file-record2 .ready{
     background-color: green;
 }
 
-.file-record-icon{
+.file-record2-icon{
     height:100%;
     margin-right:10px;
 }
 
-.file-record-icon:hover{
+.file-record2-icon:hover{
     cursor: pointer;
 }

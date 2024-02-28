@@ -12,24 +12,16 @@ export default function FileRecord({ imgSrc, title, link, index, isSelected, sel
         }
     }
     return (
-        <div className={`file-record ${readyToPlay ? 'ready' : ''}`}>
+        <div className={`file-record2 ${readyToPlay ? 'ready' : ''}`} onClick={copy}>
             <img src={imgSrc} onClick={click} />
             {readyToPlay ?
-                <div className='file-record-container'>
+                <div className='file-record2-container'>
                     <h4 className='title ready'>{'Ready To Play'}</h4><br />
                     <h2 className='title'>{title}</h2>
                 </div>
                 :
                 <h2 className='title'>{title}</h2>
             }
-            <div style={{ flex: 2, flexFlow: 'row-reverse', display: 'flex', textAlign: 'end', height: '100%' }}>
-                {isSelected ?
-                    <GrRadialSelected className='file-record-icon' />
-                    :
-                    <GrRadial className='file-record-icon' onClick={() => select?.(index)} />
-                }
-                <MdContentCopy className='file-record-icon' onClick={() => copy?.(index)}/>
-            </div>
         </div>
     )
 }

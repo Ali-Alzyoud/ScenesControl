@@ -36,14 +36,23 @@ function FilterPicker({
 
     const copy = ({image,video,srt,filter}) => {
         setVideoSrc(video);
-        setVideoName(video);
-        setSubtitle(srt);
-        SrtClass.ReadFile(srt).then((records) => {
-            setSubtitle(records);
-        });
-        SceneGuideClass.ReadFile(filter).then((records) => {
-            setFilterItems(records);
-        });
+        setVideoName(video.split("/")?.[video.split("/")?.length - 1]);
+        if(srt){
+            SrtClass.ReadFile(srt).then((records) => {
+                setSubtitle(records);
+            });
+        }
+        else{
+            setSubtitle([]);
+        }
+        if(filter){
+            SceneGuideClass.ReadFile(filter).then((records) => {
+                setFilterItems(records);
+            });
+        }
+        else {
+            setFilterItems([]);
+        }
 
         close();
     }
@@ -56,16 +65,16 @@ function FilterPicker({
                 </div>
                 <MdSearch className="filters-container-search" />
                 <div className="filter-files">
-                    <list>
+                    <div style={{display:'flex', flexDirection:'row', flexWrap:'wrap'}}>
                     {folders.map((item => {
                         let image = item.files.filter(file => file.includes(".jpg")||file.includes(".png"))?.[0]
                         let video = item.files.filter(file => file.includes(".mkv")||file.includes(".mp4"))?.[0]
                         let srt = item.files.filter(file => file.includes(".srt"))?.[0]
                         let filter = item.files.filter(file => file.includes(".txt"))?.[0]
-                        image = `${path}/${item.folder}/${image}`;
-                        video = `${path}/${item.folder}/${video}`;
-                        srt = `${path}/${item.folder}/${srt}`;
-                        filter = `${path}/${item.folder}/${filter}`;
+                        image = image && `${path}/${item.folder}/${image}`;
+                        video = video && `${path}/${item.folder}/${video}`;
+                        srt = srt && `${path}/${item.folder}/${srt}`;
+                        filter = filter && `${path}/${item.folder}/${filter}`;
 
                         return  <FileRecord
                         imgSrc={image}
@@ -73,7 +82,7 @@ function FilterPicker({
                         copy={()=>copy({image,video,srt,filter})}
                         />
                     }))}
-                    </list>
+                    </div>
                 </div>
             </div>
         </div>

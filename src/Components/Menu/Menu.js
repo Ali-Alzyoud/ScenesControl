@@ -102,8 +102,9 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
         }
     }
 
-    const [remoteMeta, setRemoteMeta] = useState(localStorage.getItem("remoteMeta") || "http://127.0.0.1:4001/api/v1/files");
-    const [remotePath, setRemotePath] = useState(localStorage.getItem("remotePath") || "http://127.0.0.1:8061");
+    const [domain, setDomain] = useState(localStorage.getItem("remoteMeta") || "http://127.0.0.1:4001");
+    const [remoteMeta, setRemoteMeta] = useState(localStorage.getItem("remoteMeta") || ":4001/api/v1/files");
+    const [remotePath, setRemotePath] = useState(localStorage.getItem("remotePath") || ":8061");
     return (
         <div className="navbar" style={{ display: 'flex' }}>
             <div className="dropdown">
@@ -153,19 +154,24 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 </button>
             </div>
             <div className="dropdown" style={{ alignSelf: "center" }}>
-                <div style={{display:'flex', flexDirection:'column'}}>
+                <div style={{display:'flex', flexDirection:'row'}}>
+                <div style={{display:'flex', flexDirection:'column', width:'450px'}}>
+                <input value={domain} onChange={(e)=>{
+                    setDomain(e.target.value);
+                    localStorage.setItem("domain",e.target.value)
+                }} placeholder='Meta'/>
                 <input value={remoteMeta} onChange={(e)=>{
                     setRemoteMeta(e.target.value);
                     localStorage.setItem("remoteMeta",e.target.value)
-                }} ref={inputRef} placeholder='Meta'/>
+                }} placeholder='Meta'/>
                 <input value={remotePath}  onChange={(e)=>{
                     setRemotePath(e.target.value);
                     localStorage.setItem("remotePath",e.target.value)
-                }} ref={inputPathRef} placeholder='Path'/>
+                }} placeholder='Path'/>
                 </div>
                 <button onClick={async () => {
-                    const url = inputRef.current.value;
-                    const path = inputPathRef.current.value;
+                    const url = domain+remoteMeta;
+                    const path = domain+remotePath;
                     try {
                         const response = await fetch(url, {
                             method: "GET",
@@ -185,6 +191,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     // setFiles(data);
                     // setfilterPicker2(true);
                 }}>Show Store</button>
+                </div>
             </div>
             {about && <About close={() => { setabout(false) }} />}
             {settings && <Settings close={() => { setSettings(false) }} />}
