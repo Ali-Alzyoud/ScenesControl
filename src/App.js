@@ -39,6 +39,10 @@ function App(props) {
     const server = urlParams.get('domain');
     if(server && server != localStorage.getItem('domain')){
       localStorage.setItem('domain',server);
+
+      localStorage.setItem("remoteMeta","")
+      localStorage.setItem("remotePath","")
+
       window.location.reload();
     }
   }, []);
