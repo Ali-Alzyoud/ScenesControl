@@ -102,7 +102,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
         }
     }
 
-    const [domain, setDomain] = useState(localStorage.getItem("remoteMeta") || "http://127.0.0.1:4001");
+    const [domain, setDomain] = useState(localStorage.getItem("domain") || "http://127.0.0.1:4001");
     const [remoteMeta, setRemoteMeta] = useState(localStorage.getItem("remoteMeta") || ":4001/api/v1/files");
     const [remotePath, setRemotePath] = useState(localStorage.getItem("remotePath") || ":8061");
     return (

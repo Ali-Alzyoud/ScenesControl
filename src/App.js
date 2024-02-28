@@ -22,7 +22,7 @@ const KEY = {
   C: 67,
 };
 
-(()=>{
+(() => {
   document.addEventListener('contextmenu', event => event.preventDefault());
 })()
 
@@ -33,6 +33,16 @@ function App(props) {
   const [showConfig, setShowConfig] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [keyEvent, setKeyEvent] = useState(null);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const server = urlParams.get('domain');
+    if(server && server != localStorage.getItem('domain')){
+      localStorage.setItem('domain',server);
+      window.location.reload();
+    }
+  }, []);
+
 
   const ref = useRef(null);
 
@@ -123,7 +133,7 @@ function App(props) {
         <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
           <Player />
         </div>
-        <p style={{marginTop:'15px', marginBottom:'15px'}} >{videoName}</p>
+        <p style={{ marginTop: '15px', marginBottom: '15px' }} >{videoName}</p>
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
         <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>Subtitle</ToggleButton>
