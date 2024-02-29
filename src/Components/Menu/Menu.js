@@ -191,6 +191,11 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     // setFiles(data);
                     // setfilterPicker2(true);
                 }}>Show Store</button>
+                <button onClick={async () => {
+                     setDomain("http://92.253.29.149");
+                     setRemoteMeta(":63653/api/v1/files");
+                     setRemotePath(":43983");
+                }}>Load Remote</button>
                 </div>
             </div>
             {about && <About close={() => { setabout(false) }} />}
