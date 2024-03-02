@@ -9,6 +9,7 @@ import { setFilterItems, setSubtitle, setModalOpen, setVideoSrc, setVideoName, s
 import "./style.css"
 import SrtClass from '../../common/SrtClass';
 import { SceneGuideClass } from '../../common/SceneGuide';
+import { useAlert } from 'react-alert';
 
 function FilterPicker({
     close,
@@ -34,18 +35,18 @@ function FilterPicker({
         }
     }, []);
 
-    const copy = ({image,video,srt,filter}) => {
+    const copy = ({ image, video, srt, filter }) => {
         setVideoSrc(video);
         setVideoName(video.split("/")?.[video.split("/")?.length - 1]);
-        if(srt){
+        if (srt) {
             SrtClass.ReadFile(srt).then((records) => {
                 setSubtitle(records);
             });
         }
-        else{
+        else {
             setSubtitle([]);
         }
-        if(filter){
+        if (filter) {
             SceneGuideClass.ReadFile(filter).then((records) => {
                 setFilterItems(records);
             });
@@ -56,6 +57,7 @@ function FilterPicker({
 
         close();
     }
+    const alert = useAlert();
     return (
         <div className="filters-container">
             <div className="filters-container-body">
@@ -65,23 +67,72 @@ function FilterPicker({
                 </div>
                 <MdSearch className="filters-container-search" />
                 <div className="filter-files">
-                    <div style={{display:'flex', flexDirection:'row', flexWrap:'wrap'}}>
-                    {folders.map((item => {
-                        let image = item.files.filter(file => file.includes(".jpg")||file.includes(".png"))?.[0]
-                        let video = item.files.filter(file => file.includes(".mkv")||file.includes(".mp4"))?.[0]
-                        let srt = item.files.filter(file => file.includes(".srt"))?.[0]
-                        let filter = item.files.filter(file => file.includes(".txt"))?.[0]
-                        image = image && `${path}/${item.folder}/${image}`;
-                        video = video && `${path}/${item.folder}/${video}`;
-                        srt = srt && `${path}/${item.folder}/${srt}`;
-                        filter = filter && `${path}/${item.folder}/${filter}`;
+                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+                        {folders.map((item => {
+                            if (item.files.filter(file => file.includes(".mkv") || file.includes(".mp4")).length > 1) {
+                                let image = item.files.filter(file => file.includes(".jpg") || file.includes(".png"));
+                                let videos = item.files.filter(file => file.includes(".mkv") || file.includes(".mp4"))
+                                let srts = item.files.filter(file => file.includes(".srt"));
+                                let filters = item.files.filter(file => file.includes(".txt"));
+                                image = image && `${path}/${item.folder}/${image}`;
 
-                        return  <FileRecord
-                        imgSrc={image}
-                        title={item.folder}
-                        copy={()=>copy({image,video,srt,filter})}
-                        />
-                    }))}
+                                videos = videos.map((video) => {
+                                    return `${path}/${item.folder}/${video}`;
+                                })
+
+                                srts = srts.map((srt) => {
+                                    return `${path}/${item.folder}/${srt}`;
+                                })
+
+                                filters = filters.map((filter) => {
+                                    return `${path}/${item.folder}/${filter}`;
+                                })
+
+                                return <FileRecord
+                                    imgSrc={image}
+                                    title={item.folder}
+                                    copy={() => {
+                                        alert.show(<div style={{ display: 'flex', gap:'2px' , flexWrap: 'wrap', flexDirection: 'row', minWidth:'400px'}}>
+                                            {
+                                                videos.map((video, index) => {
+                                                    return <div style={{ 
+                                                        width: '80px',
+                                                        height: '80px',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center',
+                                                        alignSelf:'center',
+                                                        borderColor: 'red',
+                                                        borderWidth: '1px',
+                                                        borderStyle:'double',
+                                                        background:'red'
+                                                    }} onClick={() => {
+                                                        copy({ image, video:videos[index], srt:srts[index], filter:filters[index] })
+                                                        alert.removeAll();
+                                                    }}>{index + 1}</div>
+                                                })
+                                            }
+                                        </div>);
+                                        // copy({ image, video, srt, filter })
+                                    }}
+                                />
+
+                            } else {
+                                let image = item.files.filter(file => file.includes(".jpg") || file.includes(".png"))?.[0]
+                                let video = item.files.filter(file => file.includes(".mkv") || file.includes(".mp4"))?.[0]
+                                let srt = item.files.filter(file => file.includes(".srt"))?.[0]
+                                let filter = item.files.filter(file => file.includes(".txt"))?.[0]
+                                image = image && `${path}/${item.folder}/${image}`;
+                                video = video && `${path}/${item.folder}/${video}`;
+                                srt = srt && `${path}/${item.folder}/${srt}`;
+                                filter = filter && `${path}/${item.folder}/${filter}`;
+
+                                return <FileRecord
+                                    imgSrc={image}
+                                    title={item.folder}
+                                    copy={() => copy({ image, video, srt, filter })}
+                                />
+                            }
+                        }))}
                     </div>
                 </div>
             </div>

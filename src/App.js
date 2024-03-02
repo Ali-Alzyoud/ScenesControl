@@ -17,6 +17,7 @@ import { selectModalOpen, selectVideoIsLoading, selectVideoName } from './redux/
 import Loader from './Components/Loader';
 import SubtitleEditor from './Components/SubtitleEditor/SubtitleEditor';
 
+
 const KEY = {
   E: 69,
   C: 67,
