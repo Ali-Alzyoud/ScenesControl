@@ -55,8 +55,8 @@
 }
 
 .file-record2{
-    height: 120px;
-    width: 240px;
+    height: 100px;
+    width: 160px;
     margin: auto;
     display: flex;
     background: darkgray;
@@ -71,8 +71,8 @@
 }
 
 .file-record2 > img{
-    height: 100px;
-    width: 120px;
+    height: 100%;
+    width: 40%;
     background-color: gray;
     object-fit: contain;
 }
@@ -83,7 +83,7 @@
 
 .file-record2 .title{
     margin-left: 20px;
-    font-size: 14px;
+    font-size: 10px;
 }
 
 .file-record2-container{

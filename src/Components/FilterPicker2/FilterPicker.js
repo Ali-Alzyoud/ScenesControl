@@ -92,12 +92,12 @@ function FilterPicker({
                                     imgSrc={image}
                                     title={item.folder}
                                     copy={() => {
-                                        alert.show(<div style={{ display: 'flex', gap:'2px' , flexWrap: 'wrap', flexDirection: 'row', minWidth:'400px'}}>
+                                        alert.show(<div style={{ display: 'flex', gap:'2px' , flexWrap: 'wrap', flexDirection: 'row', minWidth:'520px'}}>
                                             {
                                                 videos.map((video, index) => {
                                                     return <div style={{ 
-                                                        width: '80px',
-                                                        height: '80px',
+                                                        width: '60px',
+                                                        height: '60px',
                                                         justifyContent: 'center',
                                                         alignItems: 'center',
                                                         alignSelf:'center',
