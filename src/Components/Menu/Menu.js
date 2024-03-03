@@ -196,6 +196,11 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                      setRemoteMeta(":63653/api/v1/files");
                      setRemotePath(":43983");
                 }}>Load Remote</button>
+                <button onClick={async () => {
+                     setDomain("http://192.168.1.84");
+                     setRemoteMeta(":8061/api/v1/files");
+                     setRemotePath(":4001");
+                }}>Load Local</button>
                 </div>
             </div>
             {about && <About close={() => { setabout(false) }} />}
