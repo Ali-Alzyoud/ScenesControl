@@ -198,8 +198,8 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 }}>Load Remote</button>
                 <button onClick={async () => {
                      setDomain("http://192.168.1.84");
-                     setRemoteMeta(":8061/api/v1/files");
-                     setRemotePath(":4001");
+                     setRemoteMeta(":4001/api/v1/files");
+                     setRemotePath(":8061");
                 }}>Load Local</button>
                 </div>
             </div>
