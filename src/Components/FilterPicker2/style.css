@@ -64,6 +64,7 @@
     margin-bottom: 10px;
     align-items: center;
     cursor:pointer;
+    position: relative;
 }
 
 .file-record2.ready{

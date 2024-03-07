@@ -129,6 +129,7 @@ function FilterPicker({
                                 return <FileRecord
                                     imgSrc={image}
                                     title={item.folder}
+                                    filter={!!filter}
                                     copy={() => copy({ image, video, srt, filter })}
                                 />
                             }

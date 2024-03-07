@@ -5,7 +5,7 @@ import { GrRadialSelected, GrRadial } from 'react-icons/gr'
 import {MdContentCopy} from 'react-icons/md'
 
 
-export default function FileRecord({ imgSrc, title, link, index, isSelected, select, copy, readyToPlay }) {
+export default function FileRecord({ imgSrc, title, link, filter, index, isSelected, select, copy, readyToPlay }) {
     const click = () => {
         if(link){
             window.open(link);
@@ -22,6 +22,16 @@ export default function FileRecord({ imgSrc, title, link, index, isSelected, sel
                 :
                 <h2 className='title'>{title}</h2>
             }
+            {filter ? <div style={{
+                width:'16px',
+                height:'16px',
+                borderRadius:'8px',
+                right:'4px',
+                top:'4px',
+                backgroundColor:'green',
+                zIndex:1000,
+                position:'absolute'
+            }}/> : null}
         </div>
     )
 }
