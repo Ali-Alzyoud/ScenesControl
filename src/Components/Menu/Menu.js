@@ -193,8 +193,8 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 }}>Show Store</button>
                 <button onClick={async () => {
                      setDomain("http://scenecontrol.zapto.org");
-                     setRemoteMeta(":4001/api/v1/files");
-                     setRemotePath(":8061");
+                     setRemoteMeta(":8063/api/v1/files");
+                     setRemotePath(":8062");
                 }}>Load Remote</button>
                 <button onClick={async () => {
                      setDomain("http://192.168.1.84");
