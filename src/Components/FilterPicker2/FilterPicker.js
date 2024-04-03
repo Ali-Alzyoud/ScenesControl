@@ -73,7 +73,7 @@ function FilterPicker({
                                 let image = item.files.filter(file => file.endsWith(".jpg") || file.endsWith(".png"));
                                 let videos = item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4"))
                                 let srts = item.files.filter(file => file.endsWith(".srt"));
-                                let filters = item.files.filter(file => file.endsWith(".txt"));
+                                let filters = item.files.filter(file => file.endsWith("mp4.txt") || file.endsWith("mkv.txt"));
                                 image = image && `${path}/${item.folder}/${image}`;
 
                                 videos = videos.map((video) => {
@@ -120,7 +120,7 @@ function FilterPicker({
                                 let image = item.files.filter(file => file.includes(".jpg") || file.includes(".png"))?.[0]
                                 let video = item.files.filter(file => file.includes(".mkv") || file.includes(".mp4"))?.[0]
                                 let srt = item.files.filter(file => file.includes(".srt"))?.[0]
-                                let filter = item.files.filter(file => file.includes(".txt"))?.[0]
+                                let filter = item.files.filter(file => file.includes("mp4.txt") || file.includes("mkv.txt"))?.[0];
                                 image = image && `${path}/${item.folder}/${image}`;
                                 video = video && `${path}/${item.folder}/${video}`;
                                 srt = srt && `${path}/${item.folder}/${srt}`;
