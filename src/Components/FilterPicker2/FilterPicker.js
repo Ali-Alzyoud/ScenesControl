@@ -10,6 +10,7 @@ import "./style.css"
 import SrtClass from '../../common/SrtClass';
 import { SceneGuideClass } from '../../common/SceneGuide';
 import { useAlert } from 'react-alert';
+import { useRef } from 'react';
 
 function FilterPicker({
     close,
@@ -24,6 +25,8 @@ function FilterPicker({
     path,
 }) {
     const [recordsItems, setRecordsItems] = useState([]);
+    const containerRef = useRef()
+
     useEffect(() => {
         API.getMediaRecords().then((value) => {
             const fileRecords = [];
@@ -57,6 +60,16 @@ function FilterPicker({
 
         close();
     }
+
+    useEffect(() => {
+      if(containerRef.current){
+        setTimeout(() => {
+            containerRef.current.focus();
+            containerRef.current.tabIndex = 0;
+        }, 1000);
+      }
+    }, [])
+    
     const alert = useAlert();
     return (
         <div className="filters-container">
@@ -66,9 +79,9 @@ function FilterPicker({
                     {/* <input className='filters-container-input' onChange={textChanged}></input> */}
                 </div>
                 <MdSearch className="filters-container-search" />
-                <div className="filter-files">
-                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-                        {folders.map((item => {
+                <div className="filter-files" ref={containerRef} tabIndex={0}>
+                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'20px' }}>
+                        {folders.map(((item, index) => {
                             if (item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4")).length > 1) {
                                 let image = item.files.filter(file => file.endsWith(".jpg") || file.endsWith(".png"));
                                 let videos = item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4"))

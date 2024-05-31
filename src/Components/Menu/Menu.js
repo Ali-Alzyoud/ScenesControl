@@ -19,7 +19,6 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
     const filterInput = useRef(null);
     const videoInputURL = useRef(null);
     const subtitleInputURL = useRef(null);
-    const subtitleSyncInputURL = useRef(null);
     const filterInputURL = useRef(null);
     const [key, setkey] = useState(0);
     const [about, setabout] = useState(false);
@@ -28,10 +27,6 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
     const [filterPicker2, setfilterPicker2] = useState(false);
     const [folders, setFolders] = useState([]);
     const [path, setPath] = useState("")
-
-
-    const inputRef = useRef();
-    const inputPathRef = useRef();
 
     const openVideoFile = (e) => {
         if (e.target.files.length < 1) return;
@@ -105,6 +100,13 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
     const [domain, setDomain] = useState(localStorage.getItem("domain") || "http://127.0.0.1:4001");
     const [remoteMeta, setRemoteMeta] = useState(localStorage.getItem("remoteMeta") || ":4001/api/v1/files");
     const [remotePath, setRemotePath] = useState(localStorage.getItem("remotePath") || ":8061");
+
+    useEffect(() => {
+        localStorage.setItem("domain", domain);
+        localStorage.setItem("remoteMeta", remoteMeta);
+        localStorage.setItem("remotePath", remotePath);
+    }, [domain, remoteMeta, remotePath])
+    
     return (
         <div className="navbar" style={{ display: 'flex' }}>
             <div className="dropdown">
@@ -158,15 +160,12 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 <div style={{display:'flex', flexDirection:'column', width:'450px'}}>
                 <input value={domain} onChange={(e)=>{
                     setDomain(e.target.value);
-                    localStorage.setItem("domain",e.target.value)
                 }} placeholder='Meta'/>
                 <input value={remoteMeta} onChange={(e)=>{
                     setRemoteMeta(e.target.value);
-                    localStorage.setItem("remoteMeta",e.target.value)
                 }} placeholder='Meta'/>
                 <input value={remotePath}  onChange={(e)=>{
                     setRemotePath(e.target.value);
-                    localStorage.setItem("remotePath",e.target.value)
                 }} placeholder='Path'/>
                 </div>
                 <button onClick={async () => {
