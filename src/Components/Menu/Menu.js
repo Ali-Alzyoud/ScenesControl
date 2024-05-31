@@ -97,9 +97,9 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
         }
     }
 
-    const [domain, setDomain] = useState(localStorage.getItem("domain") || "http://127.0.0.1:4001");
-    const [remoteMeta, setRemoteMeta] = useState(localStorage.getItem("remoteMeta") || ":4001/api/v1/files");
-    const [remotePath, setRemotePath] = useState(localStorage.getItem("remotePath") || ":8061");
+    const [domain, setDomain] = useState(localStorage.getItem("domain"));
+    const [remoteMeta, setRemoteMeta] = useState(localStorage.getItem("remoteMeta"));
+    const [remotePath, setRemotePath] = useState(localStorage.getItem("remotePath"));
 
     useEffect(() => {
         localStorage.setItem("domain", domain);
@@ -191,14 +191,14 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     // setfilterPicker2(true);
                 }}>Show Store</button>
                 <button onClick={async () => {
-                     setDomain("http://scenecontrol.zapto.org");
-                     setRemoteMeta(":8063/api/v1/files");
-                     setRemotePath(":8062");
+                     setDomain("https://ali-alzyod.site");
+                     setRemoteMeta("/api/v1/files");
+                     setRemotePath("/static");
                 }}>Load Remote</button>
                 <button onClick={async () => {
                      setDomain("http://192.168.1.84");
                      setRemoteMeta(":4001/api/v1/files");
-                     setRemotePath(":8061");
+                     setRemotePath(":4001/static");
                 }}>Load Local</button>
                 </div>
             </div>
