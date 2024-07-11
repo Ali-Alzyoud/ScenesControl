@@ -39,6 +39,14 @@ function FilterPicker({
     }, []);
 
     const copy = ({ image, video, srt, filter }) => {
+
+
+        let str = window.location.origin + '#/'
+            + btoa(video) + '/'
+            + btoa(srt ? (srt) : '') + '/'
+            + btoa(filter ? (filter): '');
+        window.location.href = str;
+
         setVideoSrc(video);
         setVideoName(video.split("/")?.[video.split("/")?.length - 1]);
         if (srt) {
