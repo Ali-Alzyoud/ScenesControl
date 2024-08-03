@@ -23,6 +23,7 @@ function FilterPicker({
     setTime,
     folders,
     path,
+    videoPath,
 }) {
     const [recordsItems, setRecordsItems] = useState([]);
     const containerRef = useRef()
@@ -98,7 +99,7 @@ function FilterPicker({
                                 image = image && `${path}/${item.folder}/${image}`;
 
                                 videos = videos.map((video) => {
-                                    return `${path}/${item.folder}/${video}`;
+                                    return `${videoPath}/${item.folder}/${video}`;
                                 })
 
                                 srts = srts.map((srt) => {
@@ -143,7 +144,7 @@ function FilterPicker({
                                 let srt = item.files.filter(file => file.includes(".srt"))?.[0]
                                 let filter = item.files.filter(file => file.includes("mp4.txt") || file.includes("mkv.txt"))?.[0];
                                 image = image && `${path}/${item.folder}/${image}`;
-                                video = video && `${path}/${item.folder}/${video}`;
+                                video = video && `${videoPath}/${item.folder}/${video}`;
                                 srt = srt && `${path}/${item.folder}/${srt}`;
                                 filter = filter && `${path}/${item.folder}/${filter}`;
 

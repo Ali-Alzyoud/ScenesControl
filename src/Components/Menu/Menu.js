@@ -12,6 +12,10 @@ import { setFilterItems, setVideoSrc, setSubtitle, setSubtitleSync, setVideoName
 
 import './menu.css'
 
+const API = "/api/v1/files";
+const API_FILES = "/static";
+const API_VIDEO = "/video";
+
 function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubtitleSync, setTime, setDuration }) {
     const videoInput = useRef(null);
     const subtitleInput = useRef(null);
@@ -26,7 +30,6 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
     const [filterPicker, setfilterPicker] = useState(false);
     const [filterPicker2, setfilterPicker2] = useState(false);
     const [folders, setFolders] = useState([]);
-    const [path, setPath] = useState("")
 
     const openVideoFile = (e) => {
         if (e.target.files.length < 1) return;
@@ -98,14 +101,10 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
     }
 
     const [domain, setDomain] = useState(localStorage.getItem("domain"));
-    const [remoteMeta, setRemoteMeta] = useState(localStorage.getItem("remoteMeta"));
-    const [remotePath, setRemotePath] = useState(localStorage.getItem("remotePath"));
 
     useEffect(() => {
         localStorage.setItem("domain", domain);
-        localStorage.setItem("remoteMeta", remoteMeta);
-        localStorage.setItem("remotePath", remotePath);
-    }, [domain, remoteMeta, remotePath])
+    }, [domain])
     
     return (
         <div className="navbar" style={{ display: 'flex' }}>
@@ -161,16 +160,9 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 <input value={domain} onChange={(e)=>{
                     setDomain(e.target.value);
                 }} placeholder='Meta'/>
-                <input value={remoteMeta} onChange={(e)=>{
-                    setRemoteMeta(e.target.value);
-                }} placeholder='Meta'/>
-                <input value={remotePath}  onChange={(e)=>{
-                    setRemotePath(e.target.value);
-                }} placeholder='Path'/>
                 </div>
                 <button onClick={async () => {
-                    const url = domain+remoteMeta;
-                    const path = domain+remotePath;
+                    const url = domain+API;
                     try {
                         const response = await fetch(url, {
                             method: "GET",
@@ -180,7 +172,6 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                         });
                         const folders = await response.json();
                         setFolders(folders.files);
-                        setPath(path);
                         setfilterPicker2(true);
                     } catch (error) {
                         alert(error.message)
@@ -192,20 +183,16 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 }}>Show Store</button>
                 <button onClick={async () => {
                      setDomain("https://ali-alzyod.site");
-                     setRemoteMeta("/api/v1/files");
-                     setRemotePath("/static");
                 }}>Load Remote</button>
                 <button onClick={async () => {
-                     setDomain("http://192.168.1.84");
-                     setRemoteMeta(":4001/api/v1/files");
-                     setRemotePath(":4001/static");
+                     setDomain("http://192.168.1.84:4001");
                 }}>Load Local</button>
                 </div>
             </div>
             {about && <About close={() => { setabout(false) }} />}
             {settings && <Settings close={() => { setSettings(false) }} />}
             {filterPicker && <FilterPicker close={() => { setfilterPicker(false) }} />}
-            {filterPicker2 && <FilterPicker2 folders={folders} path={path} close={() => { setfilterPicker2(false) }} />}
+            {filterPicker2 && <FilterPicker2 folders={folders} path={domain+API_FILES} videoPath={domain+API_VIDEO} close={() => { setfilterPicker2(false) }} />}
         </div>
     )
 }
