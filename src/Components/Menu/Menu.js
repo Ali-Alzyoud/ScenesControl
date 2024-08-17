@@ -187,6 +187,9 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 <button onClick={async () => {
                      setDomain("http://192.168.1.84:4001");
                 }}>Load Local</button>
+                <button onClick={async () => {
+                     window.location.href = window.location.origin + window.location.pathname;
+                }}>Clear</button>
                 </div>
             </div>
             {about && <About close={() => { setabout(false) }} />}
