@@ -4,7 +4,7 @@ import { SceneGuideClass } from '../../common/SceneGuide'
 import About from '../About'
 import Settings from '../Settings'
 import FilterPicker from '../FilterPicker'
-import FilterPicker2 from '../FilterPicker2'
+import FilterPicker2 from '../FilterPickerLocal'
 
 
 import { connect } from "react-redux";
@@ -176,10 +176,6 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     } catch (error) {
                         alert(error.message)
                     }
-
-                    // const data = await response.json();
-                    // setFiles(data);
-                    // setfilterPicker2(true);
                 }}>Show Store</button>
                 <button onClick={async () => {
                      setDomain("https://ali-alzyod.site");

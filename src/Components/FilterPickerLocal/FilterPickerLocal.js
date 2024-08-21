@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { MdClose, MdSearch } from 'react-icons/md'
-import FileRecord from './FileRecord'
+import FileRecord from './FileRecordLocal'
 import * as API from '../../common/API/API'
 
 import { connect } from "react-redux";
@@ -80,14 +80,21 @@ function FilterPicker({
     }, [])
     
     const alert = useAlert();
+
+    const [filterText, setFilterText] = useState();
+    const textChanged = (e) => {
+        setFilterText(e.target.value.toLowerCase());
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
     return (
         <div className="filters-container">
             <div className="filters-container-body">
                 <MdClose className="filters-container-close" onClick={close} />
                 <div className='filters-container-input-container'>
-                    {/* <input className='filters-container-input' onChange={textChanged}></input> */}
+                    <input className='filters-container-input' onChange={textChanged}></input>
                 </div>
-                <MdSearch className="filters-container-search" />
                 <div className="filter-files" ref={containerRef} tabIndex={0}>
                     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'20px' }}>
                         {folders.map(((item, index) => {
@@ -110,7 +117,10 @@ function FilterPicker({
                                     return `${path}/${item.folder}/${filter}`;
                                 })
 
-                                return <FileRecord
+                                return filterText && !item?.folder?.toLowerCase()?.includes(filterText) ?
+                                        null
+                                        :
+                                        <FileRecord
                                     imgSrc={image}
                                     title={item.folder}
                                     copy={() => {
@@ -148,7 +158,9 @@ function FilterPicker({
                                 srt = srt && `${path}/${item.folder}/${srt}`;
                                 filter = filter && `${path}/${item.folder}/${filter}`;
 
-                                return <FileRecord
+                                return filterText && !item?.folder?.toLowerCase()?.includes(filterText) ?
+                                        null
+                                        : <FileRecord
                                     imgSrc={image}
                                     title={item.folder}
                                     filter={!!filter}
