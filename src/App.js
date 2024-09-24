@@ -62,13 +62,13 @@ function App(props) {
       if (params.length === 0 || (params.length === 1 && params[0].length === 0)) return;
       if (paramsURL !== '/' && params.length >= 2) {
         if (params[1] && params[1].length > 0) {
-          videoURL = atob(params[1]);
+          videoURL = decodeURIComponent(atob(params[1]));
         }
         if (params[2] && params[2].length > 0) {
-          subtitleURL = atob(params[2]);
+          subtitleURL = decodeURIComponent(atob(params[2]));
         }
         if (params[3] && params[3].length > 0) {
-          filterURL = atob(params[3]);
+          filterURL = decodeURIComponent(atob(params[3]));
         }
       }
 

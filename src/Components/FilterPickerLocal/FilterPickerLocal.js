@@ -43,9 +43,9 @@ function FilterPicker({
 
 
         let str = window.location.origin + '#/'
-            + btoa(video) + '/'
-            + btoa(srt ? (srt) : '') + '/'
-            + btoa(filter ? (filter): '');
+            + btoa(encodeURIComponent(video)) + '/'
+            + btoa(encodeURIComponent(srt ? (srt) : '')) + '/'
+            + btoa(encodeURIComponent(filter ? (filter): ''));
         window.location.href = str;
 
         setVideoSrc(video);
@@ -73,8 +73,10 @@ function FilterPicker({
     useEffect(() => {
       if(containerRef.current){
         setTimeout(() => {
-            containerRef.current.focus();
-            containerRef.current.tabIndex = 0;
+            if(containerRef && containerRef.current){
+                containerRef.current.focus();
+                containerRef.current.tabIndex = 0;
+            }
         }, 1000);
       }
     }, [])

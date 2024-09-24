@@ -181,7 +181,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                      setDomain("https://ali-alzyod.site");
                 }}>Load Remote</button>
                 <button onClick={async () => {
-                     setDomain("http://192.168.1.84:4001");
+                     setDomain("http://192.168.1.54:4001");
                 }}>Load Local</button>
                 <button onClick={async () => {
                      window.location.href = window.location.origin + window.location.pathname;
