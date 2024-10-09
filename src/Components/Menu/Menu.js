@@ -178,11 +178,14 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     }
                 }}>Show Store</button>
                 <button onClick={async () => {
-                     setDomain("https://ali-alzyod.site");
-                }}>Load Remote</button>
+                     setDomain("https://movies.ali-alzyod.site");
+                }}>Remote1</button>
+                <button onClick={async () => {
+                     setDomain("https://ali-standard-pc-i440fx-piix-1996.tailaf1f97.ts.net");
+                }}>Remote2</button>
                 <button onClick={async () => {
                      setDomain("http://192.168.1.54:4001");
-                }}>Load Local</button>
+                }}>Local</button>
                 <button onClick={async () => {
                      window.location.href = window.location.origin + window.location.pathname;
                 }}>Clear</button>
