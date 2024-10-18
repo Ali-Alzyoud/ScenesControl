@@ -22,7 +22,7 @@
   "scripts": {
     "start": "react-scripts start",
     "electron": "electron .",
-    "build": "react-scripts build",
+    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -45,6 +45,7 @@
     ]
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "electron": "^16.0.5",
     "electron-is-dev": "^2.0.0"
   }
