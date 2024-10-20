@@ -184,7 +184,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                      setDomain("https://ali-standard-pc-i440fx-piix-1996.tailaf1f97.ts.net");
                 }}>Remote2</button>
                 <button onClick={async () => {
-                     setDomain("http://192.168.1.54:4001");
+                     setDomain("http://192.168.1.25:4001");
                 }}>Local</button>
                 <button onClick={async () => {
                      window.location.href = window.location.origin + window.location.pathname;
