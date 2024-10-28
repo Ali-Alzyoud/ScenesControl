@@ -181,7 +181,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                      setDomain("https://movies.ali-alzyod.site");
                 }}>Remote1</button>
                 <button onClick={async () => {
-                     setDomain("https://ali-standard-pc-i440fx-piix-1996.tailaf1f97.ts.net");
+                     setDomain("https://movies.camel-goldeye.ts.net");
                 }}>Remote2</button>
                 <button onClick={async () => {
                      setDomain("http://192.168.1.25:4001");
