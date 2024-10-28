@@ -83,9 +83,10 @@ function FilterPicker({
     
     const alert = useAlert();
 
-    const [filterText, setFilterText] = useState();
+    const [filterText, setFilterText] = useState(localStorage.getItem("filterText"));
     const textChanged = (e) => {
         setFilterText(e.target.value.toLowerCase());
+        localStorage.setItem("filterText", e.target.value.toLowerCase())
         e.stopPropagation();
         e.preventDefault();
     }
@@ -95,7 +96,7 @@ function FilterPicker({
             <div className="filters-container-body">
                 <MdClose className="filters-container-close" onClick={close} />
                 <div className='filters-container-input-container'>
-                    <input className='filters-container-input' onChange={textChanged}></input>
+                    <input className='filters-container-input' onChange={textChanged} value={filterText}></input>
                 </div>
                 <div className="filter-files" ref={containerRef} tabIndex={0}>
                     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'20px' }}>
