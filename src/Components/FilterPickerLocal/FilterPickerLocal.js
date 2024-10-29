@@ -11,6 +11,7 @@ import SrtClass from '../../common/SrtClass';
 import { SceneGuideClass } from '../../common/SceneGuide';
 import { useAlert } from 'react-alert';
 import { useRef } from 'react';
+import { useMemo } from 'react';
 
 function FilterPicker({
     close,
@@ -27,6 +28,27 @@ function FilterPicker({
 }) {
     const [recordsItems, setRecordsItems] = useState([]);
     const containerRef = useRef()
+    const [selectedIndex, setSelectedIndex] = useState(0);
+    const [selectedFolder, setselectedFolder] = useState("");
+
+    const localFolders = useMemo(()=>{
+        const container = {};
+        folders.map((folder)=>{
+            const folderName = folder?.folder?.split?.("/")?.[0]||"";
+            if(!container.hasOwnProperty(folderName)){
+                container[folderName] = [];
+            }
+            container[folderName].push(folder);
+        })
+        setSelectedIndex(localStorage.getItem("selectedIndex")||0);
+        return container;
+    },[folders]);
+
+    useEffect(()=>{
+        const selectedFolder = Object.keys(localFolders||{})?.[selectedIndex]||""
+        setselectedFolder(selectedFolder);
+    },[selectedIndex, localFolders, setselectedFolder])
+
 
     useEffect(() => {
         API.getMediaRecords().then((value) => {
@@ -98,15 +120,31 @@ function FilterPicker({
                 <div className='filters-container-input-container'>
                     <input className='filters-container-input' onChange={textChanged} value={filterText}></input>
                 </div>
+                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '10px', margin: '20px' }}>
+                    {
+                        Object.keys(localFolders || {})?.map?.((folder, index) => {
+                            return <div style={{ 
+                                color: 'black',
+                                padding: '10px',
+                                background: 'lightblue',
+                                ...(index == selectedIndex ? {border:'5px solid red'}: {})
+                            }}
+                            onClick={()=>{
+                                setSelectedIndex(index);
+                                localStorage.setItem("selectedIndex", index)
+                            }}>{folder}</div>
+                        })
+                    }
+                </div>
                 <div className="filter-files" ref={containerRef} tabIndex={0}>
                     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'20px' }}>
-                        {folders.map(((item, index) => {
+                        {localFolders[selectedFolder]?.map?.(((item, index) => {
                             if (item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4")).length > 1) {
                                 let image = item.files.filter(file => file.endsWith(".jpg") || file.endsWith(".png"));
                                 let videos = item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4"))
                                 let srts = item.files.filter(file => file.endsWith(".srt"));
                                 let filters = item.files.filter(file => file.endsWith("mp4.txt") || file.endsWith("mkv.txt"));
-                                image = image && `${path}/${item.folder}/${image}`;
+                                image = image?.length ? `${path}/${item.folder}/${image}` : '';
 
                                 videos = videos.map((video) => {
                                     return `${videoPath}/${item.folder}/${video}`;
@@ -152,11 +190,11 @@ function FilterPicker({
                                 />
 
                             } else {
-                                let image = item.files.filter(file => file.includes(".jpg") || file.includes(".png"))?.[0]
+                                let image = item.files.filter(file => file.includes(".jpg") || file.includes(".png"))?.[0] || ""
                                 let video = item.files.filter(file => file.includes(".mkv") || file.includes(".mp4"))?.[0]
                                 let srt = item.files.filter(file => file.includes(".srt"))?.[0]
                                 let filter = item.files.filter(file => file.includes("mp4.txt") || file.includes("mkv.txt"))?.[0];
-                                image = image && `${path}/${item.folder}/${image}`;
+                                image = image ? `${path}/${item.folder}/${image}` : "";
                                 video = video && `${videoPath}/${item.folder}/${video}`;
                                 srt = srt && `${path}/${item.folder}/${srt}`;
                                 filter = filter && `${path}/${item.folder}/${filter}`;
