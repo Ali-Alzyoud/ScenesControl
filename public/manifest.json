@@ -1,0 +1,20 @@
+{
+  "short_name": "Scenses",
+  "name": "Scenes controller",
+  "icons": [
+    {
+      "src": "/scenes_256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/scenes_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "fullscreen",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
