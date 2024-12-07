@@ -88,6 +88,24 @@ function SubtitleEditor(props) {
         ))
     }
 
+    const slopeDecSmall = () => {
+        dispatch(setSettings_syncConfig(
+            {
+                ...syncConfig,
+                subtitleSlope: syncConfig.subtitleSlope - 0.001,
+            }
+        ))
+    }
+
+    const slopeDecSmallExtr = () => {
+        dispatch(setSettings_syncConfig(
+            {
+                ...syncConfig,
+                subtitleSlope: syncConfig.subtitleSlope - 0.0001,
+            }
+        ))
+    }
+
     const delayInc = () => {
         dispatch(setSettings_syncConfig(
             {
@@ -187,6 +205,12 @@ function SubtitleEditor(props) {
             </div>
             <span className='middle-text'>Slope {syncConfig.subtitleSlope.toFixed(2)}</span>
             <div className='container small' onClick={slopeDec}>
+                <FaMinus className='middle' />
+            </div>
+            <div className='container small' onClick={slopeDecSmall}>
+                <FaMinus className='middle' />
+            </div>
+            <div className='container small' onClick={slopeDecSmallExtr}>
                 <FaMinus className='middle' />
             </div>
             <br /><br />
