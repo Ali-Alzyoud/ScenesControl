@@ -203,7 +203,7 @@ function SubtitleEditor(props) {
             <div className='container small' onClick={slopeInc}>
                 <FaPlus className='middle' />
             </div>
-            <span className='middle-text'>Slope {syncConfig.subtitleSlope.toFixed(2)}</span>
+            <span className='middle-text'>Slope {syncConfig.subtitleSlope.toFixed(5)}</span>
             <div className='container small' onClick={slopeDec}>
                 <FaMinus className='middle' />
             </div>
@@ -213,7 +213,7 @@ function SubtitleEditor(props) {
             <div className='container small' onClick={slopeDecSmallExtr}>
                 <FaMinus className='middle' />
             </div>
-            <br /><br />
+                   <br /><br />
             <div className='container rect' onClick={sync}>
                 <span className='middle'>Sync</span>
             </div>
