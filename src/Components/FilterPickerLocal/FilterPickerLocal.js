@@ -30,6 +30,11 @@ function FilterPicker({
     const containerRef = useRef()
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [selectedFolder, setselectedFolder] = useState("");
+    const [byDate, setByDate] = useState(!!localStorage.getItem("byDate"));
+
+    useEffect(()=>{
+        localStorage.setItem("byDate",byDate ? "1" : "")
+    },[byDate]);
 
     const localFolders = useMemo(()=>{
         const container = {};
@@ -40,9 +45,17 @@ function FilterPicker({
             }
             container[folderName].push(folder);
         })
+
+        if (byDate) {
+            const keys = Object.keys(container);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                container[key] = container[key].sort((a, b) => {return Number(b.time) - Number(a.time)});
+            }
+        }
         setSelectedIndex(localStorage.getItem("selectedIndex")||0);
         return container;
-    },[folders]);
+    },[folders, byDate]);
 
     useEffect(()=>{
         const selectedFolder = Object.keys(localFolders||{})?.[selectedIndex]||""
@@ -119,6 +132,7 @@ function FilterPicker({
                 <MdClose className="filters-container-close" onClick={close} />
                 <div className='filters-container-input-container'>
                     <input className='filters-container-input' onChange={textChanged} value={filterText}></input>
+                    <input value={byDate} checked={byDate} onChange={()=>{setByDate(!byDate)}} type='checkbox' style={{transform:"scale(1.5)"}}></input> By Date
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '10px', margin: '20px' }}>
                     {
