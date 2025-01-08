@@ -159,11 +159,11 @@ function FilterPicker({
                 <div className="filter-files" ref={containerRef} tabIndex={0}>
                     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'20px' }}>
                         {localFolders[selectedFolder]?.map?.(((item, index) => {
-                            if (item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4")).length > 1) {
+                            if (item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4") || file.endsWith(".webm")).length > 1) {
                                 let image = item.files.filter(file => file.endsWith(".jpg") || file.endsWith(".png"));
-                                let videos = item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4"))
+                                let videos = item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4") || file.endsWith(".webm"))
                                 let srts = item.files.filter(file => file.endsWith(".srt"));
-                                let filters = item.files.filter(file => file.endsWith("mp4.txt") || file.endsWith("mkv.txt"));
+                                let filters = item.files.filter(file => file.endsWith("mp4.txt") || file.endsWith("mkv.txt") || file.endsWith("webm.txt"));
                                 image = image?.length ? `${path}/${item.folder}/${image}` : '';
 
                                 videos = videos.map((video) => {
@@ -220,9 +220,9 @@ function FilterPicker({
 
                             } else {
                                 let image = item.files.filter(file => file.includes(".jpg") || file.includes(".png"))?.[0] || ""
-                                let video = item.files.filter(file => file.includes(".mkv") || file.includes(".mp4"))?.[0]
+                                let video = item.files.filter(file => file.includes(".mkv") || file.includes(".mp4") || file.includes(".webm"))?.[0]
                                 let srt = item.files.filter(file => file.includes(".srt"))?.[0]
-                                let filter = item.files.filter(file => file.includes("mp4.txt") || file.includes("mkv.txt"))?.[0];
+                                let filter = item.files.filter(file => file.includes("mp4.txt") || file.includes("mkv.txt")|| file.includes("webm.txt"))?.[0];
                                 image = image ? `${path}/${item.folder}/${image}` : "";
                                 video = video && `${videoPath}/${item.folder}/${video}`;
                                 srt = srt && `${path}/${item.folder}/${srt}`;
