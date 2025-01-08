@@ -118,6 +118,12 @@ function FilterPicker({
     
     const alert = useAlert();
 
+    useEffect(()=>{
+        return ()=> {
+            alert.removeAll();
+        }
+    },[]);
+
     const [filterText, setFilterText] = useState(localStorage.getItem("filterText"));
     const textChanged = (e) => {
         setFilterText(e.target.value.toLowerCase());
@@ -179,11 +185,20 @@ function FilterPicker({
                                     imgSrc={image}
                                     title={item.folder}
                                     copy={() => {
-                                        alert.show(<div style={{ display: 'flex', gap:'2px' , flexWrap: 'wrap', flexDirection: 'row', minWidth:'520px'}}>
+                                        alert.removeAll();
+                                        alert.show(<div style={{
+                                            display: 'flex',
+                                            gap:'8px' ,
+                                            flexWrap: 'wrap',
+                                            flexDirection: 'row',
+                                            maxHeight:"520px",
+                                            minWidth:'520px',
+                                            overflow:'scroll'
+                                            }}>
                                             {
                                                 videos.map((video, index) => {
                                                     return <div style={{ 
-                                                        width: '60px',
+                                                        width: "fitContent",
                                                         height: '60px',
                                                         justifyContent: 'center',
                                                         alignItems: 'center',
@@ -191,11 +206,11 @@ function FilterPicker({
                                                         borderColor: 'red',
                                                         borderWidth: '1px',
                                                         borderStyle:'double',
-                                                        background:'red'
+                                                        background:'gray'
                                                     }} onClick={() => {
                                                         copy({ image, video:videos[index], srt:srts[index], filter:filters[index] })
                                                         alert.removeAll();
-                                                    }}>{index + 1}</div>
+                                                    }}>{video?.split?.("/")?.reverse?.()?.[0]}</div>
                                                 })
                                             }
                                         </div>);
