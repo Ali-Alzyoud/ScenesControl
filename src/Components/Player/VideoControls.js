@@ -8,6 +8,8 @@ import { MdReplay5 } from 'react-icons/md'
 import { MdReplay10 } from 'react-icons/md'
 import { MdReplay30 } from 'react-icons/md'
 
+import { MdSkipNext, MdSkipPrevious } from 'react-icons/md'
+
 import { GiExpand } from 'react-icons/gi'
 import { MdPlayArrow, MdPause } from 'react-icons/md'
 
@@ -17,6 +19,7 @@ import { connect } from "react-redux";
 import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName } from '../../redux/selectors';
 import { setTime, setPlayerState, setVolume } from '../../redux/actions';
 import Slider from '../Slider';
+import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 
 var styleControls = {
     width: '80%',
@@ -214,9 +217,19 @@ function VideoControls({ time,
         }
     }
 
+    const openItemFromList = (dir) => {
+        const index = Number(localStorage.currentListIndex) + dir;
+        localStorage.currentListIndex = index;
+        const {videos,
+            srts,
+            filters,}  = JSON.parse(localStorage.currentList);
+        openContent({ image:"", video:videos[index], srt:srts[index], filter:filters[index] })
+    }
+
     const player_controls = (
         <div className='main-controls'>
             {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} /> */}
+            <MdSkipPrevious  className='controls left' onClick={(event) => { openItemFromList(-1); event.stopPropagation(); }} />
             <MdReplay10 className='controls left' onClick={(event) => { setTime(time - 10); event.stopPropagation(); }} />
             <MdReplay5 className='controls left' onClick={(event) => { setTime(time - 5); event.stopPropagation(); }} />
             <PlayIcon
@@ -239,6 +252,7 @@ function VideoControls({ time,
             />
             <MdForward5 className='controls right' onClick={(event) => { setTime(time + 5); event.stopPropagation(); }} />
             <MdForward10 className='controls right' onClick={(event) => { setTime(time + 10); event.stopPropagation(); }} />
+            <MdSkipNext  className='controls right' onClick={(event) => { openItemFromList(1); event.stopPropagation(); }} />
             {/* <MdForward30 className='controls right' onClick={()=>{setTime(time+30)}} /> */}
         </div>
     );

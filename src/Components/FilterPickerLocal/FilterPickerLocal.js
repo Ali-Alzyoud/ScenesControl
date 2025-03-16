@@ -13,6 +13,38 @@ import { useAlert } from 'react-alert';
 import { useRef } from 'react';
 import { useMemo } from 'react';
 
+export const openContent = ({ image, video, srt, filter }) => {
+
+
+    let str = window.location.origin + '#/'
+        + btoa(encodeURIComponent(video)) + '/'
+        + btoa(encodeURIComponent(srt ? (srt) : '')) + '/'
+        + btoa(encodeURIComponent(filter ? (filter): ''));
+    window.location.href = str;
+    window.location.reload();
+
+    // setVideoSrc(video);
+    // setVideoName(video.split("/")?.[video.split("/")?.length - 1]);
+    // if (srt) {
+    //     SrtClass.ReadFile(srt).then((records) => {
+    //         setSubtitle(records);
+    //     });
+    // }
+    // else {
+    //     setSubtitle([]);
+    // }
+    // if (filter) {
+    //     SceneGuideClass.ReadFile(filter).then((records) => {
+    //         setFilterItems(records);
+    //     });
+    // }
+    // else {
+    //     setFilterItems([]);
+    // }
+
+    // close();
+}
+
 function FilterPicker({
     close,
     setFilterItems,
@@ -73,37 +105,6 @@ function FilterPicker({
             setModalOpen(false);
         }
     }, []);
-
-    const copy = ({ image, video, srt, filter }) => {
-
-
-        let str = window.location.origin + '#/'
-            + btoa(encodeURIComponent(video)) + '/'
-            + btoa(encodeURIComponent(srt ? (srt) : '')) + '/'
-            + btoa(encodeURIComponent(filter ? (filter): ''));
-        window.location.href = str;
-
-        setVideoSrc(video);
-        setVideoName(video.split("/")?.[video.split("/")?.length - 1]);
-        if (srt) {
-            SrtClass.ReadFile(srt).then((records) => {
-                setSubtitle(records);
-            });
-        }
-        else {
-            setSubtitle([]);
-        }
-        if (filter) {
-            SceneGuideClass.ReadFile(filter).then((records) => {
-                setFilterItems(records);
-            });
-        }
-        else {
-            setFilterItems([]);
-        }
-
-        close();
-    }
 
     useEffect(() => {
       if(containerRef.current){
@@ -178,6 +179,7 @@ function FilterPicker({
                                     return `${path}/${item.folder}/${filter}`;
                                 })
 
+
                                 return filterText && !item?.folder?.toLowerCase()?.includes(filterText) ?
                                         null
                                         :
@@ -208,7 +210,13 @@ function FilterPicker({
                                                         borderStyle:'double',
                                                         background:'gray'
                                                     }} onClick={() => {
-                                                        copy({ image, video:videos[index], srt:srts[index], filter:filters[index] })
+                                                        localStorage.currentListIndex = index;
+                                                        localStorage.currentList = JSON.stringify({
+                                                            videos,
+                                                            srts,
+                                                            filters,
+                                                        });
+                                                        openContent({ image, video:videos[index], srt:srts[index], filter:filters[index] })
                                                         alert.removeAll();
                                                     }}>{video?.split?.("/")?.reverse?.()?.[0]}</div>
                                                 })
@@ -234,7 +242,7 @@ function FilterPicker({
                                     imgSrc={image}
                                     title={item.folder}
                                     filter={!!filter}
-                                    copy={() => copy({ image, video, srt, filter })}
+                                    copy={() => openContent({ image, video, srt, filter })}
                                 />
                             }
                         }))}
