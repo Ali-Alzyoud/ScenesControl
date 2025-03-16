@@ -11,6 +11,7 @@ import { connect } from "react-redux";
 import { setFilterItems, setVideoSrc, setSubtitle, setSubtitleSync, setVideoName, setTime, setDuration } from '../../redux/actions'
 
 import './menu.css'
+import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 
 const API = "/api/v1/files";
 const API_FILES = "/static";
@@ -178,11 +179,21 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     }
                 }}>Show Store</button>
                 <button onClick={async () => {
-                     setDomain("https://movies.ali-alzyod.site");
-                }}>Remote1</button>
+                    try {
+                        const index = Number(localStorage.currentListIndex);
+                        const { videos,
+                            srts,
+                            filters, } = JSON.parse(localStorage.currentList);
+                        if (index < 0 || index >= videos?.length) return;
+                        openContent({ image:"", video:videos[index], srt:srts[index], filter:filters[index] })   
+                    } catch (error) {
+                        
+                    }
+
+                }}>Resume</button>
                 <button onClick={async () => {
                      setDomain("https://m.camel-goldeye.ts.net");
-                }}>Remote2</button>
+                }}>Remote</button>
                 <button onClick={async () => {
                     const domain = window.location.protocol+"//"+window.location.hostname;
                      setDomain(`${domain}:4001`);

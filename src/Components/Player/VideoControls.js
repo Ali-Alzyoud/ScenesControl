@@ -75,6 +75,8 @@ const KEY = {
     MEDIA_PLAY_PAUSE: 179,
     FAST_FORWARD: 417,
     REWIND: 412,
+    NEXT_TRACK:	0xB0,
+    PREV_TRACK:	0xB1,
 };
 
 let PlayIcon = MdPlayArrow;
@@ -144,6 +146,12 @@ function VideoControls({ time,
             case KEY.FAST_FORWARD:
                 setTime(time + jump)
                 break;
+            case KEY.NEXT_TRACK:
+                openItemFromList(1);
+                break
+            case KEY.PREV_TRACK:
+                openItemFromList(-1);
+                break
             case KEY.F:
                 onFullscreen()
                 break;
@@ -214,16 +222,21 @@ function VideoControls({ time,
             else {
                 setPlayerState('play');
             }
+        } else {
+            openItemFromList(0);
         }
     }
 
     const openItemFromList = (dir) => {
-        const index = Number(localStorage.currentListIndex) + dir;
-        localStorage.currentListIndex = index;
-        const {videos,
-            srts,
-            filters,}  = JSON.parse(localStorage.currentList);
-        openContent({ image:"", video:videos[index], srt:srts[index], filter:filters[index] })
+        try {
+            const index = Number(localStorage.currentListIndex) + dir;
+            const { videos,
+                srts,
+                filters, } = JSON.parse(localStorage.currentList);
+            if (index < 0 || index >= videos?.length) return;
+            localStorage.currentListIndex = index;
+            openContent({ image: "", video: videos[index], srt: srts[index], filter: filters[index] })
+        } catch (ex) { }
     }
 
     const player_controls = (

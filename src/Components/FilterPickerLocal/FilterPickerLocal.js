@@ -217,7 +217,7 @@ function FilterPicker({
                                                             filters,
                                                         });
                                                         openContent({ image, video:videos[index], srt:srts[index], filter:filters[index] })
-                                                        alert.removeAll();
+                                                        //alert.removeAll();
                                                     }}>{video?.split?.("/")?.reverse?.()?.[0]}</div>
                                                 })
                                             }
@@ -237,13 +237,24 @@ function FilterPicker({
                                 filter = filter && `${path}/${item.folder}/${filter}`;
 
                                 return filterText && !item?.folder?.toLowerCase()?.includes(filterText) ?
-                                        null
-                                        : <FileRecord
-                                    imgSrc={image}
-                                    title={item.folder}
-                                    filter={!!filter}
-                                    copy={() => openContent({ image, video, srt, filter })}
-                                />
+                                    null
+                                    : <FileRecord
+                                        imgSrc={image}
+                                        title={item.folder}
+                                        filter={!!filter}
+                                        copy={() => {
+
+                                            localStorage.currentListIndex = 0;
+                                            localStorage.currentList = JSON.stringify({
+                                                videos: [video],
+                                                srts: [srt],
+                                                filters: [filter],
+                                            });
+
+                                            openContent({ image, video, srt, filter })
+                                        }
+                                        }
+                                    />
                             }
                         }))}
                     </div>
