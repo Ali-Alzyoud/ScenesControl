@@ -156,6 +156,12 @@ function VideoControls({ time,
                 onFullscreen()
                 break;
         }
+
+        if (keyEvent.key == 3) {
+            onFullscreen()
+        } else if(keyEvent.key == 5) {
+            window.location.reload();
+        }
     }, [keyEvent]);
 
     useEffect(() => {
