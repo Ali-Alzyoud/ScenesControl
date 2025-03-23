@@ -15,9 +15,9 @@ import { MdPlayArrow, MdPause } from 'react-icons/md'
 
 import './style.css'
 
-import { connect } from "react-redux";
-import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName } from '../../redux/selectors';
-import { setTime, setPlayerState, setVolume } from '../../redux/actions';
+import { connect, useDispatch, useSelector } from "react-redux";
+import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName, getSyncConfig } from '../../redux/selectors';
+import { setTime, setPlayerState, setVolume, setSettings_syncConfig } from '../../redux/actions';
 import Slider from '../Slider';
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 
@@ -108,6 +108,11 @@ function VideoControls({ time,
     const [styleProgress] = useState(seekbarStyleProgress);
     const [progress, setProgress] = useState(0);
     const [keyEvent, setKeyEvent] = useState(null);
+    const dispatch = useDispatch();
+    const subtitleDelay = useSelector(getSyncConfig).subtitleDelay;
+    const subtitleSlope = useSelector(getSyncConfig).subtitleSlope;
+    const syncConfig = useSelector(getSyncConfig)
+
 
     const timeToString = (time) => {
         let h = Math.floor(time / (60 * 60) % 24);
@@ -162,7 +167,22 @@ function VideoControls({ time,
         } else if(keyEvent.key == 5) {
             window.location.reload();
         }
-    }, [keyEvent]);
+
+        if (keyEvent.key == 7) {
+            dispatch(setSettings_syncConfig({
+                ...syncConfig,
+                subtitleDelay: subtitleDelay + 0.5,
+                subtitleSlope: 1,
+            }));
+        } else if(keyEvent.key == 9) {
+            dispatch(setSettings_syncConfig({
+                ...syncConfig,
+                subtitleDelay: subtitleDelay - 0.5,
+                subtitleSlope: 1,
+            }));
+        }
+        setKeyEvent(null);
+    }, [keyEvent, subtitleDelay, subtitleSlope, syncConfig]);
 
     useEffect(() => {
 
