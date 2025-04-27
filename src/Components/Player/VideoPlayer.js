@@ -7,6 +7,7 @@ import { connect } from "react-redux";
 import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName, selectVideoIsLoading, selectDrawingEnabled } from '../../redux/selectors'
 import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume } from "../../redux/actions";
 import ToastMessage from "../Toast";
+import Utils from "../../utils/utils";
 
 const debounce = (func1, func, delay) => {
   let inDebounce;
@@ -39,6 +40,7 @@ class VideoPlayer extends React.PureComponent {
   }
 
   keyHandler = (e) => {
+    if(Utils.hasActiveInput()) return;
     if (e.key == 1) {
       this.setState({
         blackScreen: !this.state.blackScreen

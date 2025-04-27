@@ -11,11 +11,12 @@ import { SceneGuideClass } from './common/SceneGuide'
 import ToggleButton from './Components/ToggleButton'
 
 
-import { connect } from "react-redux";
+import { connect, useSelector } from "react-redux";
 import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems, setDuration, setTime, setVideoName } from './redux/actions'
-import { selectModalOpen, selectVideoIsLoading, selectVideoName } from './redux/selectors'
+import { getSyncConfig, selectModalOpen, selectVideoIsLoading, selectVideoName } from './redux/selectors'
 import Loader from './Components/Loader';
 import SubtitleEditor from './Components/SubtitleEditor/SubtitleEditor';
+import Utils from './utils/utils';
 
 
 const KEY = {
@@ -34,6 +35,8 @@ function App(props) {
   const [showConfig, setShowConfig] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [keyEvent, setKeyEvent] = useState(null);
+  const syncConfig = useSelector(getSyncConfig)
+  
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -106,6 +109,7 @@ function App(props) {
   }, [loadAll]);
 
   useEffect(() => {
+    if(Utils.hasActiveInput()) return;
     const { modalOpen } = props;
     if (modalOpen || !keyEvent) return;
     switch (keyEvent.keyCode) {
@@ -141,7 +145,7 @@ function App(props) {
         <p style={{ marginTop: '15px', marginBottom: '15px' }} >{videoName}</p>
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
-        <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>Subtitle</ToggleButton>
+        <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>{"Subtitle " + syncConfig.subtitleSlope != 1 ? syncConfig.subtitleSlope : ""}</ToggleButton>
         {showEditor &&
           <div className='filter-container'>
             <FilterEditor />

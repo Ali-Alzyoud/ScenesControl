@@ -9,6 +9,7 @@ import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, 
 import {FaMinus} from 'react-icons/fa'
 
 import './style.css'
+import Utils from '../../utils/utils';
 
 const KEY = {
     N: 78,
@@ -63,6 +64,7 @@ function FilterFileEditor(props) {
     }, []);
 
     useEffect(() => {
+        if(Utils.hasActiveInput()) return;
         if(modalOpen || !keyEvent) return;
         switch (keyEvent.keyCode) {
             case KEY.N:

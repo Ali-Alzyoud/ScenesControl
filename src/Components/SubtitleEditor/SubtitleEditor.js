@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from 'react'
+import React, { useCallback, useState, useRef, useEffect } from 'react'
 import { FaSave, FaPlus, FaMinus } from 'react-icons/fa'
 import { connect, useDispatch, useSelector } from "react-redux";
 import SrtClass from '../../common/SrtClass';
@@ -51,6 +51,9 @@ function SubtitleEditor(props) {
                 subtitleDelay: time / 1000,
                 subtitleSlope: 1,
             }));
+            if (inputSlopRef.current) {
+                inputSlopRef.current.value = syncConfig.subtitleSlope.toFixed(5);
+            }
         } else if (subtitleRecords1.length == 2 && subtitleRecords2.length == 2) {
             const recordSrc1From = Math.min(subtitleRecords1[0].from, subtitleRecords1[1].from);
             const recordSrc2From = Math.max(subtitleRecords1[0].from, subtitleRecords1[1].from);
@@ -65,45 +68,65 @@ function SubtitleEditor(props) {
                 subtitleDelay: delay / 1000,
                 subtitleSlope: slope,
             }));
+            if (inputSlopRef.current) {
+                inputSlopRef.current.value = slope.toFixed(5);
+            }
         } else {
             alert("Select 1 or 2 records to sync them")
         }
     }
 
     const slopeInc = () => {
+        const slope = syncConfig.subtitleSlope + 0.05
         dispatch(setSettings_syncConfig(
             {
                 ...syncConfig,
-                subtitleSlope: syncConfig.subtitleSlope + 0.05,
+                subtitleSlope: slope,
             }
         ))
+        if (inputSlopRef.current) {
+            inputSlopRef.current.value = slope.toFixed(5);
+        }
     }
 
     const slopeDec = () => {
+        const slope = syncConfig.subtitleSlope - 0.01
         dispatch(setSettings_syncConfig(
             {
                 ...syncConfig,
-                subtitleSlope: syncConfig.subtitleSlope - 0.01,
+                subtitleSlope: slope,
             }
         ))
+        if (inputSlopRef.current) {
+            inputSlopRef.current.value = slope.toFixed(5);
+        }
     }
 
     const slopeDecSmall = () => {
+        const slope = syncConfig.subtitleSlope - 0.001
         dispatch(setSettings_syncConfig(
             {
                 ...syncConfig,
-                subtitleSlope: syncConfig.subtitleSlope - 0.001,
+                subtitleSlope: slope,
             }
         ))
+        if (inputSlopRef.current) {
+            inputSlopRef.current.value = slope.toFixed(5);
+        }
     }
 
     const slopeDecSmallExtr = () => {
+        const slope = syncConfig.subtitleSlope - 0.0001
         dispatch(setSettings_syncConfig(
             {
                 ...syncConfig,
-                subtitleSlope: syncConfig.subtitleSlope - 0.0001,
+                subtitleSlope: slope,
             }
         ))
+        if (inputSlopRef.current) {
+            inputSlopRef.current.value = slope.toFixed(5);
+        }
+        
     }
 
     const delayInc = () => {
@@ -187,6 +210,30 @@ function SubtitleEditor(props) {
         [],
     )
 
+    const updateSlope = (event) => {
+        try {
+            const target = event.target;
+            const value = eval(target.value);
+            const num = Number(value);
+            if(num > 0 && num < 10)
+            dispatch(setSettings_syncConfig(
+                {
+                    ...syncConfig,
+                    subtitleSlope: Number(num),
+                }
+            ))   
+        } catch (error) {
+            
+        }
+    }
+
+    const inputSlopRef = useRef();
+    useEffect(()=>{
+        if (inputSlopRef.current) {
+            inputSlopRef.current.value = syncConfig.subtitleSlope.toFixed(5);
+        }
+    },[])
+
     return (
         <div className='editor-container'>
             <div className='container' onClick={saveItems}>
@@ -203,7 +250,8 @@ function SubtitleEditor(props) {
             <div className='container small' onClick={slopeInc}>
                 <FaPlus className='middle' />
             </div>
-            <span className='middle-text'>Slope {syncConfig.subtitleSlope.toFixed(5)}</span>
+            <span className='middle-text'>Slope</span>
+            <input className='middle-text slope' onInput={updateSlope} ref={inputSlopRef}/>
             <div className='container small' onClick={slopeDec}>
                 <FaMinus className='middle' />
             </div>

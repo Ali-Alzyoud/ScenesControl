@@ -68,6 +68,9 @@ input.bkLong {
     height: 30px;
     vertical-align: bottom;
     display: inline-block;
+    &.slope{
+        max-width: 60px;
+    }
 }
 
 .rect{

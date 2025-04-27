@@ -20,6 +20,7 @@ import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute
 import { setTime, setPlayerState, setVolume, setSettings_syncConfig } from '../../redux/actions';
 import Slider from '../Slider';
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
+import Utils from '../../utils/utils'
 
 var styleControls = {
     width: '80%',
@@ -132,6 +133,7 @@ function VideoControls({ time,
     }, [time, duration]);
 
     useEffect(() => {
+        if(Utils.hasActiveInput()) return;
         if (modalOpen || !keyEvent) return;
         let jump = keyEvent.shiftKey ? 1 : 5;
         if (keyEvent.ctrlKey) jump *= 2;
