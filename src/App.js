@@ -145,7 +145,7 @@ function App(props) {
         <p style={{ marginTop: '15px', marginBottom: '15px' }} >{videoName}</p>
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
-        <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>{"Subtitle " + syncConfig.subtitleSlope != 1 ? syncConfig.subtitleSlope : ""}</ToggleButton>
+        <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>{"Subtitle " + (syncConfig.subtitleDelay ? syncConfig.subtitleDelay : "")}</ToggleButton>
         {showEditor &&
           <div className='filter-container'>
             <FilterEditor />
