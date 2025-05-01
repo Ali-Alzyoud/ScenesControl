@@ -51,6 +51,13 @@ class VideoPlayer extends React.PureComponent {
         blurScreen: !this.state.blurScreen
       })
     }
+    else if(e.key === 8){
+      if(this.player.current.playbackRate >= 3){
+        this.player.current.playbackRate = 0.5;
+      } else {
+        this.player.current.playbackRate += 0.5;
+      }
+    }
   }
 
   componentDidMount() {
