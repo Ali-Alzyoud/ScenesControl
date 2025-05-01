@@ -56,7 +56,7 @@ class VideoPlayer extends React.PureComponent {
       const {speedMulti} = this.state;
       if(speedMulti>= 2.4){
         this.setState({
-          speedMulti : 1
+          speedMulti : 0.5
         })
       } else {
         this.setState({
@@ -258,6 +258,7 @@ class VideoPlayer extends React.PureComponent {
           <div className='subtitlecontainer'>
             {<VideoSrt time={time * 1000} />}
           </div>
+          {this.state.speedMulti != 1 ? <div style={{position:'absolute', zIndex:1, left:'15%', top:'15%', color:'blue', fontWeight:'bold', fontSize:'24px',backgroundColor:"red"}}>{this.state.speedMulti}</div> : null}
           <div className='controlscontainer'>
             <VideoControls
               style={{ width: "80%" }}
