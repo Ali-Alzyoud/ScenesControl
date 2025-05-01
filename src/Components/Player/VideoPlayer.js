@@ -5,7 +5,7 @@ import VideoSrt from "./VideoSRT";
 
 import { connect } from "react-redux";
 import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName, selectVideoIsLoading, selectDrawingEnabled } from '../../redux/selectors'
-import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume } from "../../redux/actions";
+import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume, setSpeed } from "../../redux/actions";
 import ToastMessage from "../Toast";
 import Utils from "../../utils/utils";
 
@@ -31,6 +31,7 @@ class VideoPlayer extends React.PureComponent {
       blackScreen: false,
       blurScreen: false,
       ignoreNextMouseEvent: false,
+      speedMulti: 1,
     };
     this.player = createRef();
     this.hideTimer = null;
@@ -51,11 +52,16 @@ class VideoPlayer extends React.PureComponent {
         blurScreen: !this.state.blurScreen
       })
     }
-    else if(e.key === 8){
-      if(this.player.current.playbackRate >= 3){
-        this.player.current.playbackRate = 0.5;
+    else if(e.key == 8){
+      const {speedMulti} = this.state;
+      if(speedMulti>= 2.4){
+        this.setState({
+          speedMulti : 1
+        })
       } else {
-        this.player.current.playbackRate += 0.5;
+        this.setState({
+          speedMulti : speedMulti + 0.5
+        })
       }
     }
   }
@@ -129,9 +135,9 @@ class VideoPlayer extends React.PureComponent {
       }
       this.setState({ visible: true, visibleAudio: true });
     }
-    if (this.player.current.playbackRate !== speed) {
-      this.player.current.playbackRate = speed;
-    }
+    //if (this.player.current.playbackRate !== speed) {
+      this.player.current.playbackRate = speed * this.state.speedMulti;
+    //}
   }
 
   onFullscreen = () => {
