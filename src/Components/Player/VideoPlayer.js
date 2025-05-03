@@ -56,11 +56,11 @@ class VideoPlayer extends React.PureComponent {
       const {speedMulti} = this.state;
       if(speedMulti>= 2.6){
         this.setState({
-          speedMulti : 0.5
+          speedMulti : 1.0
         })
       } else {
         this.setState({
-          speedMulti : speedMulti + 0.5
+          speedMulti : speedMulti + 1.0
         })
       }
     }
