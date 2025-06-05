@@ -23,12 +23,12 @@ import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import Utils from '../../utils/utils'
 
 var styleControls = {
-    width: '80%',
+    width: '90%',
     zIndex: 99,
     opacity: 1,
     transition: 'opacity 3s',
     position: 'absolute',
-    left: '10%',
+    left: '5%',
     height: '100%',
 }
 
@@ -36,7 +36,7 @@ var seekbarStyle = {
     margin: '0 auto',
     width: '100%',
     height: '15px',
-    background: 'gray',
+    background: '#F0F0F070',
     position: 'absolute',
     bottom: '50px',
 }
@@ -44,15 +44,15 @@ var seekbarStyle = {
 var seekbarStyleProgress = {
     width: '100%',
     height: '15px',
-    background: 'white',
+    background: '#FFFFFF60',
 }
 
 var seekhandleStyle = {
     left: '100%',
     top: '-10px',
-    marginLeft: '-12px',
-    width: '24px',
-    height: '24px',
+    marginLeft: '-17px',
+    width: '34px',
+    height: '34px',
     background: 'white',
     position: 'relative',
     borderRadius: '50%',

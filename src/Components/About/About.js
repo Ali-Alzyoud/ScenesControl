@@ -34,7 +34,15 @@ export default function About({close}) {
                 <p className="bold"> Key Bindings Playing</p>
                 <div className='part center'>
                     Space/Play : play/pause <br/>
-                    F : FullScreen
+                    F : FullScreen<br/>
+                    3 : FullScreen<br/>
+                    8 : change speed<br/>
+                    5 : reload
+                </div>
+                <p className="bold"> Key Bindings Sync subtitle</p>
+                <div className='part center'>
+                    4 : delay <br/>
+                    6 : increase
                 </div>
                 <p className="bold"> Mouse Bindings </p>
                 <div className='part'>
