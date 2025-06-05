@@ -41,8 +41,8 @@ export default function About({close}) {
                 </div>
                 <p className="bold"> Key Bindings Sync subtitle</p>
                 <div className='part center'>
-                    4 : delay <br/>
-                    6 : increase
+                    7 : delay <br/>
+                    9 : increase
                 </div>
                 <p className="bold"> Mouse Bindings </p>
                 <div className='part'>
