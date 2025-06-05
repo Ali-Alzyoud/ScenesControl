@@ -35,7 +35,7 @@ var styleControls = {
 var seekbarStyle = {
     margin: '0 auto',
     width: '100%',
-    height: '5px',
+    height: '10px',
     background: 'gray',
     position: 'absolute',
     bottom: '50px',
