@@ -35,7 +35,7 @@ var styleControls = {
 var seekbarStyle = {
     margin: '0 auto',
     width: '100%',
-    height: '10px',
+    height: '15px',
     background: 'gray',
     position: 'absolute',
     bottom: '50px',
@@ -43,7 +43,7 @@ var seekbarStyle = {
 
 var seekbarStyleProgress = {
     width: '100%',
-    height: '5px',
+    height: '15px',
     background: 'white',
 }
 
