@@ -132,6 +132,18 @@ function FilterPicker({
         e.stopPropagation();
         e.preventDefault();
     }
+    const handleScroll = () => {
+        const scrollTop = containerRef.current.scrollTop;
+        sessionStorage["scrollValue"] = scrollTop;
+      };
+    useEffect(() => {
+        const savedScroll = parseInt(sessionStorage["scrollValue"] || '0', 10);
+        if (containerRef.current) {
+            setTimeout(() => {
+                containerRef.current.scrollTop = savedScroll;
+            }, 200); 
+        }
+      }, []);
 
     return (
         <div className="filters-container">
@@ -152,12 +164,14 @@ function FilterPicker({
                             }}
                             onClick={()=>{
                                 setSelectedIndex(index);
+                                sessionStorage.removeItem("scrollValue");
+                                containerRef.current.scrollTop = 0;
                                 localStorage.setItem("selectedIndex", index)
                             }}>{folder}</div>
                         })
                     }
                 </div>
-                <div className="filter-files" ref={containerRef} tabIndex={0}>
+                <div className="filter-files" ref={containerRef} tabIndex={0} onScroll={handleScroll}>
                     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'20px' }}>
                         {localFolders[selectedFolder]?.map?.(((item, index) => {
                             if (item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4") || file.endsWith(".webm")).length > 1) {
