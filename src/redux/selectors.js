@@ -10,6 +10,10 @@ export const selectSubtitle = (state) => {
     return state.media.subtitle;
 }
 
+export const selectSubtitleName = (state) => {
+    return state.media.subtitleName;
+}
+
 export const selectSubtitleSync = (state) => {
     return state.media.subtitleSync;
 }

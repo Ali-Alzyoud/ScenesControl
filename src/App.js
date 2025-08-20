@@ -12,7 +12,7 @@ import ToggleButton from './Components/ToggleButton'
 
 
 import { connect, useSelector } from "react-redux";
-import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems, setDuration, setTime, setVideoName } from './redux/actions'
+import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems, setDuration, setTime, setVideoName, setSubtitleName } from './redux/actions'
 import { getSyncConfig, selectModalOpen, selectVideoIsLoading, selectVideoName } from './redux/selectors'
 import Loader from './Components/Loader';
 import SubtitleEditor from './Components/SubtitleEditor/SubtitleEditor';
@@ -30,7 +30,7 @@ const KEY = {
 
 function App(props) {
 
-  const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading, videoName } = props;
+  const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading, videoName, setSubtitleName } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
@@ -84,9 +84,11 @@ function App(props) {
       if (subtitleURL.toLowerCase().startsWith('http')) {
         SrtClass.ReadFile(subtitleURL).then((records) => {
           setSubtitle(records)
+          setSubtitleName(subtitleURL);
         });
       } else {
         setSubtitle([]);
+        setSubtitleName("")
       }
 
       if (filterURL.toLowerCase().startsWith('http')) {
@@ -175,5 +177,5 @@ const mapStateToProps = state => {
 
 export default connect(
   mapStateToProps,
-  { addFilterItems, setVideoSrc, setSubtitle, setDuration, setTime, setVideoName }
+  { addFilterItems, setVideoSrc, setSubtitle, setSubtitleName, setDuration, setTime, setVideoName }
 )(App);

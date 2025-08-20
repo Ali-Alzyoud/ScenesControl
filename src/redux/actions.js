@@ -23,13 +23,22 @@ import {
   SET_TOAST_TEXT,
   SET_TOAST_TIMEOUT,
   SET_SELECTED_ITEMS,
-  SET_SUBTITLE_SYNC
+  SET_SUBTITLE_SYNC,
+  SET_SUBTITLE_NAME
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
   type: SET_SUBTITLE,
   payload: {
     subtitle
+  }
+});
+
+
+export const setSubtitleName = subtitleName => ({
+  type: SET_SUBTITLE_NAME,
+  payload: {
+    subtitleName
   }
 });
 

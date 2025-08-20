@@ -1,9 +1,9 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react'
-import { FaSave, FaPlus, FaMinus } from 'react-icons/fa'
+import { FaSave, FaPlus, FaMinus, FaMendeley, FaChair, Fa500Px, FaSubscript } from 'react-icons/fa'
 import { connect, useDispatch, useSelector } from "react-redux";
 import SrtClass from '../../common/SrtClass';
-import { setSettings_syncConfig, setSubtitle } from '../../redux/actions';
-import { getSyncConfig, selectSubtitle, selectSubtitleSync, selectVideoName } from '../../redux/selectors';
+import { setSettings_syncConfig, setSubtitle, setSubtitleName } from '../../redux/actions';
+import { getSyncConfig, selectSubtitle, selectSubtitleName, selectSubtitleSync, selectVideoName } from '../../redux/selectors';
 import store from '../../redux/store';
 
 import './style.css'
@@ -12,7 +12,10 @@ import SubtitleRecord from './SubtitleRecord';
 function SubtitleEditor(props) {
     const {
         subtitle,
-        subtitleSync
+        subtitleSync,
+        subtitleName,
+        setSubtitle,
+        setSubtitleName
     } = props;
 
     const syncConfig = useSelector(getSyncConfig)
@@ -150,6 +153,9 @@ function SubtitleEditor(props) {
     const hasSyncSubtitleFile = !!(subtitleSync && subtitleSync.length > 0);
     const [subtitleRecords1, setSubtitleRecords1] = useState([]);
     const [subtitleRecords2, setSubtitleRecords2] = useState([]);
+    const [showSubtitle, setShowSubtitle] = useState(false);
+    const [showFiles, setShowFiles] = useState(false);
+
 
     const onCheckSubtitle1 = useCallback((record, checked) => {
         if (checked) {
@@ -234,10 +240,39 @@ function SubtitleEditor(props) {
         }
     },[])
 
+    const refFiles = useRef();
+    const refSelectedIndex = useRef(0);
+    const showSubtitleFiles = () => {
+        const subtitleToSelect = [];
+        const srts = JSON.parse(localStorage.currentList || '[]').srts;
+        refSelectedIndex.current = srts.findIndex((item) => item === subtitleName);
+        refFiles.current = srts;
+        setShowFiles(!showFiles);
+    }
+
+    const LoadSubtitle = (url) => {
+       if (url.toLowerCase().startsWith('http')) {
+        SrtClass.ReadFile(url).then((records) => {
+          setSubtitle(records)
+          setSubtitleName(url);
+        });
+      } else {
+        setSubtitle([]);
+        setSubtitleName("")
+      }
+    }
+
+
     return (
         <div className='editor-container'>
             <div className='container' onClick={saveItems}>
                 <FaSave className='middle' />
+            </div>
+            <div className='container rect' onClick={()=>setShowSubtitle(!showSubtitle)}>
+                <span className='middle'>{showSubtitle ? "Hide" : "Show"}</span>
+            </div>
+            <div className='container rect' onClick={showSubtitleFiles}>
+                <span className='middle'>Files</span>
             </div>
             <br /><br />
             <div className='container small' onClick={delayInc}>
@@ -273,6 +308,23 @@ function SubtitleEditor(props) {
             <input type='checkbox' ref={checkBox}/><span>Keep original subtitle when translate</span>
             <br/>
             <br/>
+            {showFiles ? 
+                <table style={{marginRight: '20px', display: 'inline-block'}}>
+                    {
+                        refFiles.current.map((file, index) => {
+                            return <div style={{
+                                padding: '5px',
+                                backgroundColor: refSelectedIndex.current === index ? '#ddd' : '#fff',
+                                cursor: 'pointer'
+                            }} key={index + file} onClick={() => {
+                                LoadSubtitle(file);
+                                setShowFiles(false);
+                            }}>{file}</div>
+                        })
+                    }
+                </table>
+            : null}
+            {showSubtitle ? 
             <div className='table-container'>
                 <table style={{ float: hasSyncSubtitleFile ? 'left' : 'unset', marginRight: '20px' }}>
                     <tr>
@@ -299,7 +351,7 @@ function SubtitleEditor(props) {
                             })
                         }
                     </table>}
-            </div>
+            </div> : null}
         </div>
     )
 }
@@ -308,9 +360,11 @@ function SubtitleEditor(props) {
 const mapStateToProps = state => {
     const subtitle = selectSubtitle(state);
     const subtitleSync = selectSubtitleSync(state);
-    return { subtitle, subtitleSync };
+    const subtitleName = selectSubtitleName(state);
+    return { subtitle, subtitleSync, subtitleName };
 };
 
 export default connect(mapStateToProps,
     {
+        setSubtitle, setSubtitleName
     })(SubtitleEditor);

@@ -1,4 +1,4 @@
-import { SET_SUBTITLE, VIDEO_SRC, VIDEO_IS_LOADING, VIDEO_SRC_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_MUTE, SET_SPEED, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION, SET_SUBTITLE_SYNC } from "../actionTypes";
+import { SET_SUBTITLE, VIDEO_SRC, VIDEO_IS_LOADING, VIDEO_SRC_NAME, SET_TIME, SET_DURATION, SET_VOLUME, SET_MUTE, SET_SPEED, SET_PLAYER_STATE, SET_PLAYER_CONFIG, PLAYER_ACTION, SET_SUBTITLE_SYNC, SET_SUBTITLE_NAME } from "../actionTypes";
 
 
 const playerConfigJSON = localStorage.getItem("playerConfig");
@@ -41,6 +41,13 @@ const Media = (state = initialState, action) => {
       return {
         ...state,
         subtitleSync: subtitleSync,
+      };
+    }
+    case SET_SUBTITLE_NAME: {
+      const { subtitleName } = action.payload;
+      return {
+        ...state,
+        subtitleName,
       };
     }
     case VIDEO_SRC: {
