@@ -12,6 +12,7 @@ import { SceneGuideClass } from '../../common/SceneGuide';
 import { useAlert } from 'react-alert';
 import { useRef } from 'react';
 import { useMemo } from 'react';
+import StorageHelper from '../../Helpers/StorageHelper';
 
 export const openContent = ({ image, video, srt, filter }) => {
 
@@ -19,7 +20,7 @@ export const openContent = ({ image, video, srt, filter }) => {
     let str = window.location.origin + '#/'
         + btoa(encodeURIComponent(video)) + '/'
         + btoa(encodeURIComponent(srt ? (srt) : '')) + '/'
-        + btoa(encodeURIComponent(filter ? (filter): ''));
+        + btoa(encodeURIComponent(filter ? (filter) : ''));
     window.location.href = str;
     window.location.reload();
 
@@ -64,15 +65,15 @@ function FilterPicker({
     const [selectedFolder, setselectedFolder] = useState("");
     const [byDate, setByDate] = useState(!!localStorage.getItem("byDate"));
 
-    useEffect(()=>{
-        localStorage.setItem("byDate",byDate ? "1" : "")
-    },[byDate]);
+    useEffect(() => {
+        localStorage.setItem("byDate", byDate ? "1" : "")
+    }, [byDate]);
 
-    const localFolders = useMemo(()=>{
+    const localFolders = useMemo(() => {
         const container = {};
-        folders.map((folder)=>{
-            const folderName = folder?.folder?.split?.("/")?.[0]||"";
-            if(!container.hasOwnProperty(folderName)){
+        folders.map((folder) => {
+            const folderName = folder?.folder?.split?.("/")?.[0] || "";
+            if (!container.hasOwnProperty(folderName)) {
                 container[folderName] = [];
             }
             container[folderName].push(folder);
@@ -82,17 +83,17 @@ function FilterPicker({
             const keys = Object.keys(container);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                container[key] = container[key].sort((a, b) => {return Number(b.time) - Number(a.time)});
+                container[key] = container[key].sort((a, b) => { return Number(b.time) - Number(a.time) });
             }
         }
-        setSelectedIndex(localStorage.getItem("selectedIndex")||0);
+        setSelectedIndex(localStorage.getItem("selectedIndex") || 0);
         return container;
-    },[folders, byDate]);
+    }, [folders, byDate]);
 
-    useEffect(()=>{
-        const selectedFolder = Object.keys(localFolders||{})?.[selectedIndex]||""
+    useEffect(() => {
+        const selectedFolder = Object.keys(localFolders || {})?.[selectedIndex] || ""
         setselectedFolder(selectedFolder);
-    },[selectedIndex, localFolders, setselectedFolder])
+    }, [selectedIndex, localFolders, setselectedFolder])
 
 
     useEffect(() => {
@@ -107,23 +108,23 @@ function FilterPicker({
     }, []);
 
     useEffect(() => {
-      if(containerRef.current){
-        setTimeout(() => {
-            if(containerRef && containerRef.current){
-                containerRef.current.focus();
-                containerRef.current.tabIndex = 0;
-            }
-        }, 1000);
-      }
+        if (containerRef.current) {
+            setTimeout(() => {
+                if (containerRef && containerRef.current) {
+                    containerRef.current.focus();
+                    containerRef.current.tabIndex = 0;
+                }
+            }, 1000);
+        }
     }, [])
-    
+
     const alert = useAlert();
 
-    useEffect(()=>{
-        return ()=> {
+    useEffect(() => {
+        return () => {
             alert.removeAll();
         }
-    },[]);
+    }, []);
 
     const [filterText, setFilterText] = useState(localStorage.getItem("filterText"));
     const textChanged = (e) => {
@@ -135,15 +136,15 @@ function FilterPicker({
     const handleScroll = () => {
         const scrollTop = containerRef.current.scrollTop;
         sessionStorage["scrollValue"] = scrollTop;
-      };
+    };
     useEffect(() => {
         const savedScroll = parseInt(sessionStorage["scrollValue"] || '0', 10);
         if (containerRef.current) {
             setTimeout(() => {
                 containerRef.current.scrollTop = savedScroll;
-            }, 200); 
+            }, 200);
         }
-      }, []);
+    }, []);
 
     return (
         <div className="filters-container">
@@ -151,28 +152,28 @@ function FilterPicker({
                 <MdClose className="filters-container-close" onClick={close} />
                 <div className='filters-container-input-container'>
                     <input className='filters-container-input' onChange={textChanged} value={filterText}></input>
-                    <input value={byDate} checked={byDate} onChange={()=>{setByDate(!byDate)}} type='checkbox' style={{transform:"scale(1.5)"}}></input> By Date
+                    <input value={byDate} checked={byDate} onChange={() => { setByDate(!byDate) }} type='checkbox' style={{ transform: "scale(1.5)" }}></input> By Date
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '10px', margin: '20px' }}>
                     {
                         Object.keys(localFolders || {})?.map?.((folder, index) => {
-                            return <div style={{ 
+                            return <div style={{
                                 color: 'black',
                                 padding: '10px',
                                 background: 'lightblue',
-                                ...(index == selectedIndex ? {border:'5px solid red'}: {})
+                                ...(index == selectedIndex ? { border: '5px solid red' } : {})
                             }}
-                            onClick={()=>{
-                                setSelectedIndex(index);
-                                sessionStorage.removeItem("scrollValue");
-                                containerRef.current.scrollTop = 0;
-                                localStorage.setItem("selectedIndex", index)
-                            }}>{folder}</div>
+                                onClick={() => {
+                                    setSelectedIndex(index);
+                                    sessionStorage.removeItem("scrollValue");
+                                    containerRef.current.scrollTop = 0;
+                                    localStorage.setItem("selectedIndex", index)
+                                }}>{folder}</div>
                         })
                     }
                 </div>
                 <div className="filter-files" ref={containerRef} tabIndex={0} onScroll={handleScroll}>
-                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap:'20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '20px' }}>
                         {localFolders[selectedFolder]?.map?.(((item, index) => {
                             if (item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4") || file.endsWith(".webm")).length > 1) {
                                 let image = item.files.filter(file => file.endsWith(".jpg") || file.endsWith(".png"));
@@ -195,56 +196,56 @@ function FilterPicker({
 
 
                                 return filterText && !item?.folder?.toLowerCase()?.includes(filterText) ?
-                                        null
-                                        :
-                                        <FileRecord
-                                    imgSrc={image}
-                                    title={item.folder}
-                                    copy={() => {
-                                        alert.removeAll();
-                                        alert.show(<div style={{
-                                            display: 'flex',
-                                            gap:'8px' ,
-                                            flexWrap: 'wrap',
-                                            flexDirection: 'row',
-                                            maxHeight:"520px",
-                                            minWidth:'520px',
-                                            overflow:'scroll'
+                                    null
+                                    :
+                                    <FileRecord
+                                        imgSrc={image}
+                                        title={item.folder}
+                                        copy={() => {
+                                            alert.removeAll();
+                                            alert.show(<div style={{
+                                                display: 'flex',
+                                                gap: '8px',
+                                                flexWrap: 'wrap',
+                                                flexDirection: 'row',
+                                                maxHeight: "520px",
+                                                minWidth: '520px',
+                                                overflow: 'scroll'
                                             }}>
-                                            {
-                                                videos.map((video, index) => {
-                                                    return <div style={{ 
-                                                        width: "fitContent",
-                                                        height: '60px',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center',
-                                                        alignSelf:'center',
-                                                        borderColor: 'red',
-                                                        borderWidth: '1px',
-                                                        borderStyle:'double',
-                                                        background:'gray'
-                                                    }} onClick={() => {
-                                                        localStorage.currentListIndex = index;
-                                                        localStorage.currentList = JSON.stringify({
-                                                            videos,
-                                                            srts,
-                                                            filters,
-                                                        });
-                                                        openContent({ image, video:videos[index], srt:srts[index], filter:filters[index] })
-                                                        //alert.removeAll();
-                                                    }}>{video?.split?.("/")?.reverse?.()?.[0]}</div>
-                                                })
-                                            }
-                                        </div>);
-                                        // copy({ image, video, srt, filter })
-                                    }}
-                                />
+                                                {
+                                                    videos.map((video, index) => {
+                                                        const hasProgress = StorageHelper.getContentProgress({videoName: video?.split?.("/")?.reverse?.()[0]});
+                                                        return <div style={{
+                                                            width: "fitContent",
+                                                            height: '60px',
+                                                            justifyContent: 'center',
+                                                            alignItems: 'center',
+                                                            alignSelf: 'center',
+                                                            borderColor: 'red',
+                                                            borderWidth: '1px',
+                                                            borderStyle: 'double',
+                                                            background: hasProgress? 'lightgray' : 'gray',
+                                                            color: 'black',
+                                                            padding: '10px',
+                                                            cursor: 'pointer',
+
+                                                        }} onClick={() => {
+                                                            StorageHelper.saveToCurrentList({ videos, srts, filters, index });
+                                                            openContent({ image, video: videos[index], srt: srts[index], filter: filters[index] })
+                                                            //alert.removeAll();
+                                                        }}>{video?.split?.("/")?.reverse?.()?.[0]}</div>
+                                                    })
+                                                }
+                                            </div>);
+                                            // copy({ image, video, srt, filter })
+                                        }}
+                                    />
 
                             } else {
                                 let image = item.files.filter(file => file.includes(".jpg") || file.includes(".png"))?.[0] || ""
                                 let video = item.files.filter(file => file.includes(".mkv") || file.includes(".mp4") || file.includes(".webm"))?.[0]
                                 let srt = item.files.filter(file => file.includes(".srt"))?.[0]
-                                let filter = item.files.filter(file => file.includes("mp4.txt") || file.includes("mkv.txt")|| file.includes("webm.txt"))?.[0];
+                                let filter = item.files.filter(file => file.includes("mp4.txt") || file.includes("mkv.txt") || file.includes("webm.txt"))?.[0];
                                 image = image ? `${path}/${item.folder}/${image}` : "";
                                 video = video && `${videoPath}/${item.folder}/${video}`;
                                 srt = srt && `${path}/${item.folder}/${srt}`;
@@ -256,15 +257,9 @@ function FilterPicker({
                                         imgSrc={image}
                                         title={item.folder}
                                         filter={!!filter}
+                                        video={video}
                                         copy={() => {
-
-                                            localStorage.currentListIndex = 0;
-                                            localStorage.currentList = JSON.stringify({
-                                                videos: [video],
-                                                srts: [srt],
-                                                filters: [filter],
-                                            });
-
+                                            StorageHelper.saveToCurrentList({ videos: [video], srts: [srt], filters: [filter], index: 0 });
                                             openContent({ image, video, srt, filter })
                                         }
                                         }

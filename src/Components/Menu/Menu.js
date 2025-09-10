@@ -12,6 +12,7 @@ import { setFilterItems, setVideoSrc, setSubtitle, setSubtitleSync, setVideoName
 
 import './menu.css'
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
+import StorageHelper from '../../Helpers/StorageHelper'
 
 const API = "/api/v1/files";
 const API_FILES = "/static";
@@ -40,7 +41,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
         setVideoSrc(videoSrc);
         setVideoName(videoName);
 
-        const getCurrentTime = localStorage.getItem(videoName) || 0;
+        const getCurrentTime = StorageHelper.getContentProgress({videoName});
         setDuration(0);
         setTime(Number(getCurrentTime));
         setkey(key + 1);

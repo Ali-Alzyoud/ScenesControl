@@ -8,6 +8,7 @@ import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState
 import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume, setSpeed } from "../../redux/actions";
 import ToastMessage from "../Toast";
 import Utils from "../../utils/utils";
+import StorageHelper from "../../Helpers/StorageHelper";
 
 const debounce = (func1, func, delay) => {
   let inDebounce;
@@ -70,8 +71,9 @@ class VideoPlayer extends React.PureComponent {
     this.progressSave = setInterval(() => {
 
       const { time, videoName, isLoading } = this.props;
-      if (videoName && time && !isLoading)
-        localStorage.setItem(videoName, time);
+      if (videoName && time && !isLoading){
+        StorageHelper.saveContentProgress({videoName, time});
+      }
     }, 5000);
 
     
@@ -221,7 +223,7 @@ class VideoPlayer extends React.PureComponent {
           ref={this.player}
           onLoadedData={(event) => {
             setVideoIsLoading(false);
-            const getCurrentTime = localStorage.getItem(videoName) || 0;
+            const getCurrentTime = StorageHelper.getContentProgress({videoName});;
             setTime(Number(getCurrentTime));
             setDuration(event.target.duration);
             setPlayerState("pause");

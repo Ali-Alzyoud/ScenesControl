@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { FaSave, FaPlus, FaFastForward, FaFastBackward } from 'react-icons/fa'
+import { FaSave, FaPlus, FaFastForward, FaFastBackward, FaToggleOn, FaToggleOff } from 'react-icons/fa'
 import FilterRecord from './FilterRecord'
 import { SceneGuideRecord, SceneGuideClass, SceneType } from '../../common/SceneGuide'
 
@@ -43,6 +43,7 @@ function FilterFileEditor(props) {
     const [key, setKey] = useState(0);
     const [keyEvent, setKeyEvent] = useState(null);
     const selectNext = useRef(null);
+    const [toggleRow, setToggleRow] = useState(false);
 
     useEffect(()=>{
         if(selectNext.current){
@@ -272,8 +273,15 @@ function FilterFileEditor(props) {
             <div className='container red' onClick={() => removeAll('to')}>
                 <FaMinus className='middle' />
             </div>
+            <div className='container' onClick={() => setToggleRow(!toggleRow)}>
+                {toggleRow ? <FaToggleOn className='middle' /> : <FaToggleOff className='middle' />}
+            </div>
             <br /><br />
             <div className='table-container' key={key}>
+                {toggleRow ? 
+                <textarea readOnly style={{ width: '400px', height: '400px' }}>
+                    {SceneGuideClass.ToString(records)}
+                </textarea> :
                 <table>
                     <tr>
                         <th>From</th>
@@ -292,7 +300,7 @@ function FilterFileEditor(props) {
                                 selectItem={selectItem} />
                         })
                     }
-                </table>
+                </table>}
             </div>
         </div>
     )
