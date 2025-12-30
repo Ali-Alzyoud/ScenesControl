@@ -132,6 +132,42 @@ function SubtitleEditor(props) {
         
     }
 
+    const [ratio, setRatio] = useState("1/1");
+    
+    const slopeChange = () => {
+        let newRatio;
+        if (ratio === "1/1") {
+            newRatio = "24/25";
+            dispatch(setSettings_syncConfig(
+                {
+                    ...syncConfig,
+                    subtitleSlope: 24 / 25,
+                }
+            ))
+        } else if (ratio === "24/25") {
+            newRatio = "25/24";
+            dispatch(setSettings_syncConfig(
+                {
+                    ...syncConfig,
+                    subtitleSlope: 25 / 24,
+                }
+            ))
+        } else {
+            newRatio = "1/1";
+            dispatch(setSettings_syncConfig(
+                {
+                    ...syncConfig,
+                    subtitleSlope: 1,
+                }
+            ))
+        }
+        setRatio(newRatio);
+        if (inputSlopRef.current) {
+            inputSlopRef.current.value = syncConfig.subtitleSlope.toFixed(5);
+        }
+
+    }
+
     const delayInc = () => {
         dispatch(setSettings_syncConfig(
             {
@@ -295,6 +331,9 @@ function SubtitleEditor(props) {
             </div>
             <div className='container small' onClick={slopeDecSmallExtr}>
                 <FaMinus className='middle' />
+            </div>
+            <div className='container small' onClick={slopeChange}>
+                {ratio}
             </div>
                    <br /><br />
             <div className='container rect' onClick={sync}>
