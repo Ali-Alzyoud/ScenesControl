@@ -136,34 +136,26 @@ function SubtitleEditor(props) {
     
     const slopeChange = () => {
         let newRatio;
+        let newSlope;
         if (ratio === "1/1") {
             newRatio = "24/25";
-            dispatch(setSettings_syncConfig(
-                {
-                    ...syncConfig,
-                    subtitleSlope: 24 / 25,
-                }
-            ))
+            newSlope = 24 / 25;
         } else if (ratio === "24/25") {
             newRatio = "25/24";
-            dispatch(setSettings_syncConfig(
-                {
-                    ...syncConfig,
-                    subtitleSlope: 25 / 24,
-                }
-            ))
+            newSlope = 25 / 24;
         } else {
             newRatio = "1/1";
-            dispatch(setSettings_syncConfig(
-                {
-                    ...syncConfig,
-                    subtitleSlope: 1,
-                }
-            ))
+            newSlope = 1;
         }
         setRatio(newRatio);
+        dispatch(setSettings_syncConfig(
+            {
+                ...syncConfig,
+                subtitleSlope: newSlope,
+            }
+        ))
         if (inputSlopRef.current) {
-            inputSlopRef.current.value = syncConfig.subtitleSlope.toFixed(5);
+            inputSlopRef.current.value = newSlope.toFixed(5);
         }
 
     }
