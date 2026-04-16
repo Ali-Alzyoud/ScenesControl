@@ -164,6 +164,7 @@ function FilterPicker({
                             onClick={() => selectTab(index)}
                         >
                             {folder || '(root)'}
+                            <span className="folder-tab-count">{localFolders[folder].length}</span>
                         </div>
                     ))}
                 </div>
@@ -192,6 +193,7 @@ function FilterPicker({
                                         imgSrc={image}
                                         title={item.folder}
                                         isMultiEpisode
+                                        episodeCount={videos.length}
                                         copy={() => openEpisodePanel({ title: item.folder, image, videos, srts, filters })}
                                     />
                                 );

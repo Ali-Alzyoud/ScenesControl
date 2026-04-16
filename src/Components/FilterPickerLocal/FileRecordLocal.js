@@ -4,7 +4,7 @@ import { FaEye, FaFilter, FaPlayCircle } from 'react-icons/fa'
 import { MdVideoLibrary } from 'react-icons/md'
 
 
-export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, hasProgress: hasProgressProp, video, copy }) {
+export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy }) {
     const localTitle = title?.includes("/") ? title?.split("/")?.[1] : title;
     const hasProgress = useMemo(() => {
         if (hasProgressProp) return true;
@@ -34,6 +34,7 @@ export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, hasP
                     {isMultiEpisode && (
                         <span className="badge badge-episodes" title="Multiple episodes">
                             <MdVideoLibrary />
+                            {episodeCount > 0 && <span className="badge-count">{episodeCount}</span>}
                         </span>
                     )}
                 </div>

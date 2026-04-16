@@ -50,7 +50,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 44px 20px 10px;
+    padding: 54px 20px 10px;
     background: #1a1a2e;
     border-bottom: 1px solid #2a2a40;
     flex-shrink: 0;
@@ -239,6 +239,32 @@
 .badge-episodes {
     background: #7b3fa0;
     color: #e0b3ff;
+    width: auto;
+    border-radius: 11px;
+    padding: 0 7px 0 5px;
+    gap: 4px;
+    font-size: 15px;
+}
+.badge-count {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Folder tab item count */
+.folder-tab-count {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #555588;
+    background: #1a1a30;
+    border-radius: 10px;
+    padding: 1px 6px;
+}
+.folder-tab.active .folder-tab-count {
+    color: #8880cc;
+    background: #2a2044;
 }
 
 /* Card footer / title */
