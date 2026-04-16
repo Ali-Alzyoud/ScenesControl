@@ -178,7 +178,7 @@ function FilterPicker({
                             ).length > 1;
 
                             if (isMultiEpisode) {
-                                let imageFiles = item.files.filter(f => f.endsWith(".jpg") || f.endsWith(".png"));
+                                let imageFiles = item.files.filter(f => f.endsWith(".jpeg") || f.endsWith(".jpg") || f.endsWith(".png"));
                                 let videos = item.files.filter(f => f.endsWith(".mkv") || f.endsWith(".mp4") || f.endsWith(".webm"));
                                 let srts = item.files.filter(f => f.endsWith(".srt"));
                                 let filters = item.files.filter(f => f.endsWith("mp4.txt") || f.endsWith("mkv.txt") || f.endsWith("webm.txt"));
@@ -198,7 +198,7 @@ function FilterPicker({
                                     />
                                 );
                             } else {
-                                let imageFiles = item.files.filter(f => f.includes(".jpg") || f.includes(".png"));
+                                let imageFiles = item.files.filter(f => f.includes(".jpeg") || f.includes(".jpg") || f.includes(".png"));
                                 let videoFile = item.files.find(f => f.includes(".mkv") || f.includes(".mp4") || f.includes(".webm"));
                                 let srtFile = item.files.find(f => f.includes(".srt"));
                                 let filterFile = item.files.find(f => f.includes("mp4.txt") || f.includes("mkv.txt") || f.includes("webm.txt"));
