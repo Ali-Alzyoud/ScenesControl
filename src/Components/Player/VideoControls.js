@@ -35,35 +35,39 @@ var styleControls = {
 var seekbarStyle = {
     margin: '0 auto',
     width: '100%',
-    height: '15px',
-    background: '#F0F0F070',
+    height: '20px',
+    background: 'rgba(255,255,255,0.18)',
+    borderRadius: '10px',
     position: 'absolute',
-    bottom: '50px',
+    bottom: '68px',
+    overflow: 'visible',
 }
 
 var seekbarStyleProgress = {
     width: '100%',
-    height: '15px',
-    background: '#FFFFFF60',
+    height: '20px',
+    background: 'rgba(108,99,255,0.75)',
+    borderRadius: '10px',
 }
 
 var seekhandleStyle = {
     left: '100%',
     top: '-10px',
-    marginLeft: '-17px',
-    width: '34px',
-    height: '34px',
+    marginLeft: '-20px',
+    width: '40px',
+    height: '40px',
     background: 'white',
     position: 'relative',
     borderRadius: '50%',
-    border: '1px solid black',
+    border: '2px solid #6c63ff',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
     opacity: 1.0
 }
 
 var seekbuttonStyle = {
-    width: '32px',
-    height: '32px',
-    marginTop: '16px'
+    width: '56px',
+    height: '56px',
+    marginTop: '12px'
 }
 
 const KEY = {
@@ -263,7 +267,7 @@ function VideoControls({ time,
                 filters, } = JSON.parse(localStorage.currentList);
             if (index < 0 || index >= videos?.length) return;
             localStorage.currentListIndex = index;
-            openContent({ image: "", video: videos[index], srt: srts[index], filter: filters[index] })
+            openContent({ video: videos[index], srt: srts[index], filter: filters[index] })
         } catch (ex) { }
     }
 
@@ -326,7 +330,9 @@ function VideoControls({ time,
                     alt='error'
                     style={{
                         ...styleButton,
-                        bottom: '10px',
+                        width: '38px',
+                        height: '38px',
+                        bottom: '14px',
                         position: 'absolute',
                         right: '0',
                         color: 'white',

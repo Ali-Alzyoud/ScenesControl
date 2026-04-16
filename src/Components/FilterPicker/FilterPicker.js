@@ -72,14 +72,14 @@ function FilterPicker({
         }
     }, []);
     return (
-        <div className="filters-container">
-            <div className="filters-container-body">
-                <MdClose className="filters-container-close" onClick={close} />
-                <div className='filters-container-input-container'>
-                    <input className='filters-container-input' onChange={textChanged}></input>
+        <div className="fp-overlay">
+            <div className="c">
+                <MdClose className="fp-close" onClick={close} />
+                <div className='fp-search-bar'>
+                    <input className='fp-search-input' onChange={textChanged} placeholder="Search..."></input>
+                    <MdSearch className="fp-search-icon" />
                 </div>
-                <MdSearch className="filters-container-search" />
-                <div className="filter-files">
+                <div className="fp-files">
                     <list>
                         {
                             recordsItems && recordsItems.length > 0 ?

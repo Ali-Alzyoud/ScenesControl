@@ -186,7 +186,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                             srts,
                             filters, } = JSON.parse(localStorage.currentList);
                         if (index < 0 || index >= videos?.length) return;
-                        openContent({ image:"", video:videos[index], srt:srts[index], filter:filters[index] })   
+                        openContent({ video:videos[index], srt:srts[index], filter:filters[index] })   
                     } catch (error) {
                         
                     }

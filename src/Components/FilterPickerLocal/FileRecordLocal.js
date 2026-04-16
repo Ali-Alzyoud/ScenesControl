@@ -1,56 +1,46 @@
-import React, { use, useMemo } from 'react'
-import { FiMoreVertical } from 'react-icons/fi'
-import { MdFileDownload } from 'react-icons/md'
-import { GrRadialSelected, GrRadial } from 'react-icons/gr'
-import {MdContentCopy} from 'react-icons/md'
+import React, { useMemo } from 'react'
 import StorageHelper from '../../Helpers/StorageHelper'
-import { FaEye } from 'react-icons/fa'
+import { FaEye, FaFilter, FaPlayCircle } from 'react-icons/fa'
+import { MdVideoLibrary } from 'react-icons/md'
 
 
-export default function FileRecord({ imgSrc, title, link, filter, index, isSelected, select, copy, readyToPlay, video }) {
-    const localTitle = title?.includes("/") ? title?.split("/")?.[1] : title; 
-    const click = () => {
-        if(link){
-            window.open(link);
-        }
-    }
+export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, hasProgress: hasProgressProp, video, copy }) {
+    const localTitle = title?.includes("/") ? title?.split("/")?.[1] : title;
     const hasProgress = useMemo(() => {
-        if(!video) return false;
-        const progress = StorageHelper.getContentProgress({videoName: video});
-        return progress > 0;
-    }, [video]);
+        if (hasProgressProp) return true;
+        if (!video) return false;
+        const fileName = video.split('/').reverse()[0];
+        return StorageHelper.getContentProgress({ videoName: fileName }) > 0;
+    }, [video, hasProgressProp]);
+
     return (
-        <div className={`file-record2 ${readyToPlay ? 'ready' : ''}`} onClick={copy}>
-            {imgSrc && <img src={imgSrc || ""} onClick={click} />}
-            {readyToPlay ?
-                <div className='file-record2-container'>
-                    <h4 className='title ready'>{'Ready To Play'}</h4><br />
-                    <h2 className='title'>{title}</h2>
+        <div className="file-record2" onClick={copy}>
+            <div className="file-record2-image-wrap">
+                {imgSrc
+                    ? <img src={imgSrc} alt={localTitle} />
+                    : <div className="file-record2-no-image"><FaPlayCircle /></div>
+                }
+                <div className="file-record2-badges">
+                    {filter && (
+                        <span className="badge badge-filter" title="Scene filter available">
+                            <FaFilter />
+                        </span>
+                    )}
+                    {hasProgress && (
+                        <span className="badge badge-progress" title="In progress">
+                            <FaEye />
+                        </span>
+                    )}
+                    {isMultiEpisode && (
+                        <span className="badge badge-episodes" title="Multiple episodes">
+                            <MdVideoLibrary />
+                        </span>
+                    )}
                 </div>
-                :
-                <h2 className='title'>{localTitle}</h2>
-            }
-            {filter ? <div style={{
-                width:'16px',
-                height:'16px',
-                borderRadius:'8px',
-                right:'4px',
-                top:'4px',
-                backgroundColor:'green',
-                zIndex:1000,
-                position:'absolute'
-            }}/> : null}
-
-            {hasProgress ? <div style={{
-                right:'24px',
-                top:'4px',
-                zIndex:1000,
-                position:'absolute',
-                color:'blue'
-            }}><FaEye/></div> : null}
-
-
-            
+            </div>
+            <div className="file-record2-footer">
+                <span className="file-record2-title">{localTitle}</span>
+            </div>
         </div>
     )
 }

@@ -1,45 +1,61 @@
 .App {
   text-align: center;
   min-width: 500px;
+  background: #0e0e1a;
+  min-height: 100vh;
 }
 
-ul.video{
+/* Video name display */
+.App > div > p {
+  margin: 12px auto;
+  font-size: 14px;
+  color: #9090bb;
+  letter-spacing: 0.03em;
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Toggle buttons row */
+.App > div > .toggle-container {
+  margin-bottom: 16px;
+}
+
+/* Editor / Config / Subtitle panel wrappers */
+.filter-container,
+.config-container {
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+/* Unused legacy video list */
+ul.video {
   padding: 0;
-    list-style-type: none;
+  list-style-type: none;
 }
 
-li.video{
+li.video {
   list-style-type: none;
-  background: gray;
+  background: #1e1e30;
   padding-top: 32px;
   padding-bottom: 32px;
-  border-bottom:2px dotted black;
+  border-bottom: 2px dotted #2a2a40;
+  color: #c8c8e8;
 }
 
-li.video.selected{
-  background: blue !important;
+li.video.selected {
+  background: #6c63ff !important;
 }
 
-.filter-container {
-  /* left: 50%;
-  position: absolute;
-  transform: translateX(-50%); */
-}
-
-.config-container {
-  /* left: 50%;
-  position: absolute;
-  transform: translateX(-50%); */
-}
-
-
-li.video:hover{
-  background-color: lightblue;
+li.video:hover {
+  background-color: #2a2a44;
   cursor: pointer;
 }
 
-svg{
+/* SVG stroke color adjusted for dark background */
+svg {
   paint-order: stroke fill;
   stroke-width: 1;
-  stroke: black;
+  stroke: rgba(255,255,255,0.08);
 }

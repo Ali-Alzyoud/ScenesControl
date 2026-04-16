@@ -9,6 +9,7 @@ import FilterEditor from './Components/FilterFileEditor'
 import ConfigEditor from './Components/ConfigEditor'
 import { SceneGuideClass } from './common/SceneGuide'
 import ToggleButton from './Components/ToggleButton'
+import History from './Components/History/History'
 
 
 import { connect, useSelector } from "react-redux";
@@ -34,6 +35,7 @@ function App(props) {
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [keyEvent, setKeyEvent] = useState(null);
   const syncConfig = useSelector(getSyncConfig)
   
@@ -148,6 +150,7 @@ function App(props) {
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
         <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>{"Subtitle " + (syncConfig.subtitleDelay ? syncConfig.subtitleDelay : "")}</ToggleButton>
+        <ToggleButton on={showHistory} onClick={() => { setShowHistory(!showHistory) }}>History</ToggleButton>
         {showEditor &&
           <div className='filter-container'>
             <FilterEditor />
@@ -164,6 +167,7 @@ function App(props) {
           </div>
         }
       </div>
+      {showHistory && <History close={() => setShowHistory(false)} />}
     </div >
   );
 }

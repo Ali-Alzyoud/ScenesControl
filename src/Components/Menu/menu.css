@@ -1,91 +1,198 @@
-    .navbar {
-        overflow: hidden;
-        background-color: #333;
-    }
+/* ── Navbar ─────────────────────────────────────────────────── */
+.navbar {
+    overflow: visible;
+    background: #12121e;
+    border-bottom: 1px solid #2a2a40;
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+}
 
-  .navbar a {
+.navbar a {
     float: left;
-    font-size: 16px;
-    color: white;
+    font-size: 14px;
+    color: #c8c8e8;
     text-align: center;
-    padding: 14px 16px;
+    padding: 12px 16px;
     text-decoration: none;
     display: flex;
-  }
-  
-  .dropdown {
+    align-items: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+/* ── Dropdown trigger area ──────────────────────────────────── */
+.dropdown {
     float: left;
-    overflow: hidden;
-  }
-  
-  .dropdown .dropbtn {
-    font-size: 16px;  
+    overflow: visible;
+    position: relative;
+}
+
+.dropdown .dropbtn {
+    font-size: 14px;
     border: none;
     outline: none;
-    color: white;
-    padding: 14px 16px;
-    background-color: inherit;
+    color: #c8c8e8;
+    padding: 12px 16px;
+    background: transparent;
     font-family: inherit;
     margin: 0;
-  }
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
 
-  .dropbtn.blue{
-    background-color: blue;
-  }
-  
-  .navbar a:hover, .dropdown:hover .dropbtn {
-    background-color: darkgray;
-  }
-  
-  .dropdown-content {
+.dropbtn.blue {
+    color: #a89fff;
+    font-weight: 600;
+}
+
+.navbar a:hover,
+.dropdown:hover .dropbtn {
+    background: #1e1e30;
+    color: #ffffff;
+}
+
+/* ── Dropdown panel ─────────────────────────────────────────── */
+.dropdown-content {
     display: none;
     position: absolute;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 10;
-  }
+    background: #1a1a2e;
+    border: 1px solid #2a2a40;
+    min-width: 180px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    border-radius: 0 0 8px 8px;
+}
 
-  .dropdown-content.files > span{
-        margin-left: 10px;
-        margin-top: 5px;
-        display: inline-block;
-        width: 70px;
-        text-align: left;
-  }
-
-  .dropdown-content.files > input{
-    margin-left: 10px;
-    margin-right: 10px;
-  }
-
-  .dropdown-content.files > a{
-    background: #4f4f4d;
-    color: #fff;
-    margin-top: 10px;
-    text-align: center;
-  }
-  .dropdown-content a {
+.dropdown-content a {
     float: none;
-    color: black;
-    padding: 12px 16px;
+    color: #c8c8e8;
+    padding: 11px 16px;
     text-decoration: none;
     display: block;
     text-align: left;
-  }
-  
-  .dropdown-content a:hover {
-    background-color: #aaa;
-  }
+    font-size: 13px;
+    transition: background 0.15s;
+}
 
-  .dropdown-content div:hover {
-    background-color: #999;
-  }
-  
-  .dropdown:hover .dropdown-content {
+.dropdown-content a:hover {
+    background: #2a2a44;
+    color: #ffffff;
+}
+
+.dropdown-content div:hover {
+    background: #2a2a44;
+}
+
+.dropdown:hover .dropdown-content {
     display: block;
-  }
+}
 
-  input.hidden {
-      display: none;
-  }
+/* ── URL dropdown (files variant) ───────────────────────────── */
+.dropdown-content.files {
+    min-width: 280px;
+    padding: 12px 0 4px;
+}
+
+.dropdown-content.files > span {
+    display: inline-block;
+    margin-left: 12px;
+    margin-top: 6px;
+    width: 80px;
+    text-align: left;
+    font-size: 12px;
+    color: #9090bb;
+}
+
+.dropdown-content.files > input {
+    margin: 4px 12px;
+    background: #0e0e1a;
+    border: 1px solid #333355;
+    border-radius: 5px;
+    color: #e0e0f0;
+    padding: 5px 8px;
+    font-size: 12px;
+    width: calc(100% - 28px);
+    box-sizing: border-box;
+    outline: none;
+}
+
+.dropdown-content.files > input:focus {
+    border-color: #6c63ff;
+}
+
+.dropdown-content.files > a {
+    background: #6c63ff22;
+    color: #a89fff;
+    margin: 8px 12px 4px;
+    text-align: center;
+    border-radius: 6px;
+    border: 1px solid #6c63ff44;
+    width: calc(100% - 24px);
+    box-sizing: border-box;
+    font-weight: 600;
+    font-size: 13px;
+    transition: background 0.15s;
+}
+
+.dropdown-content.files > a:hover {
+    background: #6c63ff44;
+    color: #ffffff;
+}
+
+/* ── Right-side action bar (domain input + buttons) ─────────── */
+.navbar .dropdown:last-of-type {
+    margin-left: auto;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+}
+
+/* Domain / meta input */
+.navbar input[type="text"],
+.navbar input:not([type]) {
+    background: #0e0e1a;
+    border: 1px solid #333355;
+    border-radius: 6px;
+    color: #e0e0f0;
+    padding: 6px 10px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.18s;
+    width: 100%;
+}
+
+.navbar input[type="text"]:focus,
+.navbar input:not([type]):focus {
+    border-color: #6c63ff;
+}
+
+.navbar input::placeholder {
+    color: #555577;
+}
+
+/* Action buttons: Show Store, Resume, Remote, Local, Clear */
+.navbar button:not(.dropbtn) {
+    background: #1e1e30;
+    border: 1px solid #2a2a40;
+    border-radius: 6px;
+    color: #c8c8e8;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-left: 6px;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.navbar button:not(.dropbtn):hover {
+    background: #2a2a44;
+    border-color: #6c63ff66;
+    color: #ffffff;
+}
+
+/* Hidden file inputs */
+input.hidden {
+    display: none;
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { MdClose, MdSearch } from 'react-icons/md'
+import { MdClose } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import * as API from '../../common/API/API'
 
@@ -7,63 +7,35 @@ import { connect } from "react-redux";
 import { setFilterItems, setSubtitle, setModalOpen, setVideoSrc, setVideoName, setDuration, setTime } from '../../redux/actions'
 
 import "./style.css"
-import SrtClass from '../../common/SrtClass';
-import { SceneGuideClass } from '../../common/SceneGuide';
 import { useAlert } from 'react-alert';
 import { useRef } from 'react';
 import { useMemo } from 'react';
 import StorageHelper from '../../Helpers/StorageHelper';
+import { FaEye } from 'react-icons/fa';
 
-export const openContent = ({ image, video, srt, filter }) => {
-
-
+export const openContent = ({ video, srt, filter }) => {
     let str = window.location.origin + '#/'
         + btoa(encodeURIComponent(video)) + '/'
         + btoa(encodeURIComponent(srt ? (srt) : '')) + '/'
         + btoa(encodeURIComponent(filter ? (filter) : ''));
     window.location.href = str;
     window.location.reload();
-
-    // setVideoSrc(video);
-    // setVideoName(video.split("/")?.[video.split("/")?.length - 1]);
-    // if (srt) {
-    //     SrtClass.ReadFile(srt).then((records) => {
-    //         setSubtitle(records);
-    //     });
-    // }
-    // else {
-    //     setSubtitle([]);
-    // }
-    // if (filter) {
-    //     SceneGuideClass.ReadFile(filter).then((records) => {
-    //         setFilterItems(records);
-    //     });
-    // }
-    // else {
-    //     setFilterItems([]);
-    // }
-
-    // close();
 }
 
 function FilterPicker({
     close,
-    setFilterItems,
-    setSubtitle,
-    setVideoSrc,
-    setVideoName,
     setModalOpen,
-    setDuration,
-    setTime,
     folders,
     path,
     videoPath,
 }) {
-    const [recordsItems, setRecordsItems] = useState([]);
-    const containerRef = useRef()
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const [selectedFolder, setselectedFolder] = useState("");
+    const [selectedFolder, setSelectedFolder] = useState("");
     const [byDate, setByDate] = useState(!!localStorage.getItem("byDate"));
+    const [filterText, setFilterText] = useState(localStorage.getItem("filterText") || "");
+    const [episodePanel, setEpisodePanel] = useState(null); // { title, image, videos, srts, filters }
+    const containerRef = useRef();
+    const alert = useAlert();
 
     useEffect(() => {
         localStorage.setItem("byDate", byDate ? "1" : "")
@@ -71,72 +43,49 @@ function FilterPicker({
 
     const localFolders = useMemo(() => {
         const container = {};
-        folders.map((folder) => {
+        folders.forEach((folder) => {
             const folderName = folder?.folder?.split?.("/")?.[0] || "";
             if (!container.hasOwnProperty(folderName)) {
                 container[folderName] = [];
             }
             container[folderName].push(folder);
-        })
+        });
 
         if (byDate) {
-            const keys = Object.keys(container);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                container[key] = container[key].sort((a, b) => { return Number(b.time) - Number(a.time) });
-            }
+            Object.keys(container).forEach((key) => {
+                container[key] = container[key].sort((a, b) => Number(b.time) - Number(a.time));
+            });
         }
-        setSelectedIndex(localStorage.getItem("selectedIndex") || 0);
+        setSelectedIndex(Number(localStorage.getItem("selectedIndex")) || 0);
         return container;
     }, [folders, byDate]);
 
     useEffect(() => {
-        const selectedFolder = Object.keys(localFolders || {})?.[selectedIndex] || ""
-        setselectedFolder(selectedFolder);
-    }, [selectedIndex, localFolders, setselectedFolder])
-
+        const folder = Object.keys(localFolders || {})?.[selectedIndex] || "";
+        setSelectedFolder(folder);
+    }, [selectedIndex, localFolders]);
 
     useEffect(() => {
-        API.getMediaRecords().then((value) => {
-            const fileRecords = [];
-            setRecordsItems(value.records);
-        });
+        API.getMediaRecords();
         setModalOpen(true);
         return () => {
             setModalOpen(false);
-        }
+            alert.removeAll();
+        };
     }, []);
 
     useEffect(() => {
         if (containerRef.current) {
             setTimeout(() => {
-                if (containerRef && containerRef.current) {
+                if (containerRef.current) {
                     containerRef.current.focus();
                     containerRef.current.tabIndex = 0;
                 }
             }, 1000);
         }
-    }, [])
-
-    const alert = useAlert();
-
-    useEffect(() => {
-        return () => {
-            alert.removeAll();
-        }
     }, []);
 
-    const [filterText, setFilterText] = useState(localStorage.getItem("filterText"));
-    const textChanged = (e) => {
-        setFilterText(e.target.value.toLowerCase());
-        localStorage.setItem("filterText", e.target.value.toLowerCase())
-        e.stopPropagation();
-        e.preventDefault();
-    }
-    const handleScroll = () => {
-        const scrollTop = containerRef.current.scrollTop;
-        sessionStorage["scrollValue"] = scrollTop;
-    };
+    // Restore scroll position
     useEffect(() => {
         const savedScroll = parseInt(sessionStorage["scrollValue"] || '0', 10);
         if (containerRef.current) {
@@ -146,135 +95,179 @@ function FilterPicker({
         }
     }, []);
 
+    const handleScroll = () => {
+        sessionStorage["scrollValue"] = containerRef.current.scrollTop;
+    };
+
+    const textChanged = (e) => {
+        const val = e.target.value.toLowerCase();
+        setFilterText(val);
+        localStorage.setItem("filterText", val);
+    };
+
+    const selectTab = (index) => {
+        setSelectedIndex(index);
+        localStorage.setItem("selectedIndex", index);
+        sessionStorage.removeItem("scrollValue");
+        if (containerRef.current) containerRef.current.scrollTop = 0;
+    };
+
+    const openEpisodePanel = ({ title, image, videos, srts, filters }) => {
+        setEpisodePanel({ title, image, videos, srts, filters });
+    };
+
+    const closeEpisodePanel = (e) => {
+        e?.stopPropagation();
+        setEpisodePanel(null);
+    };
+
+    const playEpisode = ({ videos, srts, filters, index }) => {
+        StorageHelper.saveToCurrentList({ videos, srts, filters, index });
+        openContent({ video: videos[index], srt: srts[index], filter: filters[index] });
+    };
+
+    const currentItems = localFolders[selectedFolder] || [];
+    const filteredItems = filterText
+        ? currentItems.filter(item => item?.folder?.toLowerCase()?.includes(filterText))
+        : currentItems;
+
     return (
         <div className="filters-container">
             <div className="filters-container-body">
                 <MdClose className="filters-container-close" onClick={close} />
-                <div className='filters-container-input-container'>
-                    <input className='filters-container-input' onChange={textChanged} value={filterText}></input>
-                    <input value={byDate} checked={byDate} onChange={() => { setByDate(!byDate) }} type='checkbox' style={{ transform: "scale(1.5)" }}></input> By Date
+
+                {/* Toolbar */}
+                <div className="filters-container-toolbar">
+                    <input
+                        className="filters-container-input"
+                        placeholder="Search..."
+                        onChange={textChanged}
+                        value={filterText}
+                    />
+                    <label className="filters-container-sort-toggle">
+                        <input
+                            type="checkbox"
+                            checked={byDate}
+                            onChange={() => setByDate(!byDate)}
+                        />
+                        By Date
+                    </label>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '10px', margin: '20px' }}>
-                    {
-                        Object.keys(localFolders || {})?.map?.((folder, index) => {
-                            return <div style={{
-                                color: 'black',
-                                padding: '10px',
-                                background: 'lightblue',
-                                ...(index == selectedIndex ? { border: '5px solid red' } : {})
-                            }}
-                                onClick={() => {
-                                    setSelectedIndex(index);
-                                    sessionStorage.removeItem("scrollValue");
-                                    containerRef.current.scrollTop = 0;
-                                    localStorage.setItem("selectedIndex", index)
-                                }}>{folder}</div>
-                        })
-                    }
+
+                {/* Folder tabs */}
+                <div className="folder-tabs">
+                    {Object.keys(localFolders || {}).map((folder, index) => (
+                        <div
+                            key={folder}
+                            className={`folder-tab ${index === selectedIndex ? 'active' : ''}`}
+                            onClick={() => selectTab(index)}
+                        >
+                            {folder || '(root)'}
+                        </div>
+                    ))}
                 </div>
+
+                {/* Cards grid */}
                 <div className="filter-files" ref={containerRef} tabIndex={0} onScroll={handleScroll}>
-                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '20px' }}>
-                        {localFolders[selectedFolder]?.map?.(((item, index) => {
-                            if (item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4") || file.endsWith(".webm")).length > 1) {
-                                let image = item.files.filter(file => file.endsWith(".jpg") || file.endsWith(".png"));
-                                let videos = item.files.filter(file => file.endsWith(".mkv") || file.endsWith(".mp4") || file.endsWith(".webm"))
-                                let srts = item.files.filter(file => file.endsWith(".srt"));
-                                let filters = item.files.filter(file => file.endsWith("mp4.txt") || file.endsWith("mkv.txt") || file.endsWith("webm.txt"));
-                                image = image?.length ? `${path}/${item.folder}/${image}` : '';
+                    <div className="cards-grid">
+                        {filteredItems.map((item) => {
+                            const isMultiEpisode = item.files.filter(
+                                f => f.endsWith(".mkv") || f.endsWith(".mp4") || f.endsWith(".webm")
+                            ).length > 1;
 
-                                videos = videos.map((video) => {
-                                    return `${videoPath}/${item.folder}/${video}`;
-                                })
+                            if (isMultiEpisode) {
+                                let imageFiles = item.files.filter(f => f.endsWith(".jpg") || f.endsWith(".png"));
+                                let videos = item.files.filter(f => f.endsWith(".mkv") || f.endsWith(".mp4") || f.endsWith(".webm"));
+                                let srts = item.files.filter(f => f.endsWith(".srt"));
+                                let filters = item.files.filter(f => f.endsWith("mp4.txt") || f.endsWith("mkv.txt") || f.endsWith("webm.txt"));
+                                const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0]}` : '';
+                                videos = videos.map(v => `${videoPath}/${item.folder}/${v}`);
+                                srts = srts.map(s => `${path}/${item.folder}/${s}`);
+                                filters = filters.map(f => `${path}/${item.folder}/${f}`);
 
-                                srts = srts.map((srt) => {
-                                    return `${path}/${item.folder}/${srt}`;
-                                })
-
-                                filters = filters.map((filter) => {
-                                    return `${path}/${item.folder}/${filter}`;
-                                })
-
-
-                                return filterText && !item?.folder?.toLowerCase()?.includes(filterText) ?
-                                    null
-                                    :
+                                return (
                                     <FileRecord
+                                        key={item.folder}
                                         imgSrc={image}
                                         title={item.folder}
-                                        copy={() => {
-                                            alert.removeAll();
-                                            alert.show(<div style={{
-                                                display: 'flex',
-                                                gap: '8px',
-                                                flexWrap: 'wrap',
-                                                flexDirection: 'row',
-                                                maxHeight: "520px",
-                                                minWidth: '520px',
-                                                overflow: 'scroll'
-                                            }}>
-                                                {
-                                                    videos.map((video, index) => {
-                                                        const hasProgress = StorageHelper.getContentProgress({videoName: video?.split?.("/")?.reverse?.()[0]});
-                                                        return <div style={{
-                                                            width: "fitContent",
-                                                            height: '60px',
-                                                            justifyContent: 'center',
-                                                            alignItems: 'center',
-                                                            alignSelf: 'center',
-                                                            borderColor: 'red',
-                                                            borderWidth: '1px',
-                                                            borderStyle: 'double',
-                                                            background: hasProgress? 'lightgray' : 'gray',
-                                                            color: 'black',
-                                                            padding: '10px',
-                                                            cursor: 'pointer',
-
-                                                        }} onClick={() => {
-                                                            StorageHelper.saveToCurrentList({ videos, srts, filters, index });
-                                                            openContent({ image, video: videos[index], srt: srts[index], filter: filters[index] })
-                                                            //alert.removeAll();
-                                                        }}>{video?.split?.("/")?.reverse?.()?.[0]}</div>
-                                                    })
-                                                }
-                                            </div>);
-                                            // copy({ image, video, srt, filter })
-                                        }}
+                                        isMultiEpisode
+                                        copy={() => openEpisodePanel({ title: item.folder, image, videos, srts, filters })}
                                     />
-
+                                );
                             } else {
-                                let image = item.files.filter(file => file.includes(".jpg") || file.includes(".png"))?.[0] || ""
-                                let video = item.files.filter(file => file.includes(".mkv") || file.includes(".mp4") || file.includes(".webm"))?.[0]
-                                let srt = item.files.filter(file => file.includes(".srt"))?.[0]
-                                let filter = item.files.filter(file => file.includes("mp4.txt") || file.includes("mkv.txt") || file.includes("webm.txt"))?.[0];
-                                image = image ? `${path}/${item.folder}/${image}` : "";
-                                video = video && `${videoPath}/${item.folder}/${video}`;
-                                srt = srt && `${path}/${item.folder}/${srt}`;
-                                filter = filter && `${path}/${item.folder}/${filter}`;
+                                let imageFiles = item.files.filter(f => f.includes(".jpg") || f.includes(".png"));
+                                let videoFile = item.files.find(f => f.includes(".mkv") || f.includes(".mp4") || f.includes(".webm"));
+                                let srtFile = item.files.find(f => f.includes(".srt"));
+                                let filterFile = item.files.find(f => f.includes("mp4.txt") || f.includes("mkv.txt") || f.includes("webm.txt"));
+                                const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0]}` : "";
+                                const video = videoFile ? `${videoPath}/${item.folder}/${videoFile}` : undefined;
+                                const srt = srtFile ? `${path}/${item.folder}/${srtFile}` : undefined;
+                                const filter = filterFile ? `${path}/${item.folder}/${filterFile}` : undefined;
 
-                                return filterText && !item?.folder?.toLowerCase()?.includes(filterText) ?
-                                    null
-                                    : <FileRecord
+                                return (
+                                    <FileRecord
+                                        key={item.folder}
                                         imgSrc={image}
                                         title={item.folder}
                                         filter={!!filter}
                                         video={video}
                                         copy={() => {
                                             StorageHelper.saveToCurrentList({ videos: [video], srts: [srt], filters: [filter], index: 0 });
-                                            openContent({ image, video, srt, filter })
-                                        }
-                                        }
+                                            openContent({ video, srt, filter });
+                                        }}
                                     />
+                                );
                             }
-                        }))}
+                        })}
                     </div>
                 </div>
+
+                {/* Episode panel */}
+                {episodePanel && (
+                    <div className="episode-panel-overlay" onClick={closeEpisodePanel}>
+                        <div className="episode-panel" onClick={e => e.stopPropagation()}>
+                            <div className="episode-panel-header">
+                                {episodePanel.image && (
+                                    <img className="episode-panel-thumb" src={episodePanel.image} alt="" />
+                                )}
+                                <span className="episode-panel-title">{episodePanel.title}</span>
+                                <button className="episode-panel-close" onClick={closeEpisodePanel}>
+                                    <MdClose />
+                                </button>
+                            </div>
+                            <div className="episode-panel-list">
+                                {episodePanel.videos.map((video, index) => {
+                                    const name = video?.split?.("/")?.reverse?.()?.[0] || `Episode ${index + 1}`;
+                                    const progress = StorageHelper.getContentProgress({ videoName: name });
+                                    return (
+                                        <div
+                                            key={video}
+                                            className="episode-item"
+                                            onClick={() => playEpisode({
+                                                videos: episodePanel.videos,
+                                                srts: episodePanel.srts,
+                                                filters: episodePanel.filters,
+                                                index
+                                            })}
+                                        >
+                                            <span className="episode-number">{index + 1}</span>
+                                            <span className="episode-name">{name}</span>
+                                            {progress > 0 && (
+                                                <FaEye className="episode-watched" title="In progress" />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
-    )
+    );
 }
 
 export default connect(
     null,
     { setSubtitle, setFilterItems, setModalOpen, setVideoSrc, setVideoName, setDuration, setTime }
 )(FilterPicker);
-
