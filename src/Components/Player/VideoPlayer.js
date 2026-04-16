@@ -71,8 +71,9 @@ class VideoPlayer extends React.PureComponent {
     this.progressSave = setInterval(() => {
 
       const { time, videoName, isLoading } = this.props;
+      const duration = this.player.current?.duration || 0;
       if (videoName && time && !isLoading){
-        StorageHelper.saveContentProgress({videoName, time});
+        StorageHelper.saveContentProgress({videoName, time, duration});
       }
     }, 5000);
 
@@ -223,9 +224,13 @@ class VideoPlayer extends React.PureComponent {
           ref={this.player}
           onLoadedData={(event) => {
             setVideoIsLoading(false);
-            const getCurrentTime = StorageHelper.getContentProgress({videoName});;
+            const getCurrentTime = StorageHelper.getContentProgress({videoName});
             setTime(Number(getCurrentTime));
-            setDuration(event.target.duration);
+            const dur = event.target.duration;
+            setDuration(dur);
+            if (videoName && dur > 0) {
+              StorageHelper.saveContentProgress({ videoName, time: getCurrentTime, duration: dur });
+            }
             setPlayerState("pause");
           }}
           onSeeking={(event) => {

@@ -9,12 +9,19 @@ class StorageHelper {
         localStorage.currentList = JSON.stringify({ videos, srts, filters });
     }
 
-    static saveContentProgress({ videoName, time }: { videoName: string; time: string | number }) {
+    static saveContentProgress({ videoName, time, duration }: { videoName: string; time: string | number; duration?: number }) {
         localStorage.setItem(videoName, `${time}`);
+        if (duration && duration > 0) {
+            localStorage.setItem(`${videoName}_dur`, `${duration}`);
+        }
     }
 
     static getContentProgress({ videoName }: { videoName: string }) {
         return Number(localStorage.getItem(videoName) || 0);
+    }
+
+    static getContentDuration({ videoName }: { videoName: string }) {
+        return Number(localStorage.getItem(`${videoName}_dur`) || 0);
     }
 
     // ── Watch History ──────────────────────────────────────────

@@ -1,16 +1,9 @@
 import React, { useMemo } from 'react'
 import { MdClose } from 'react-icons/md'
-import { FaPlayCircle, FaEye } from 'react-icons/fa'
+import { FaPlayCircle } from 'react-icons/fa'
 import StorageHelper from '../../Helpers/StorageHelper'
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import './style.css'
-
-const VIDEO_EXTS = ['.mkv', '.mp4', '.webm', '.avi', '.mov', '.m4v', '.ts', '.flv']
-
-function isVideoKey(key) {
-    const k = key.toLowerCase()
-    return VIDEO_EXTS.some(ext => k.endsWith(ext))
-}
 
 function formatTime(seconds) {
     if (!seconds || seconds <= 0) return null
@@ -22,63 +15,42 @@ function formatTime(seconds) {
     return `${s}s`
 }
 
+function formatDate(timestamp) {
+    if (!timestamp) return ''
+    const d = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now - d
+    const diffDays = Math.floor(diffMs / 86400000)
+    if (diffDays === 0) return 'Today'
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays < 7) return `${diffDays}d ago`
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
 export default function History({ close }) {
     const items = useMemo(() => {
-        // Build filename → full entry map from currentList for replay
-        const replayMap = {}
-        try {
-            const raw = localStorage.getItem('currentList')
-            if (raw) {
-                const { videos = [], srts = [], filters = [] } = JSON.parse(raw)
-                const currentIdx = Number(localStorage.getItem('currentListIndex') ?? -1)
-                videos.forEach((videoPath, i) => {
-                    const filename = videoPath.split('/').reverse()[0]
-                    replayMap[filename] = {
-                        videoPath,
-                        srtPath: srts[i] || '',
-                        filterPath: filters[i] || '',
-                        isCurrent: i === currentIdx,
-                    }
-                })
-            }
-        } catch { /* ignore */ }
-
-        // Collect every localStorage key that looks like a video file with progress > 0
-        const result = []
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i)
-            if (!isVideoKey(key)) continue
-            const progress = Number(localStorage.getItem(key) || 0)
-            if (progress <= 0) continue
-            result.push({
-                filename: key,
-                progress,
-                ...(replayMap[key] || {}),
-            })
-        }
-
-        // Sort by progress descending (highest progress time = most recently active heuristic)
-        result.sort((a, b) => b.progress - a.progress)
-        return result
+        const history = StorageHelper.getWatchHistory()
+        // Sort by timestamp descending (latest first)
+        return history.slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
     }, [])
 
     return (
         <div className="history-overlay" onClick={close}>
             <div className="history-modal" onClick={e => e.stopPropagation()}>
                 <div className="history-header">
-                    <span className="history-title">History</span>
+                    <span className="history-title">Watch History</span>
                     <button className="history-close" onClick={close}><MdClose /></button>
                 </div>
 
                 {items.length === 0 ? (
                     <div className="history-empty">
                         <FaPlayCircle />
-                        <p>No watched videos found</p>
+                        <p>No watch history yet</p>
                     </div>
                 ) : (
                     <div className="history-list">
                         {items.map(item => (
-                            <HistoryItem key={item.filename} item={item} />
+                            <HistoryItem key={item.videoPath || item.videoName} item={item} />
                         ))}
                     </div>
                 )}
@@ -88,36 +60,54 @@ export default function History({ close }) {
 }
 
 function HistoryItem({ item }) {
-    const { filename, progress, videoPath, srtPath, filterPath, isCurrent } = item
-    const canPlay = !!videoPath
+    const { videoName, videoPath, srtPath, filterPath, imagePath, timestamp } = item
+    const progress = StorageHelper.getContentProgress({ videoName })
+    const duration = StorageHelper.getContentDuration({ videoName })
     const progressLabel = formatTime(progress)
+    const durationLabel = formatTime(duration)
+    const pct = duration > 0 ? Math.round(progress / duration * 100) : null
+    const dateLabel = formatDate(timestamp)
+    const canPlay = !!videoPath
 
     const play = () => {
         if (!canPlay) return
-        openContent({ video: videoPath, srt: srtPath, filter: filterPath })
+        openContent({ video: videoPath, srt: srtPath, filter: filterPath, image: imagePath })
     }
 
     return (
         <div
-            className={`history-item ${isCurrent ? 'history-item--current' : ''} ${!canPlay ? 'history-item--no-replay' : ''}`}
+            className={`history-item ${canPlay ? '' : 'history-item--no-replay'}`}
             onClick={play}
+            title={canPlay ? videoName : 'Path not available'}
         >
-            <div className="history-item-icon">
-                {isCurrent
-                    ? <FaPlayCircle className="hi-icon hi-icon--playing" />
-                    : <FaEye className="hi-icon hi-icon--watched" />
+            <div className="history-item-thumb">
+                {imagePath
+                    ? <img src={imagePath} alt="" />
+                    : <div className="history-item-thumb-placeholder"><FaPlayCircle /></div>
                 }
+                {pct !== null && (
+                    <div className="history-item-thumb-bar">
+                        <div className="history-item-thumb-bar-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                )}
             </div>
 
             <div className="history-item-info">
-                <span className="history-item-name">{filename}</span>
+                <span className="history-item-name">{videoName}</span>
+                <div className="history-item-meta">
+                    {progressLabel && durationLabel && <span className="history-item-time">{progressLabel} / {durationLabel}</span>}
+                    {progressLabel && !durationLabel && <span className="history-item-time">{progressLabel}</span>}
+                    {pct !== null && <span className="history-item-pct">{pct}%</span>}
+                    {dateLabel && <span className="history-item-date">{dateLabel}</span>}
+                </div>
+                {!canPlay && <span className="history-item-no-replay">path unavailable</span>}
             </div>
 
-            <div className="history-item-right">
-                {progressLabel && <span className="history-item-time">{progressLabel}</span>}
-                {isCurrent && <span className="history-item-badge">Now Playing</span>}
-                {!canPlay && <span className="history-item-no-replay">no path</span>}
-            </div>
+            {canPlay && (
+                <div className="history-item-play">
+                    <FaPlayCircle />
+                </div>
+            )}
         </div>
     )
 }

@@ -22,6 +22,28 @@
   margin-bottom: 16px;
 }
 
+/* History open button */
+.history-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  margin: 4px 6px;
+  background: #1e1e30;
+  color: #a89fff;
+  border: 1px solid #6c63ff55;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.history-open-btn:hover {
+  background: #2a2a44;
+  border-color: #6c63ffaa;
+  color: #c8c8ff;
+}
+
 /* Editor / Config / Subtitle panel wrappers */
 .filter-container,
 .config-container {

@@ -11,7 +11,7 @@
 
 /* ── Modal ──────────────────────────────────────────────────── */
 .history-modal {
-    width: 620px;
+    width: 660px;
     max-width: 94vw;
     max-height: 86vh;
     background: #12121e;
@@ -64,10 +64,10 @@
 .history-list {
     flex: 1;
     overflow-y: auto;
-    padding: 8px 12px;
+    padding: 10px 12px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     scrollbar-width: thin;
     scrollbar-color: #2a2a44 transparent;
 }
@@ -78,61 +78,79 @@
 .history-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    border-radius: 9px;
+    gap: 14px;
+    padding: 8px 12px 8px 8px;
+    border-radius: 10px;
     background: #1e1e30;
     border: 1px solid #2a2a40;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
+    min-height: 68px;
 }
 .history-item:hover {
     background: #26264a;
     border-color: #6c63ff55;
 }
-.history-item--current {
-    border-color: #6c63ff88;
-    background: #1e1e38;
+.history-item:hover .history-item-play {
+    opacity: 1;
 }
 .history-item--no-replay {
     cursor: default;
-    opacity: 0.6;
+    opacity: 0.55;
 }
 .history-item--no-replay:hover {
     background: #1e1e30;
     border-color: #2a2a40;
 }
 
-/* Icon column */
-.history-item-icon {
+/* ── Thumbnail ──────────────────────────────────────────────── */
+.history-item-thumb {
     flex-shrink: 0;
-    width: 32px;
+    width: 96px;
+    height: 54px;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    background: #0e0e1a;
+}
+.history-item-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.history-item-thumb-placeholder {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #2a2a44;
+    font-size: 22px;
 }
-.hi-icon {
-    font-size: 20px;
+.history-item-thumb-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.12);
 }
-.hi-icon--playing  { color: #a89fff; }
-.hi-icon--watched  { color: #5588cc; }
-.hi-icon--unwatched { color: #333355; }
+.history-item-thumb-bar-fill {
+    height: 100%;
+    background: #6c63ff;
+    border-radius: 0 2px 2px 0;
+    transition: width 0.2s;
+}
 
-/* Info column */
+/* ── Info ───────────────────────────────────────────────────── */
 .history-item-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     overflow: hidden;
     min-width: 0;
-}
-.history-item-ep {
-    font-size: 10px;
-    font-weight: 600;
-    color: #6c63ff;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
 }
 .history-item-name {
     font-size: 13px;
@@ -141,32 +159,37 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
-/* Right column */
-.history-item-right {
-    flex-shrink: 0;
+.history-item-meta {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 .history-item-time {
-    font-size: 12px;
+    font-size: 11px;
     color: #7070a0;
+}
+.history-item-pct {
+    font-size: 11px;
+    font-weight: 600;
+    color: #a89fff;
+}
+.history-item-date {
+    font-size: 11px;
+    color: #555588;
 }
 .history-item-no-replay {
     font-size: 10px;
     color: #444466;
 }
-.history-item-badge {
-    font-size: 10px;
-    font-weight: 600;
-    background: #6c63ff33;
-    color: #a89fff;
-    border: 1px solid #6c63ff55;
-    border-radius: 4px;
-    padding: 2px 6px;
-    letter-spacing: 0.04em;
+
+/* ── Play icon ──────────────────────────────────────────────── */
+.history-item-play {
+    flex-shrink: 0;
+    font-size: 22px;
+    color: #6c63ff;
+    opacity: 0;
+    transition: opacity 0.15s;
 }
 
 /* ── Empty state ────────────────────────────────────────────── */

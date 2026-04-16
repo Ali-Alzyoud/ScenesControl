@@ -13,7 +13,8 @@ import { useMemo } from 'react';
 import StorageHelper from '../../Helpers/StorageHelper';
 import { FaEye } from 'react-icons/fa';
 
-export const openContent = ({ video, srt, filter }) => {
+export const openContent = ({ video, srt, filter, image }) => {
+    StorageHelper.addToWatchHistory({ videoPath: video, srtPath: srt, filterPath: filter, imagePath: image });
     let str = window.location.origin + '#/'
         + btoa(encodeURIComponent(video)) + '/'
         + btoa(encodeURIComponent(srt ? (srt) : '')) + '/'
@@ -121,9 +122,9 @@ function FilterPicker({
         setEpisodePanel(null);
     };
 
-    const playEpisode = ({ videos, srts, filters, index }) => {
+    const playEpisode = ({ videos, srts, filters, index, image }) => {
         StorageHelper.saveToCurrentList({ videos, srts, filters, index });
-        openContent({ video: videos[index], srt: srts[index], filter: filters[index] });
+        openContent({ video: videos[index], srt: srts[index], filter: filters[index], image });
     };
 
     const currentItems = localFolders[selectedFolder] || [];
@@ -213,7 +214,7 @@ function FilterPicker({
                                         video={video}
                                         copy={() => {
                                             StorageHelper.saveToCurrentList({ videos: [video], srts: [srt], filters: [filter], index: 0 });
-                                            openContent({ video, srt, filter });
+                                            openContent({ video, srt, filter, image });
                                         }}
                                     />
                                 );
@@ -247,6 +248,7 @@ function FilterPicker({
                                                 videos: episodePanel.videos,
                                                 srts: episodePanel.srts,
                                                 filters: episodePanel.filters,
+                                                image: episodePanel.image,
                                                 index
                                             })}
                                         >

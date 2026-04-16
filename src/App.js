@@ -150,7 +150,7 @@ function App(props) {
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
         <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>{"Subtitle " + (syncConfig.subtitleDelay ? syncConfig.subtitleDelay : "")}</ToggleButton>
-        <ToggleButton on={showHistory} onClick={() => { setShowHistory(!showHistory) }}>History</ToggleButton>
+        <button className="history-open-btn" onClick={() => setShowHistory(true)}>History</button>
         {showEditor &&
           <div className='filter-container'>
             <FilterEditor />
