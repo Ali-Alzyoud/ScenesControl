@@ -5,6 +5,12 @@ import StorageHelper from '../../Helpers/StorageHelper'
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import './style.css'
 
+const VIDEO_EXTS = ['.mkv', '.mp4', '.webm', '.avi', '.mov', '.m4v', '.ts', '.flv']
+
+function isVideoKey(key) {
+    return VIDEO_EXTS.some(ext => key.toLowerCase().endsWith(ext))
+}
+
 function formatTime(seconds) {
     if (!seconds || seconds <= 0) return null
     const h = Math.floor(seconds / 3600)
@@ -19,8 +25,7 @@ function formatDate(timestamp) {
     if (!timestamp) return ''
     const d = new Date(timestamp)
     const now = new Date()
-    const diffMs = now - d
-    const diffDays = Math.floor(diffMs / 86400000)
+    const diffDays = Math.floor((now - d) / 86400000)
     if (diffDays === 0) return 'Today'
     if (diffDays === 1) return 'Yesterday'
     if (diffDays < 7) return `${diffDays}d ago`
@@ -29,9 +34,76 @@ function formatDate(timestamp) {
 
 export default function History({ close }) {
     const items = useMemo(() => {
-        const history = StorageHelper.getWatchHistory()
-        // Sort by timestamp descending (latest first)
-        return history.slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+        // Rich data from watchHistory (image, full paths, timestamp)
+        const historyMap = {}
+        StorageHelper.getWatchHistory().forEach(h => {
+            if (h.videoName) historyMap[h.videoName] = h
+        })
+
+        // Full paths from currentList for replay
+        const replayMap = {}
+        try {
+            const raw = localStorage.getItem('currentList')
+            if (raw) {
+                const { videos = [], srts = [], filters = [] } = JSON.parse(raw)
+                videos.forEach((videoPath, i) => {
+                    const filename = videoPath.split('/').reverse()[0]
+                    replayMap[filename] = {
+                        videoPath,
+                        srtPath: srts[i] || '',
+                        filterPath: filters[i] || '',
+                    }
+                })
+            }
+        } catch { /* ignore */ }
+
+        const seen = new Set()
+        const result = []
+
+        // First: entries from watchHistory (have timestamps + images)
+        StorageHelper.getWatchHistory().forEach(h => {
+            if (!h.videoName) return
+            const progress = StorageHelper.getContentProgress({ videoName: h.videoName })
+            seen.add(h.videoName)
+            result.push({
+                videoName: h.videoName,
+                videoPath: h.videoPath || '',
+                srtPath: h.srtPath || '',
+                filterPath: h.filterPath || '',
+                imagePath: h.imagePath || '',
+                timestamp: h.timestamp || 0,
+                progress,
+            })
+        })
+
+        // Second: scan all localStorage keys that look like video files
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i)
+            if (!isVideoKey(key)) continue
+            if (seen.has(key)) continue
+            const progress = Number(localStorage.getItem(key) || 0)
+            if (progress <= 0) continue
+            const replay = replayMap[key] || {}
+            result.push({
+                videoName: key,
+                videoPath: replay.videoPath || '',
+                srtPath: replay.srtPath || '',
+                filterPath: replay.filterPath || '',
+                imagePath: '',
+                timestamp: 0,
+                progress,
+            })
+        }
+
+        // Sort: by timestamp desc (watchHistory items), then by progress desc (legacy)
+        result.sort((a, b) => {
+            if (a.timestamp && b.timestamp) return b.timestamp - a.timestamp
+            if (a.timestamp) return -1
+            if (b.timestamp) return 1
+            return b.progress - a.progress
+        })
+
+        return result
     }, [])
 
     return (
@@ -50,7 +122,7 @@ export default function History({ close }) {
                 ) : (
                     <div className="history-list">
                         {items.map(item => (
-                            <HistoryItem key={item.videoPath || item.videoName} item={item} />
+                            <HistoryItem key={item.videoName} item={item} />
                         ))}
                     </div>
                 )}
@@ -78,7 +150,7 @@ function HistoryItem({ item }) {
         <div
             className={`history-item ${canPlay ? '' : 'history-item--no-replay'}`}
             onClick={play}
-            title={canPlay ? videoName : 'Path not available'}
+            title={canPlay ? videoName : 'Path not available — open from store to replay'}
         >
             <div className="history-item-thumb">
                 {imagePath
@@ -95,12 +167,16 @@ function HistoryItem({ item }) {
             <div className="history-item-info">
                 <span className="history-item-name">{videoName}</span>
                 <div className="history-item-meta">
-                    {progressLabel && durationLabel && <span className="history-item-time">{progressLabel} / {durationLabel}</span>}
-                    {progressLabel && !durationLabel && <span className="history-item-time">{progressLabel}</span>}
+                    {progressLabel && durationLabel
+                        ? <span className="history-item-time">{progressLabel} / {durationLabel}</span>
+                        : progressLabel
+                            ? <span className="history-item-time">{progressLabel}</span>
+                            : null
+                    }
                     {pct !== null && <span className="history-item-pct">{pct}%</span>}
                     {dateLabel && <span className="history-item-date">{dateLabel}</span>}
                 </div>
-                {!canPlay && <span className="history-item-no-replay">path unavailable</span>}
+                {!canPlay && <span className="history-item-no-replay">open from store to replay</span>}
             </div>
 
             {canPlay && (
