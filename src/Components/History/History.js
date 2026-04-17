@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useRef, useEffect } from 'react'
 import { MdClose, MdDeleteSweep } from 'react-icons/md'
 import { FaPlayCircle } from 'react-icons/fa'
 import StorageHelper from '../../Helpers/StorageHelper'
@@ -32,9 +32,16 @@ function formatDate(timestamp) {
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
-export default function History({ close }) {
+export default function History({ close, currentVideo }) {
     const [revision, setRevision] = useState(0)
     const [confirming, setConfirming] = useState(false)
+    const currentItemRef = useRef(null)
+    const listRef = useRef(null)
+
+    useEffect(() => {
+        listRef.current?.focus()
+        currentItemRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, [])
 
     const clearHistory = () => {
         StorageHelper.clearWatchHistory()
@@ -139,9 +146,9 @@ export default function History({ close }) {
                         <p>No watch history yet</p>
                     </div>
                 ) : (
-                    <div className="history-list">
+                    <div className="history-list" ref={listRef} tabIndex={-1} style={{ outline: 'none' }}>
                         {items.map(item => (
-                            <HistoryItem key={item.videoName} item={item} />
+                            <HistoryItem key={item.videoName} item={item} itemRef={item.videoName === currentVideo ? currentItemRef : null} />
                         ))}
                     </div>
                 )}
@@ -150,7 +157,7 @@ export default function History({ close }) {
     )
 }
 
-function HistoryItem({ item }) {
+function HistoryItem({ item, itemRef }) {
     const { videoName, videoPath, srtPath, filterPath, imagePath, timestamp } = item
     const progress = StorageHelper.getContentProgress({ videoName })
     const duration = StorageHelper.getContentDuration({ videoName })
@@ -167,6 +174,7 @@ function HistoryItem({ item }) {
 
     return (
         <div
+            ref={itemRef}
             className={`history-item ${canPlay ? '' : 'history-item--no-replay'}`}
             onClick={play}
             title={canPlay ? videoName : 'Path not available — open from store to replay'}

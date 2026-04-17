@@ -175,7 +175,7 @@ function App(props) {
           </div>
         }
       </div>
-      {showHistory && <History close={() => setShowHistory(false)} />}
+      {showHistory && <History close={() => setShowHistory(false)} currentVideo={videoName} />}
       {showSeries && <SeriesPanel close={() => setShowSeries(false)} />}
     </div >
   );

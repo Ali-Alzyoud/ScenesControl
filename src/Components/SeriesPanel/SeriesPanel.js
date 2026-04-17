@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useRef, useEffect } from 'react'
 import { MdClose } from 'react-icons/md'
 import { FaEye } from 'react-icons/fa'
 import StorageHelper from '../../Helpers/StorageHelper'
@@ -6,6 +6,14 @@ import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import './style.css'
 
 export default function SeriesPanel({ close }) {
+    const currentItemRef = useRef(null)
+    const listRef = useRef(null)
+
+    useEffect(() => {
+        listRef.current?.focus()
+        currentItemRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, [])
+
     const { videos, srts, filters, currentIndex } = useMemo(() => {
         try {
             const { videos = [], srts = [], filters = [] } = JSON.parse(localStorage.getItem('currentList') || '{}')
@@ -37,7 +45,7 @@ export default function SeriesPanel({ close }) {
                     <button className="series-close" onClick={close}><MdClose /></button>
                 </div>
 
-                <div className="series-list">
+                <div className="series-list" ref={listRef} tabIndex={-1} style={{ outline: 'none' }}>
                     {videos.map((video, index) => {
                         const name = video?.split('/')?.reverse?.()?.[0] || `Episode ${index + 1}`
                         const progress = StorageHelper.getContentProgress({ videoName: name })
@@ -48,6 +56,7 @@ export default function SeriesPanel({ close }) {
                         return (
                             <div
                                 key={video}
+                                ref={isCurrent ? currentItemRef : null}
                                 className={`series-item ${isCurrent ? 'series-item--current' : ''}`}
                                 onClick={() => play(index)}
                             >
