@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react'
-import { MdClose } from 'react-icons/md'
+import React, { useMemo, useState } from 'react'
+import { MdClose, MdDeleteSweep } from 'react-icons/md'
 import { FaPlayCircle } from 'react-icons/fa'
 import StorageHelper from '../../Helpers/StorageHelper'
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
@@ -33,6 +33,15 @@ function formatDate(timestamp) {
 }
 
 export default function History({ close }) {
+    const [revision, setRevision] = useState(0)
+    const [confirming, setConfirming] = useState(false)
+
+    const clearHistory = () => {
+        StorageHelper.clearWatchHistory()
+        setRevision(r => r + 1)
+        setConfirming(false)
+    }
+
     const items = useMemo(() => {
         // Rich data from watchHistory (image, full paths, timestamp)
         const historyMap = {}
@@ -104,13 +113,23 @@ export default function History({ close }) {
         })
 
         return result
-    }, [])
+    }, [revision])
 
     return (
         <div className="history-overlay" onClick={close}>
             <div className="history-modal" onClick={e => e.stopPropagation()}>
                 <div className="history-header">
                     <span className="history-title">Watch History</span>
+                    {confirming
+                        ? <div className="history-confirm">
+                            <span>Clear all?</span>
+                            <button className="history-confirm-yes" onClick={clearHistory}>Yes</button>
+                            <button className="history-confirm-no" onClick={() => setConfirming(false)}>No</button>
+                          </div>
+                        : <button className="history-clear-btn" onClick={() => setConfirming(true)} title="Clear history">
+                            <MdDeleteSweep /><span>Clear</span>
+                          </button>
+                    }
                     <button className="history-close" onClick={close}><MdClose /></button>
                 </div>
 

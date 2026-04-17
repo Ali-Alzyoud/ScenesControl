@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { MdClose } from 'react-icons/md'
+import { MdClose, MdSync } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import * as API from '../../common/API/API'
 
@@ -12,6 +12,18 @@ import { useRef } from 'react';
 import { useMemo } from 'react';
 import StorageHelper from '../../Helpers/StorageHelper';
 import { FaEye } from 'react-icons/fa';
+
+function formatSyncDate(ts) {
+    const d = new Date(ts);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Synced just now';
+    if (diffMins < 60) return `Synced ${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `Synced ${diffHours}h ago`;
+    return `Synced ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+}
 
 export const openContent = ({ video, srt, filter, image }) => {
     StorageHelper.addToWatchHistory({ videoPath: video, srtPath: srt, filterPath: filter, imagePath: image });
@@ -26,17 +38,46 @@ export const openContent = ({ video, srt, filter, image }) => {
 function FilterPicker({
     close,
     setModalOpen,
-    folders,
+    folders: foldersProp,
     path,
     videoPath,
+    apiUrl,
 }) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [selectedFolder, setSelectedFolder] = useState("");
     const [byDate, setByDate] = useState(!!localStorage.getItem("byDate"));
     const [filterText, setFilterText] = useState(localStorage.getItem("filterText") || "");
     const [episodePanel, setEpisodePanel] = useState(null); // { title, image, videos, srts, filters }
+    const [folders, setFolders] = useState(foldersProp || []);
+    const [syncing, setSyncing] = useState(false);
     const containerRef = useRef();
     const alert = useAlert();
+
+    const [lastSync, setLastSync] = useState(() => {
+        const t = localStorage.getItem(`storeCacheTime_${apiUrl}`);
+        return t ? Number(t) : null;
+    });
+
+    const resync = async () => {
+        if (!apiUrl || syncing) return;
+        setSyncing(true);
+        try {
+            const response = await fetch(apiUrl, {
+                method: "GET",
+                headers: { accept: "application/json" },
+            });
+            const data = await response.json();
+            const now = Date.now();
+            localStorage.setItem(`storeCache_${apiUrl}`, JSON.stringify(data.files));
+            localStorage.setItem(`storeCacheTime_${apiUrl}`, String(now));
+            setFolders(data.files);
+            setLastSync(now);
+        } catch (e) {
+            alert.error?.(e.message) || console.error(e);
+        } finally {
+            setSyncing(false);
+        }
+    };
 
     useEffect(() => {
         localStorage.setItem("byDate", byDate ? "1" : "")
@@ -153,6 +194,19 @@ function FilterPicker({
                         />
                         By Date
                     </label>
+                    {apiUrl && (
+                        <div className="filters-resync-group">
+                            {lastSync && (
+                                <span className="filters-sync-date" title={new Date(lastSync).toLocaleString()}>
+                                    {formatSyncDate(lastSync)}
+                                </span>
+                            )}
+                            <button className="filters-resync-btn" onClick={resync} disabled={syncing} title="Resync with server">
+                                <MdSync className={syncing ? 'spinning' : ''} />
+                                {syncing ? 'Syncing…' : 'Resync'}
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Folder tabs */}

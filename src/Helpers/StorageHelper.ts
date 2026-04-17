@@ -61,6 +61,20 @@ class StorageHelper {
             return [];
         }
     }
+
+    static clearWatchHistory() {
+        localStorage.removeItem('watchHistory');
+        const VIDEO_EXTS = ['.mkv', '.mp4', '.webm', '.avi', '.mov', '.m4v', '.ts', '.flv'];
+        const toRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i)!;
+            const lower = key.toLowerCase();
+            if (VIDEO_EXTS.some(ext => lower.endsWith(ext)) || VIDEO_EXTS.some(ext => lower.endsWith(ext + '_dur'))) {
+                toRemove.push(key);
+            }
+        }
+        toRemove.forEach(k => localStorage.removeItem(k));
+    }
 }
 
 export default StorageHelper;

@@ -165,15 +165,24 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 </div>
                 <button onClick={async () => {
                     const url = domain+API;
+                    const cacheKey = `storeCache_${url}`;
+                    const cached = localStorage.getItem(cacheKey);
+                    if (cached) {
+                        try {
+                            setFolders(JSON.parse(cached));
+                            setfilterPicker2(true);
+                            return;
+                        } catch {}
+                    }
                     try {
                         const response = await fetch(url, {
                             method: "GET",
-                            headers: {
-                                accept: "application/json",
-                            }
+                            headers: { accept: "application/json" },
                         });
-                        const folders = await response.json();
-                        setFolders(folders.files);
+                        const data = await response.json();
+                        localStorage.setItem(cacheKey, JSON.stringify(data.files));
+                        localStorage.setItem(`storeCacheTime_${url}`, String(Date.now()));
+                        setFolders(data.files);
                         setfilterPicker2(true);
                     } catch (error) {
                         alert(error.message)
@@ -207,7 +216,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
             {about && <About close={() => { setabout(false) }} />}
             {settings && <Settings close={() => { setSettings(false) }} />}
             {filterPicker && <FilterPicker close={() => { setfilterPicker(false) }} />}
-            {filterPicker2 && <FilterPicker2 folders={folders} path={domain+API_FILES} videoPath={domain+API_VIDEO} close={() => { setfilterPicker2(false) }} />}
+            {filterPicker2 && <FilterPicker2 folders={folders} path={domain+API_FILES} videoPath={domain+API_VIDEO} apiUrl={domain+API} close={() => { setfilterPicker2(false) }} />}
         </div>
     )
 }
