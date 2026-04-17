@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Player } from './Components/Player';
  
 
@@ -10,6 +10,7 @@ import ConfigEditor from './Components/ConfigEditor'
 import { SceneGuideClass } from './common/SceneGuide'
 import ToggleButton from './Components/ToggleButton'
 import History from './Components/History/History'
+import SeriesPanel from './Components/SeriesPanel/SeriesPanel'
 
 
 import { connect, useSelector } from "react-redux";
@@ -36,6 +37,10 @@ function App(props) {
   const [showConfig, setShowConfig] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showSeries, setShowSeries] = useState(false);
+  const seriesCount = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('currentList') || '{}').videos?.length || 0 } catch { return 0 }
+  }, [videoName]);
   const [keyEvent, setKeyEvent] = useState(null);
   const syncConfig = useSelector(getSyncConfig)
   
@@ -151,6 +156,9 @@ function App(props) {
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
         <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>{"Subtitle " + (syncConfig.subtitleDelay ? syncConfig.subtitleDelay : "")}</ToggleButton>
         <button className="history-open-btn" onClick={() => setShowHistory(true)}>History</button>
+        {seriesCount > 1 && (
+          <button className="history-open-btn" onClick={() => setShowSeries(true)}>Series <span style={{fontSize:'11px',opacity:0.7}}>({seriesCount})</span></button>
+        )}
         {showEditor &&
           <div className='filter-container'>
             <FilterEditor />
@@ -168,6 +176,7 @@ function App(props) {
         }
       </div>
       {showHistory && <History close={() => setShowHistory(false)} />}
+      {showSeries && <SeriesPanel close={() => setShowSeries(false)} />}
     </div >
   );
 }
