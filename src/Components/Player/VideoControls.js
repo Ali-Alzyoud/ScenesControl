@@ -86,6 +86,8 @@ const KEY = {
 
 let PlayIcon = MdPlayArrow;
 
+const SPEED_PRESETS = [0.5, 1, 2, 3];
+
 function VideoControls({ time,
     setTime,
     duration,
@@ -98,7 +100,9 @@ function VideoControls({ time,
     isMute,
     onFullscreen,
     videoName,
-    modalOpen
+    modalOpen,
+    speedMulti,
+    onSpeedChange,
 }) {
 
     const ref = useRef(null);
@@ -168,19 +172,19 @@ function VideoControls({ time,
                 break;
         }
 
-        if (keyEvent.key == 3) {
+        if (keyEvent.code === 'Digit3') {
             onFullscreen()
-        } else if(keyEvent.key == 5) {
+        } else if(keyEvent.code === 'Digit5') {
             window.location.reload();
         }
 
-        if (keyEvent.key == 7) {
+        if (keyEvent.code === 'Digit7') {
             dispatch(setSettings_syncConfig({
                 ...syncConfig,
                 subtitleDelay: subtitleDelay + 0.5,
                 subtitleSlope: 1,
             }));
-        } else if(keyEvent.key == 9) {
+        } else if(keyEvent.code === 'Digit9') {
             dispatch(setSettings_syncConfig({
                 ...syncConfig,
                 subtitleDelay: subtitleDelay - 0.5,
@@ -305,6 +309,19 @@ function VideoControls({ time,
 
         <div ref={ref}>
             <div style={style}>
+                {onSpeedChange && (
+                    <div className="speed-presets" onClick={e => e.stopPropagation()}>
+                        {SPEED_PRESETS.map(s => (
+                            <button
+                                key={s}
+                                className={`speed-btn${speedMulti === s ? ' speed-btn--active' : ''}`}
+                                onClick={(e) => { onSpeedChange(s); e.stopPropagation(); }}
+                            >
+                                {s}x
+                            </button>
+                        ))}
+                    </div>
+                )}
                 <div className='seekbar' style={seekbarStyle} ref={seekbar} onPointerDown={mousedown} onPointerUp={cleanDocEvents} onClick={e => e.stopPropagation()}>
                     <div style={{ ...styleProgress, width: (progress * 100) + '%' }}>
                         <div style={styleHandle}

@@ -74,6 +74,40 @@
     color: #555577;
 }
 
+.filters-search-actions {
+    display: flex;
+    gap: 8px;
+    padding: 6px 20px 8px;
+    background: #1a1a2e;
+    border-bottom: 1px solid #2a2a40;
+    flex-shrink: 0;
+}
+
+.filters-toolbar-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 8px;
+    background: #1e1e30;
+    border: 1px solid #3a3a55;
+    color: #9090bb;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.filters-toolbar-btn svg { font-size: 16px; }
+.filters-toolbar-btn:hover {
+    background: #2a2a44;
+    border-color: #6c63ffaa;
+    color: #a89fff;
+}
+.filters-toolbar-btn--active {
+    background: #6c63ff33;
+    border-color: #6c63ff;
+    color: #a89fff;
+}
+
 .filters-container-sort-toggle {
     display: flex;
     align-items: center;
@@ -217,6 +251,10 @@
     display: flex;
     flex-direction: column;
 }
+.file-record2--focused {
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 2px #6c63ff55;
+}
 .file-record2:hover {
     transform: translateY(-4px) scale(1.02);
     box-shadow: 0 12px 32px rgba(108, 99, 255, 0.25);
@@ -251,6 +289,39 @@
     justify-content: center;
     color: #333355;
     font-size: 42px;
+}
+
+/* Pin/star button */
+.file-record2-star {
+    position: absolute;
+    top: 5px;
+    left: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    border: none;
+    color: rgba(255,255,255,0.3);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s, background 0.15s;
+    z-index: 2;
+}
+.file-record2:hover .file-record2-star,
+.file-record2-star--active {
+    opacity: 1;
+}
+.file-record2-star--active {
+    color: #f5c518;
+    background: rgba(0,0,0,0.6);
+}
+.file-record2-star:hover {
+    color: #f5c518;
+    background: rgba(0,0,0,0.75);
 }
 
 /* Badges (filter, progress, multi-episode) */
@@ -422,6 +493,10 @@
     background: #1e1e32;
     border: 1px solid #2a2a44;
     transition: background 0.15s, border-color 0.15s;
+}
+.episode-item--focused {
+    background: #26264a;
+    border-color: #6c63ff;
 }
 .episode-item:hover {
     background: #26264a;

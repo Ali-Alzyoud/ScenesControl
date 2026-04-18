@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { MdClose, MdSync } from 'react-icons/md'
+import { MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import * as API from '../../common/API/API'
 
@@ -47,10 +47,20 @@ function FilterPicker({
     const [selectedFolder, setSelectedFolder] = useState("");
     const [byDate, setByDate] = useState(!!localStorage.getItem("byDate"));
     const [filterText, setFilterText] = useState(localStorage.getItem("filterText") || "");
+    const [sortAsc, setSortAsc] = useState(true);
+    const [randomPicks, setRandomPicks] = useState(null);
+    const [favorites, setFavorites] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('favorites') || '[]'); } catch { return []; }
+    });
     const [episodePanel, setEpisodePanel] = useState(null); // { title, image, videos, srts, filters }
+    const [focusedIndex, setFocusedIndex] = useState(-1);
+    const [focusedEpIndex, setFocusedEpIndex] = useState(0);
     const [folders, setFolders] = useState(foldersProp || []);
     const [syncing, setSyncing] = useState(false);
     const containerRef = useRef();
+    const focusedCardRef = useRef(null);
+    const focusedEpRef = useRef(null);
+    const epListRef = useRef(null);
     const alert = useAlert();
 
     const [lastSync, setLastSync] = useState(() => {
@@ -154,6 +164,23 @@ function FilterPicker({
         if (containerRef.current) containerRef.current.scrollTop = 0;
     };
 
+    // Reset card focus when folder/filter/items change
+    useEffect(() => { setFocusedIndex(-1); }, [selectedFolder, filterText, randomPicks]);
+
+    // Scroll focused card into view
+    useEffect(() => { focusedCardRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [focusedIndex]);
+
+    // When episode panel opens: reset ep focus and focus the list
+    useEffect(() => {
+        if (episodePanel) {
+            setFocusedEpIndex(0);
+            setTimeout(() => epListRef.current?.focus(), 50);
+        }
+    }, [episodePanel]);
+
+    // Scroll focused episode into view
+    useEffect(() => { focusedEpRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [focusedEpIndex]);
+
     const openEpisodePanel = ({ title, image, videos, srts, filters }) => {
         setEpisodePanel({ title, image, videos, srts, filters });
     };
@@ -168,10 +195,121 @@ function FilterPicker({
         openContent({ video: videos[index], srt: srts[index], filter: filters[index], image });
     };
 
+    const openItem = (item) => {
+        const isMulti = item.files.filter(f => f.endsWith('.mkv') || f.endsWith('.mp4') || f.endsWith('.webm')).length > 1;
+        if (isMulti) {
+            let imageFiles = item.files.filter(f => f.endsWith('.jpeg') || f.endsWith('.jpg') || f.endsWith('.png'));
+            let videos = item.files.filter(f => f.endsWith('.mkv') || f.endsWith('.mp4') || f.endsWith('.webm'));
+            let srts = item.files.filter(f => f.endsWith('.srt'));
+            let filters = item.files.filter(f => f.endsWith('mp4.txt') || f.endsWith('mkv.txt') || f.endsWith('webm.txt'));
+            const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0]}` : '';
+            openEpisodePanel({ title: item.folder, image, videos: videos.map(v => `${videoPath}/${item.folder}/${v}`), srts: srts.map(s => `${path}/${item.folder}/${s}`), filters: filters.map(f => `${path}/${item.folder}/${f}`) });
+        } else {
+            const imageFiles = item.files.filter(f => f.includes('.jpeg') || f.includes('.jpg') || f.includes('.png'));
+            const videoFile = item.files.find(f => f.includes('.mkv') || f.includes('.mp4') || f.includes('.webm'));
+            const srtFile = item.files.find(f => f.includes('.srt'));
+            const filterFile = item.files.find(f => f.includes('mp4.txt') || f.includes('mkv.txt') || f.includes('webm.txt'));
+            const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0]}` : '';
+            const video = videoFile ? `${videoPath}/${item.folder}/${videoFile}` : undefined;
+            const srt = srtFile ? `${path}/${item.folder}/${srtFile}` : undefined;
+            const filter = filterFile ? `${path}/${item.folder}/${filterFile}` : undefined;
+            StorageHelper.saveToCurrentList({ videos: [video], srts: [srt], filters: [filter], index: 0 });
+            openContent({ video, srt, filter, image });
+        }
+    };
+
+    const getColumns = () => {
+        if (!containerRef.current) return 1;
+        return Math.max(1, Math.floor((containerRef.current.clientWidth - 40 + 16) / (180 + 16)));
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.target.tagName === 'INPUT') return;
+        const count = displayItems.length;
+        if (count === 0) return;
+        switch (e.key) {
+            case 'ArrowRight':
+                e.preventDefault();
+                setFocusedIndex(i => i < count - 1 ? i + 1 : i === -1 ? 0 : i);
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                setFocusedIndex(i => i > 0 ? i - 1 : 0);
+                break;
+            case 'ArrowDown': {
+                e.preventDefault();
+                const cols = getColumns();
+                setFocusedIndex(i => { const n = (i === -1 ? 0 : i) + cols; return n < count ? n : i === -1 ? 0 : i; });
+                break;
+            }
+            case 'ArrowUp': {
+                e.preventDefault();
+                const cols = getColumns();
+                setFocusedIndex(i => { if (i <= 0) return 0; const p = i - cols; return p >= 0 ? p : 0; });
+                break;
+            }
+            case 'Enter':
+                if (focusedIndex >= 0) openItem(displayItems[focusedIndex]);
+                break;
+            case 'Escape':
+                close();
+                break;
+            default: break;
+        }
+    };
+
+    const handleEpKeyDown = (e) => {
+        const count = episodePanel?.videos?.length || 0;
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setFocusedEpIndex(i => Math.min(i + 1, count - 1));
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setFocusedEpIndex(i => Math.max(i - 1, 0));
+                break;
+            case 'Enter':
+                playEpisode({ videos: episodePanel.videos, srts: episodePanel.srts, filters: episodePanel.filters, image: episodePanel.image, index: focusedEpIndex });
+                break;
+            case 'Escape':
+                e.stopPropagation();
+                closeEpisodePanel();
+                break;
+            default: break;
+        }
+    };
+
     const currentItems = localFolders[selectedFolder] || [];
     const filteredItems = filterText
         ? currentItems.filter(item => item?.folder?.toLowerCase()?.includes(filterText))
         : currentItems;
+
+    const toggleFavorite = (folder) => {
+        setFavorites(prev => {
+            const next = prev.includes(folder) ? prev.filter(f => f !== folder) : [...prev, folder];
+            localStorage.setItem('favorites', JSON.stringify(next));
+            return next;
+        });
+    };
+
+    const baseItems = randomPicks || (sortAsc ? filteredItems : [...filteredItems].reverse());
+    const displayItems = [...baseItems].sort((a, b) => {
+        const aFav = favorites.includes(a.folder) ? -1 : 1;
+        const bFav = favorites.includes(b.folder) ? -1 : 1;
+        return aFav - bFav;
+    });
+
+    const pickRandom = () => {
+        if (randomPicks) { setRandomPicks(null); return; }
+        const pool = [...filteredItems];
+        const picks = [];
+        while (picks.length < 5 && pool.length > 0) {
+            const i = Math.floor(Math.random() * pool.length);
+            picks.push(pool.splice(i, 1)[0]);
+        }
+        setRandomPicks(picks);
+    };
 
     return (
         <div className="filters-container">
@@ -209,6 +347,18 @@ function FilterPicker({
                     )}
                 </div>
 
+                {/* Search action buttons */}
+                <div className="filters-search-actions">
+                    <button className="filters-toolbar-btn" onClick={() => { setSortAsc(a => !a); setRandomPicks(null); }} title={sortAsc ? 'Sort descending' : 'Sort ascending'}>
+                        {sortAsc ? <MdArrowUpward /> : <MdArrowDownward />}
+                        {sortAsc ? 'Ascending' : 'Descending'}
+                    </button>
+                    <button className={`filters-toolbar-btn ${randomPicks ? 'filters-toolbar-btn--active' : ''}`} onClick={pickRandom} title={randomPicks ? 'Clear random picks' : 'Random 5 picks'}>
+                        <MdShuffle />
+                        {randomPicks ? 'Clear picks' : 'Random 5'}
+                    </button>
+                </div>
+
                 {/* Folder tabs */}
                 <div className="folder-tabs">
                     {Object.keys(localFolders || {}).map((folder, index) => (
@@ -224,9 +374,11 @@ function FilterPicker({
                 </div>
 
                 {/* Cards grid */}
-                <div className="filter-files" ref={containerRef} tabIndex={0} onScroll={handleScroll}>
+                <div className="filter-files" ref={containerRef} tabIndex={0} onScroll={handleScroll} onKeyDown={handleKeyDown}>
                     <div className="cards-grid">
-                        {filteredItems.map((item) => {
+                        {displayItems.map((item, cardIndex) => {
+                            const isFocused = focusedIndex === cardIndex;
+                            const isFavorite = favorites.includes(item.folder);
                             const isMultiEpisode = item.files.filter(
                                 f => f.endsWith(".mkv") || f.endsWith(".mp4") || f.endsWith(".webm")
                             ).length > 1;
@@ -244,6 +396,10 @@ function FilterPicker({
                                 return (
                                     <FileRecord
                                         key={item.folder}
+                                        focusRef={isFocused ? focusedCardRef : null}
+                                        focused={isFocused}
+                                        isFavorite={isFavorite}
+                                        onToggleFavorite={() => toggleFavorite(item.folder)}
                                         imgSrc={image}
                                         title={item.folder}
                                         isMultiEpisode
@@ -264,6 +420,10 @@ function FilterPicker({
                                 return (
                                     <FileRecord
                                         key={item.folder}
+                                        focusRef={isFocused ? focusedCardRef : null}
+                                        focused={isFocused}
+                                        isFavorite={isFavorite}
+                                        onToggleFavorite={() => toggleFavorite(item.folder)}
                                         imgSrc={image}
                                         title={item.folder}
                                         filter={!!filter}
@@ -292,14 +452,16 @@ function FilterPicker({
                                     <MdClose />
                                 </button>
                             </div>
-                            <div className="episode-panel-list">
+                            <div className="episode-panel-list" ref={epListRef} tabIndex={-1} style={{ outline: 'none' }} onKeyDown={handleEpKeyDown}>
                                 {episodePanel.videos.map((video, index) => {
                                     const name = video?.split?.("/")?.reverse?.()?.[0] || `Episode ${index + 1}`;
                                     const progress = StorageHelper.getContentProgress({ videoName: name });
+                                    const isEpFocused = focusedEpIndex === index;
                                     return (
                                         <div
                                             key={video}
-                                            className="episode-item"
+                                            ref={isEpFocused ? focusedEpRef : null}
+                                            className={`episode-item${isEpFocused ? ' episode-item--focused' : ''}`}
                                             onClick={() => playEpisode({
                                                 videos: episodePanel.videos,
                                                 srts: episodePanel.srts,

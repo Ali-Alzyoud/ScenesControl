@@ -43,17 +43,17 @@ class VideoPlayer extends React.PureComponent {
 
   keyHandler = (e) => {
     if(Utils.hasActiveInput()) return;
-    if (e.key == 1) {
+    if (e.code === 'Digit1') {
       this.setState({
         blackScreen: !this.state.blackScreen
       })
     }
-    if (e.key == 2) {
+    if (e.code === 'Digit2') {
       this.setState({
         blurScreen: !this.state.blurScreen
       })
     }
-    else if(e.key == 8){
+    else if(e.code === 'Digit8'){
       const {speedMulti} = this.state;
       if(speedMulti>= 2.6){
         this.setState({
@@ -276,6 +276,8 @@ class VideoPlayer extends React.PureComponent {
               visibleAudio={visibleAudio}
               onFullscreen={this.onFullscreen}
               state={playerState}
+              speedMulti={this.state.speedMulti}
+              onSpeedChange={(s) => this.setState({ speedMulti: s })}
             />
           </div>
         </div>

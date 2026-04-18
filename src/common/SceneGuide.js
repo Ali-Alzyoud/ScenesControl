@@ -106,6 +106,8 @@ var SceneGuideRecord = function (from, to, intensity, type) {
     this.Intensity = intensity;
     this.id = id++;
     this.geometries = [];
+    this._from = SceneGuideRecord.parseTime(from);
+    this._to = SceneGuideRecord.parseTime(to);
 }
 SceneGuideRecord.FromString = function (content) {
     var v = new SceneGuideRecord("00:00:00.000", "00:00:00.000", SceneIntensity.Low, SceneType.Violence);
@@ -139,61 +141,48 @@ SceneGuideRecord.prototype.fromString = function (lines) {
         this.geometries.push(SceneGeometry.FromString(lines[i]));
         i++;
     }
+    this._from = SceneGuideRecord.parseTime(this.From);
+    this._to = SceneGuideRecord.parseTime(this.To);
     return i;
 }
 
+SceneGuideRecord.parseTime = function (str) {
+    const p = str.split(":");
+    return Number(p[0]) * 3600 + Number(p[1]) * 60 + Number(p[2]);
+}
+
 SceneGuideRecord.ContainTime = function (record, time) {
-    var fromArray = record.From.split(":");
-    var toArray = record.To.split(":");
-
-    var fromTime = Number(fromArray[0]) * 60 * 60 + Number(fromArray[1]) * 60 + Number(fromArray[2]);
-    var toTime = Number(toArray[0]) * 60 * 60 + Number(toArray[1]) * 60 + Number(toArray[2]);
-
-    if (fromTime >= toTime)
-        return false;
-
-    if (time >= fromTime && time <= toTime)
-        return true;
-    return false;
+    return record._from < record._to && time >= record._from && time <= record._to;
 }
 
 SceneGuideRecord.prototype.containTime = function (time) {
-    var fromArray = this.From.split(":");
-    var toArray = this.To.split(":");
-
-    var fromTime = Number(fromArray[0]) * 60 * 60 + Number(fromArray[1]) * 60 + Number(fromArray[2]);
-    var toTime = Number(toArray[0]) * 60 * 60 + Number(toArray[1]) * 60 + Number(toArray[2]);
-
-    if (fromTime >= toTime)
-        return false;
-
-    if (time >= fromTime && time <= toTime)
-        return true;
-    return false;
+    return this._from < this._to && time >= this._from && time <= this._to;
 }
 
-SceneGuideRecord.prototype.setFromTime = function (time) {
+SceneGuideRecord.prototype.setFromTime = function (time, records) {
     var hour = Math.floor(time / (60*60));
     var min = Math.floor((time / (60)) % 60);
     var sec = ((time) % 60).toFixed(2);
 
     this.From = `${hour}:${min}:${sec}`;
+    this._from = time;
     this.id = id++;
+    if (records) records._sorted = false;
 }
 
-SceneGuideRecord.prototype.setToTime = function (time) {
+SceneGuideRecord.prototype.setToTime = function (time, records) {
     var hour = Math.floor(time / (60*60));
     var min = Math.floor((time / (60)) % 60);
     var sec = ((time) % 60).toFixed(2);
 
     this.To = `${hour}:${min}:${sec}`;
+    this._to = time;
     this.id = id++;
+    if (records) records._sorted = false;
 }
 
 SceneGuideRecord.prototype.endTime = function () {
-    var toArray = this.To.split(":");
-    var toTime = Number(toArray[0]) * 60 * 60 + Number(toArray[1]) * 60 + Number(toArray[2]);
-    return toTime;
+    return this._to;
 }
 
 /**************************************************************
@@ -219,6 +208,8 @@ class SceneGuideClass
             records.push(SceneGuideRecord.FromString(array));
             i=k+1;
         }
+        records.sort((a, b) => a._from - b._from);
+        records._sorted = true;
         return records;
     }
     
@@ -232,12 +223,31 @@ class SceneGuideClass
     }
     
     static GetRecordsAtTime = function (records, time) {
-        //FIXME save data in order, then binary search
-        var ret = [];
-        for (var i = 0; i < records.length; i++) {
-            var record = records[i];
-            if (SceneGuideRecord.ContainTime(record, time))
-                ret.push(record);
+        if (!records || records.length === 0) return [];
+
+        // If records were modified by the editor, fall back to linear scan
+        if (!records._sorted) {
+            const ret = [];
+            for (let j = 0; j < records.length; j++) {
+                const r = records[j];
+                if (r._from < r._to && time >= r._from && time <= r._to)
+                    ret.push(r);
+            }
+            return ret;
+        }
+
+        // Binary search: find first index where _from > time
+        let lo = 0, hi = records.length;
+        while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (records[mid]._from <= time) lo = mid + 1;
+            else hi = mid;
+        }
+        // All records[0..lo-1] have _from <= time; scan backward for those that also cover time
+        const ret = [];
+        for (let i = lo - 1; i >= 0; i--) {
+            const r = records[i];
+            if (r._from < r._to && r._to >= time) ret.push(r);
         }
         return ret;
     }

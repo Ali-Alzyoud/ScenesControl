@@ -234,6 +234,7 @@ function VideoFilter({
         } else {
             if (!records || !records.length) {
                 setRecordRects([]);
+                setMute(false);
                 if (filterType !== FILTER_TYPE.NONE)
                     setFilterType(FILTER_TYPE.NONE);
                 return;

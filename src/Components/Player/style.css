@@ -87,6 +87,39 @@ p.controltime {
     transform: translateX(-50%) translateY(-50%);
 }
 
+.speed-presets {
+    position: absolute;
+    bottom: 96px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+}
+
+.speed-btn {
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.55);
+    color: rgba(255,255,255,0.75);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    backdrop-filter: blur(4px);
+}
+.speed-btn:hover {
+    background: rgba(108,99,255,0.5);
+    border-color: #6c63ff;
+    color: #fff;
+}
+.speed-btn--active {
+    background: rgba(108,99,255,0.75);
+    border-color: #6c63ff;
+    color: #fff;
+}
+
 .controls-volume{
     top: 50%;
     transform:translateY(-50%);
