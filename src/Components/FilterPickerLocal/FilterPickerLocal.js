@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import * as API from '../../common/API/API'
@@ -181,8 +181,8 @@ function FilterPicker({
     // Scroll focused episode into view
     useEffect(() => { focusedEpRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [focusedEpIndex]);
 
-    const openEpisodePanel = ({ title, image, videos, srts, filters }) => {
-        setEpisodePanel({ title, image, videos, srts, filters });
+    const openEpisodePanel = ({ title, image, videos, srts, filters, names }) => {
+        setEpisodePanel({ title, image, videos, srts, filters, names });
     };
 
     const closeEpisodePanel = (e) => {
@@ -196,23 +196,23 @@ function FilterPicker({
     };
 
     const openItem = (item) => {
-        const isMulti = item.files.filter(f => f.endsWith('.mkv') || f.endsWith('.mp4') || f.endsWith('.webm')).length > 1;
+        const isMulti = item.files.filter(f => f.type === 'MEDIA').length > 1;
         if (isMulti) {
-            let imageFiles = item.files.filter(f => f.endsWith('.jpeg') || f.endsWith('.jpg') || f.endsWith('.png'));
-            let videos = item.files.filter(f => f.endsWith('.mkv') || f.endsWith('.mp4') || f.endsWith('.webm'));
-            let srts = item.files.filter(f => f.endsWith('.srt'));
-            let filters = item.files.filter(f => f.endsWith('mp4.txt') || f.endsWith('mkv.txt') || f.endsWith('webm.txt'));
-            const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0]}` : '';
-            openEpisodePanel({ title: item.folder, image, videos: videos.map(v => `${videoPath}/${item.folder}/${v}`), srts: srts.map(s => `${path}/${item.folder}/${s}`), filters: filters.map(f => `${path}/${item.folder}/${f}`) });
+            let imageFiles = item.files.filter(f => f.type === 'IMAGE');
+            let videos = item.files.filter(f => f.type === 'MEDIA');
+            let srts = item.files.filter(f => f.type === 'SRT');
+            let filters = item.files.filter(f => f.type === 'FILTER');
+            const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0].name}` : '';
+            openEpisodePanel({ title: item.folder, image, names: videos.map(v => v.name), videos: videos.map(v => `${videoPath}/${item.folder}/${v.name}`), srts: srts.map(s => `${path}/${item.folder}/${s.name}`), filters: filters.map(f => `${path}/${item.folder}/${f.name}`) });
         } else {
-            const imageFiles = item.files.filter(f => f.includes('.jpeg') || f.includes('.jpg') || f.includes('.png'));
-            const videoFile = item.files.find(f => f.includes('.mkv') || f.includes('.mp4') || f.includes('.webm'));
-            const srtFile = item.files.find(f => f.includes('.srt'));
-            const filterFile = item.files.find(f => f.includes('mp4.txt') || f.includes('mkv.txt') || f.includes('webm.txt'));
-            const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0]}` : '';
-            const video = videoFile ? `${videoPath}/${item.folder}/${videoFile}` : undefined;
-            const srt = srtFile ? `${path}/${item.folder}/${srtFile}` : undefined;
-            const filter = filterFile ? `${path}/${item.folder}/${filterFile}` : undefined;
+            const imageFiles = item.files.filter(f => f.type === 'IMAGE');
+            const videoFile = item.files.find(f => f.type === 'MEDIA');
+            const srtFile = item.files.find(f => f.type === 'SRT');
+            const filterFile = item.files.find(f => f.type === 'FILTER');
+            const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0].name}` : '';
+            const video = videoFile ? `${videoPath}/${item.folder}/${videoFile.name}` : undefined;
+            const srt = srtFile ? `${path}/${item.folder}/${srtFile.name}` : undefined;
+            const filter = filterFile ? `${path}/${item.folder}/${filterFile.name}` : undefined;
             StorageHelper.saveToCurrentList({ videos: [video], srts: [srt], filters: [filter], index: 0 });
             openContent({ video, srt, filter, image });
         }
@@ -379,19 +379,17 @@ function FilterPicker({
                         {displayItems.map((item, cardIndex) => {
                             const isFocused = focusedIndex === cardIndex;
                             const isFavorite = favorites.includes(item.folder);
-                            const isMultiEpisode = item.files.filter(
-                                f => f.endsWith(".mkv") || f.endsWith(".mp4") || f.endsWith(".webm")
-                            ).length > 1;
+                            const isMultiEpisode = item.files.filter(f => f.type === 'MEDIA').length > 1;
 
                             if (isMultiEpisode) {
-                                let imageFiles = item.files.filter(f => f.endsWith(".jpeg") || f.endsWith(".jpg") || f.endsWith(".png"));
-                                let videos = item.files.filter(f => f.endsWith(".mkv") || f.endsWith(".mp4") || f.endsWith(".webm"));
-                                let srts = item.files.filter(f => f.endsWith(".srt"));
-                                let filters = item.files.filter(f => f.endsWith("mp4.txt") || f.endsWith("mkv.txt") || f.endsWith("webm.txt"));
-                                const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0]}` : '';
-                                videos = videos.map(v => `${videoPath}/${item.folder}/${v}`);
-                                srts = srts.map(s => `${path}/${item.folder}/${s}`);
-                                filters = filters.map(f => `${path}/${item.folder}/${f}`);
+                                let imageFiles = item.files.filter(f => f.type === 'IMAGE');
+                                let videos = item.files.filter(f => f.type === 'MEDIA');
+                                let srts = item.files.filter(f => f.type === 'SRT');
+                                let filters = item.files.filter(f => f.type === 'FILTER');
+                                const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0].name}` : '';
+                                videos = videos.map(v => `${videoPath}/${item.folder}/${v.name}`);
+                                srts = srts.map(s => `${path}/${item.folder}/${s.name}`);
+                                filters = filters.map(f => `${path}/${item.folder}/${f.name}`);
 
                                 return (
                                     <FileRecord
@@ -404,18 +402,18 @@ function FilterPicker({
                                         title={item.folder}
                                         isMultiEpisode
                                         episodeCount={videos.length}
-                                        copy={() => openEpisodePanel({ title: item.folder, image, videos, srts, filters })}
+                                        copy={() => openEpisodePanel({ title: item.folder, image, names: item.files.filter(f => f.type === 'MEDIA').map(v => v.name), videos, srts, filters })}
                                     />
                                 );
                             } else {
-                                let imageFiles = item.files.filter(f => f.includes(".jpeg") || f.includes(".jpg") || f.includes(".png"));
-                                let videoFile = item.files.find(f => f.includes(".mkv") || f.includes(".mp4") || f.includes(".webm"));
-                                let srtFile = item.files.find(f => f.includes(".srt"));
-                                let filterFile = item.files.find(f => f.includes("mp4.txt") || f.includes("mkv.txt") || f.includes("webm.txt"));
-                                const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0]}` : "";
-                                const video = videoFile ? `${videoPath}/${item.folder}/${videoFile}` : undefined;
-                                const srt = srtFile ? `${path}/${item.folder}/${srtFile}` : undefined;
-                                const filter = filterFile ? `${path}/${item.folder}/${filterFile}` : undefined;
+                                let imageFiles = item.files.filter(f => f.type === 'IMAGE');
+                                let videoFile = item.files.find(f => f.type === 'MEDIA');
+                                let srtFile = item.files.find(f => f.type === 'SRT');
+                                let filterFile = item.files.find(f => f.type === 'FILTER');
+                                const image = imageFiles.length ? `${path}/${item.folder}/${imageFiles[0].name}` : "";
+                                const video = videoFile ? `${videoPath}/${item.folder}/${videoFile.name}` : undefined;
+                                const srt = srtFile ? `${path}/${item.folder}/${srtFile.name}` : undefined;
+                                const filter = filterFile ? `${path}/${item.folder}/${filterFile.name}` : undefined;
 
                                 return (
                                     <FileRecord
@@ -454,7 +452,11 @@ function FilterPicker({
                             </div>
                             <div className="episode-panel-list" ref={epListRef} tabIndex={-1} style={{ outline: 'none' }} onKeyDown={handleEpKeyDown}>
                                 {episodePanel.videos.map((video, index) => {
-                                    const name = video?.split?.("/")?.reverse?.()?.[0] || `Episode ${index + 1}`;
+                                    const rawName = episodePanel.names?.[index] || video?.split?.("/")?.reverse?.()?.[0] || `Episode ${index + 1}`;
+                                    const nameParts = rawName.split("/");
+                                    const name = nameParts.length > 1
+                                        ? `${nameParts[nameParts.length - 2]} / ${nameParts[nameParts.length - 1]}`
+                                        : rawName;
                                     const progress = StorageHelper.getContentProgress({ videoName: name });
                                     const isEpFocused = focusedEpIndex === index;
                                     return (

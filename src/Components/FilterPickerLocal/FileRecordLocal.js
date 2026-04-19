@@ -5,7 +5,8 @@ import { MdVideoLibrary, MdFavorite, MdFavoriteBorder } from 'react-icons/md'
 
 
 export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy, focused, focusRef, isFavorite, onToggleFavorite }) {
-    const localTitle = title?.includes("/") ? title?.split("/")?.[1] : title;
+    const parts = title?.split("/");
+    const localTitle = parts?.length > 1 ? parts[parts.length - 1] : title;
     const hasProgress = useMemo(() => {
         if (hasProgressProp) return true;
         if (!video) return false;
