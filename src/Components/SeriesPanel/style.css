@@ -9,10 +9,19 @@
     justify-content: center;
 }
 
+/* ── Modal wrapper (controls width + houses resize handle) ───── */
+.series-modal-wrapper {
+    max-width: 94vw;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: row;
+    position: relative;
+}
+
 /* ── Modal ──────────────────────────────────────────────────── */
 .series-modal {
-    width: 520px;
-    max-width: 94vw;
+    flex: 1;
+    min-width: 0;
     max-height: 82vh;
     background: #12121e;
     border-radius: 14px;
@@ -125,6 +134,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-align: left;
 }
 
 .series-ep-bar {
@@ -156,4 +166,20 @@
 .series-ep-watched {
     font-size: 14px;
     color: #4466aa;
+}
+
+/* ── Resize handle ──────────────────────────────────────────── */
+.series-resize-handle {
+    flex-shrink: 0;
+    width: 10px;
+    cursor: ew-resize;
+    background: rgba(108, 99, 255, 0.18);
+    border-left: 2px solid rgba(108, 99, 255, 0.4);
+    border-radius: 0 6px 6px 0;
+    transition: background 0.15s, border-color 0.15s;
+}
+.series-resize-handle:hover,
+.series-resize-handle:active {
+    background: rgba(108, 99, 255, 0.5);
+    border-left-color: #6c63ff;
 }

@@ -56,8 +56,14 @@
     flex-shrink: 0;
 }
 
-.filters-container-input {
+.filters-search-wrap {
     flex: 1;
+    max-width: 70%;
+    position: relative;
+}
+
+.filters-container-input {
+    width: 100%;
     padding: 8px 14px;
     border-radius: 8px;
     border: 1px solid #333355;
@@ -72,6 +78,45 @@
 }
 .filters-container-input::placeholder {
     color: #555577;
+}
+
+.filters-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #1e1e32;
+    border: 1px solid #3a3a5a;
+    border-radius: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    max-height: 260px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a44 transparent;
+}
+
+.filters-suggestion-item {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #c0c0e0;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.12s;
+}
+.filters-suggestion-item:hover,
+.filters-suggestion-item--active {
+    background: #2a2a4a;
+    color: #fff;
+}
+.filters-suggestion-item--active {
+    border-left: 2px solid #6c63ff;
+    padding-left: 12px;
 }
 
 .filters-search-actions {
@@ -108,21 +153,20 @@
     color: #a89fff;
 }
 
-.filters-container-sort-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #aaaacc;
+.filters-sortby-select {
+    background: #0e0e1a;
+    border: 1px solid #333355;
+    border-radius: 8px;
+    color: #c0c0e0;
     font-size: 13px;
-    white-space: nowrap;
+    padding: 7px 10px;
     cursor: pointer;
-    user-select: none;
+    outline: none;
+    transition: border-color 0.2s;
 }
-.filters-container-sort-toggle input[type="checkbox"] {
-    accent-color: #6c63ff;
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
+.filters-sortby-select:focus,
+.filters-sortby-select:hover {
+    border-color: #6c63ff;
 }
 
 /* Resync group */
@@ -132,6 +176,7 @@
     align-items: flex-end;
     gap: 2px;
     flex-shrink: 0;
+    margin-left: auto;
 }
 .filters-sync-date {
     font-size: 10px;
@@ -409,11 +454,25 @@
     z-index: 30;
     display: flex;
     justify-content: flex-end;
+    align-items: stretch;
     background: rgba(0,0,0,0.5);
 }
 
+.episode-panel-resize-handle {
+    flex-shrink: 0;
+    width: 10px;
+    cursor: ew-resize;
+    background: rgba(108, 99, 255, 0.18);
+    border-left: 2px solid rgba(108, 99, 255, 0.4);
+    transition: background 0.15s, border-color 0.15s;
+}
+.episode-panel-resize-handle:hover,
+.episode-panel-resize-handle:active {
+    background: rgba(108, 99, 255, 0.5);
+    border-left-color: #6c63ff;
+}
+
 .episode-panel {
-    width: 520px;
     max-width: 90%;
     height: 100%;
     background: #14142a;
@@ -525,6 +584,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: left;
 }
 
 .episode-watched {

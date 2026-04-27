@@ -1,120 +1,100 @@
 import React from 'react'
-
-
 import { connect } from "react-redux";
-import { PLAYER_ACTION} from '../../redux/actionTypes'
+import { PLAYER_ACTION } from '../../redux/actionTypes'
 import { selectPlayerConfig } from '../../redux/selectors';
 import { setPlayerConfig } from '../../redux/actions';
-
-
 import './style.css'
 
-function ConfigEditor({playerConfig, setPlayerConfig}) {
+const VIDEO_OPTIONS = [
+    PLAYER_ACTION.BLUR,
+    PLAYER_ACTION.BLUR_EXTRA,
+    PLAYER_ACTION.BLUR_EXTREME,
+    PLAYER_ACTION.BLUR_EXTREME_X2,
+    PLAYER_ACTION.BLACK,
+    PLAYER_ACTION.SKIP,
+    PLAYER_ACTION.NOACTION,
+];
 
-    const onChange = (e) => {
-        let secondValue = playerConfig.violence[1];
-        if(e.target.name === 'nudity') secondValue = playerConfig.nudity[1];
-        else if(e.target.name === 'sex') secondValue = playerConfig.sex[1];
-        else if(e.target.name === 'profanity') secondValue = playerConfig.profanity[1];
-        else if(e.target.name === 'rightclick') secondValue = playerConfig.rightclick[1];
-        setPlayerConfig({[e.target.name]: [e.target.value, secondValue]});
-    }
+const AUDIO_OPTIONS = [
+    PLAYER_ACTION.MUTE,
+    PLAYER_ACTION.NOACTION,
+];
 
-    const onChange2 = (e) => {
-        let firstValue = playerConfig.violence[0];
-        if(e.target.name === 'nudity') firstValue = playerConfig.nudity[0];
-        else if(e.target.name === 'sex') firstValue = playerConfig.sex[0];
-        else if(e.target.name === 'profanity') firstValue = playerConfig.profanity[0];
-        else if(e.target.name === 'rightclick') firstValue = playerConfig.rightclick[0];
-        setPlayerConfig({[e.target.name]: [firstValue, e.target.value]});
-    }
+const ROWS = [
+    { key: 'violence',  label: 'Violence',   icon: '⚔️' },
+    { key: 'nudity',    label: 'Nudity',      icon: '🙈' },
+    { key: 'sex',       label: 'Sex',         icon: '🔞' },
+    { key: 'profanity', label: 'Profanity',   icon: '🤬' },
+    { key: 'rightclick',label: 'Right Click', icon: '🖱️' },
+];
 
-    const onChangeFilerRect = (e) => {
-        setPlayerConfig({[e.target.name]: e.target.value == "false" ? false : true});
-    }
+function ConfigEditor({ playerConfig, setPlayerConfig }) {
+    const setVideo = (key, value) =>
+        setPlayerConfig({ [key]: [value, playerConfig[key][1]] });
 
-    const options_video = [
-        <option value={PLAYER_ACTION.BLUR}>{PLAYER_ACTION.BLUR}</option>,
-        <option value={PLAYER_ACTION.BLUR_EXTRA}>{PLAYER_ACTION.BLUR_EXTRA}</option>,
-        <option value={PLAYER_ACTION.BLUR_EXTREME}>{PLAYER_ACTION.BLUR_EXTREME}</option>,
-        <option value={PLAYER_ACTION.BLUR_EXTREME_X2}>{PLAYER_ACTION.BLUR_EXTREME_X2}</option>,
-        <option value={PLAYER_ACTION.BLACK}>{PLAYER_ACTION.BLACK}</option>,
-        <option value={PLAYER_ACTION.SKIP}>{PLAYER_ACTION.SKIP}</option>,
-        <option value={PLAYER_ACTION.NOACTION}>{PLAYER_ACTION.NOACTION}</option>
-    ];
+    const setAudio = (key, value) =>
+        setPlayerConfig({ [key]: [playerConfig[key][0], value] });
 
-    const options_audio = [
-        <option value={PLAYER_ACTION.MUTE}>{PLAYER_ACTION.MUTE}</option>,
-        <option value={PLAYER_ACTION.NOACTION}>{PLAYER_ACTION.NOACTION}</option>
-    ];
+    const setFilterRect = (value) =>
+        setPlayerConfig({ filterRect: value === 'true' });
 
     return (
-        <div className='config'>
-            <div className='item'>
-                <span>Violence</span>
-                <select onChange={onChange} name='violence' value={playerConfig.violence[0]}>
-                    {options_video.map((option) => option)}
-                </select>
-                <select onChange={onChange2} name='violence' value={playerConfig.violence[1]}>
-                    {options_audio.map((option) => option)}
+        <div className="cfg-wrap">
+            <div className="cfg-section-title">Scene Filter Actions</div>
+            <table className="cfg-table">
+                <thead>
+                    <tr>
+                        <th className="cfg-th cfg-th-label">Type</th>
+                        <th className="cfg-th">Video</th>
+                        <th className="cfg-th">Audio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {ROWS.map(({ key, label, icon }) => (
+                        <tr key={key} className="cfg-row">
+                            <td className="cfg-td-label">
+                                <span className="cfg-icon">{icon}</span>
+                                <span className="cfg-label">{label}</span>
+                            </td>
+                            <td className="cfg-td">
+                                <select
+                                    className="cfg-select"
+                                    value={playerConfig[key][0]}
+                                    onChange={e => setVideo(key, e.target.value)}
+                                >
+                                    {VIDEO_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                                </select>
+                            </td>
+                            <td className="cfg-td">
+                                <select
+                                    className="cfg-select cfg-select--audio"
+                                    value={playerConfig[key][1]}
+                                    onChange={e => setAudio(key, e.target.value)}
+                                >
+                                    {AUDIO_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                                </select>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            <div className="cfg-divider" />
+
+            <div className="cfg-row cfg-extra-row">
+                <span className="cfg-extra-label">Filter Area Rect</span>
+                <select
+                    className="cfg-select"
+                    value={String(playerConfig.filterRect)}
+                    onChange={e => setFilterRect(e.target.value)}
+                >
+                    <option value="true">Enabled</option>
+                    <option value="false">Disabled</option>
                 </select>
             </div>
-
-            <div className='item'>
-                <span>Nudity</span>
-                <select onChange={onChange} name='nudity' value={playerConfig.nudity[0]}>
-                    {options_video.map((option) => option)}
-                </select>
-                <select onChange={onChange2} name='nudity' value={playerConfig.nudity[1]}>
-                    {options_audio.map((option) => option)}
-                </select>
-            </div>
-
-            <div className='item'>
-                <span>Sex</span>
-                <select onChange={onChange} name='sex' value={playerConfig.sex[0]}>
-                    {options_video.map((option) => option)}
-                </select>
-                <select onChange={onChange2} name='sex' value={playerConfig.sex[1]}>
-                    {options_audio.map((option) => option)}
-                </select>
-            </div>
-
-            <div className='item'>
-                <span>Profanity</span>
-                <select onChange={onChange} name='profanity' value={playerConfig.profanity[0]}>
-                    {options_video.map((option) => option)}
-                </select>
-                <select onChange={onChange2} name='profanity' value={playerConfig.profanity[1]}>
-                    {options_audio.map((option) => option)}
-                </select>
-            </div>
-
-            <div className='item'>
-                <span>RightClick</span>
-                <select onChange={onChange} name='rightclick' value={playerConfig.rightclick[0]}>
-                    {options_video.map((option) => option)}
-                </select>
-                <select onChange={onChange2} name='rightclick' value={playerConfig.rightclick[1]}>
-                    {options_audio.map((option) => option)}
-                </select>
-            </div>
-
-            <div className='item' style={{ paddingRight: '170px' }}>
-                <span>Filter Area</span>
-                <select onChange={onChangeFilerRect} name='filterRect' value={playerConfig.filterRect}>
-                <option value={true}>true</option>
-                <option value={false}>false</option>
-                </select>
-            </div>
-
         </div>
     )
 }
 
-const mapStateToProps = state => {
-    const playerConfig = selectPlayerConfig(state);
-    return { playerConfig };
-  };
-
+const mapStateToProps = state => ({ playerConfig: selectPlayerConfig(state) });
 export default connect(mapStateToProps, { setPlayerConfig })(ConfigEditor);

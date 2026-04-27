@@ -1,22 +1,112 @@
-.config{
-    display: grid;
-    grid-template-columns: auto;
-    background-color: gray;
+.cfg-wrap {
+    background: #12121e;
+    border: 1px solid #2a2a40;
+    border-radius: 12px;
+    padding: 16px 20px 12px;
     width: fit-content;
-    margin: auto auto;
-    width: 400px;
+    min-width: 420px;
+    margin: 12px auto;
 }
 
-.item {
-    display: inline-block;
-    margin: 5px;
+.cfg-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6c63ff;
+    margin-bottom: 12px;
 }
 
-.item > span{
-    display: inline-block;
-    width: 100px;
+/* ── Table ───────────────────────────────────────────────────── */
+.cfg-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.item > select{
-    margin-left: 5px;
+.cfg-th {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #4a4a7a;
+    padding: 0 10px 8px;
+    text-align: left;
+}
+.cfg-th-label { padding-left: 0; }
+
+.cfg-row {
+    border-radius: 8px;
+    transition: background 0.12s;
+}
+.cfg-row:hover td { background: #1e1e32; }
+.cfg-row td:first-child { border-radius: 8px 0 0 8px; }
+.cfg-row td:last-child  { border-radius: 0 8px 8px 0; }
+
+.cfg-td-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px 7px 0;
+    white-space: nowrap;
+}
+
+.cfg-td {
+    padding: 5px 6px;
+}
+
+.cfg-icon {
+    font-size: 15px;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.cfg-label {
+    font-size: 13px;
+    color: #c0c0e0;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+/* ── Select ──────────────────────────────────────────────────── */
+.cfg-select {
+    background: #1e1e32;
+    border: 1px solid #2e2e50;
+    border-radius: 7px;
+    color: #c0c0e0;
+    font-size: 12px;
+    padding: 6px 10px;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color 0.15s;
+}
+.cfg-select:hover,
+.cfg-select:focus {
+    border-color: #6c63ff;
+}
+.cfg-select--audio {
+    min-width: 100px;
+}
+
+/* ── Divider ─────────────────────────────────────────────────── */
+.cfg-divider {
+    border: none;
+    border-top: 1px solid #2a2a40;
+    margin: 10px 0;
+}
+
+/* ── Extra row ───────────────────────────────────────────────── */
+.cfg-extra-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 0 2px;
+}
+
+.cfg-extra-label {
+    font-size: 13px;
+    color: #c0c0e0;
+    font-weight: 500;
+    min-width: 120px;
 }

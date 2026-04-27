@@ -136,36 +136,88 @@ class SrtRecord {
   }
 }
 class SrtClass {
+  // Convert ASS timestamp H:MM:SS.CC to milliseconds
+  static _assTime(str) {
+    const parts = str.trim().split(':');
+    const h = Number(parts[0]);
+    const m = Number(parts[1]);
+    const scs = parts[2].split('.');
+    const s = Number(scs[0]);
+    const cs = Number(scs[1] || 0);
+    return (h * 3600 + m * 60 + s) * 1000 + cs * 10;
+  }
+
+  static _parseASS(text) {
+    const lines = text.split(/\r?\n/);
+    const records = [];
+    let inEvents = false;
+    let colStart = -1;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed === '[Events]') { inEvents = true; continue; }
+      if (trimmed.startsWith('[') && trimmed !== '[Events]') { inEvents = false; continue; }
+      if (!inEvents) continue;
+
+      if (trimmed.startsWith('Format:')) {
+        const cols = trimmed.slice(7).split(',').map(c => c.trim());
+        colStart = cols.indexOf('Text');
+        continue;
+      }
+
+      if (!trimmed.startsWith('Dialogue:')) continue;
+      const fields = trimmed.slice(9).split(',');
+      const start = fields[1]?.trim();
+      const end   = fields[2]?.trim();
+      if (!start || !end) continue;
+
+      const rawText = colStart >= 0
+        ? fields.slice(colStart).join(',')
+        : fields.slice(9).join(',');
+
+      // Split on hard line-break tags \N or \n, then resolve inline tags
+      const contentLines = rawText
+        .split(/\\[Nn]/)
+        .map(l => SrtRecord.ResolveTags(l.trim()))
+        .filter(l => l.length > 0);
+
+      if (contentLines.length === 0) continue;
+
+      records.push({
+        from: SrtClass._assTime(start),
+        to:   SrtClass._assTime(end),
+        content: contentLines,
+      });
+    }
+
+    return records;
+  }
+
   /**
-   *
-   * @param {string} url path to srt file
+   * @param {string} url path to srt or ass/ssa file
    */
   static async ReadFile(url) {
-    let recordsRaw = [];
-    let records = [];
-
     const response = await fetch(url);
     const data = await response.text();
 
-    var text = data;
-    recordsRaw = text.split("\n");
+    // Detect ASS/SSA by presence of [Events] section with Dialogue lines
+    if (/^\[Script Info\]/m.test(data) || /^Dialogue:/m.test(data)) {
+      return SrtClass._parseASS(data);
+    }
+
+    // SRT parser
+    let recordsRaw = data.split("\n");
     for (let i = 0; i < recordsRaw.length; i++) {
-      recordsRaw[i] = recordsRaw[i].replace('\n','');
-      recordsRaw[i] = recordsRaw[i].replace('\r','');
+      recordsRaw[i] = recordsRaw[i].replace('\r', '');
     }
 
     let i = 0;
-    let recordIndex = 0;
+    const records = [];
     while (i < recordsRaw.length) {
-        if(!recordsRaw[i].includes(' --> '))
-        {
-          i++;
-          continue;
-        }
-
-        records[recordIndex] = new SrtRecord(recordsRaw, i);
-        i += records[recordIndex].content.length + 1;
-        recordIndex++;
+      if (!recordsRaw[i].includes(' --> ')) { i++; continue; }
+      const rec = new SrtRecord(recordsRaw, i);
+      records.push(rec);
+      i += rec.content.length + 1;
     }
 
     return records;

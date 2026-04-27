@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import * as API from '../../common/API/API'
@@ -45,7 +45,7 @@ function FilterPicker({
 }) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [selectedFolder, setSelectedFolder] = useState("");
-    const [byDate, setByDate] = useState(!!localStorage.getItem("byDate"));
+    const [sortBy, setSortBy] = useState(localStorage.getItem("sortBy") || "alphabet");
     const [filterText, setFilterText] = useState(localStorage.getItem("filterText") || "");
     const [sortAsc, setSortAsc] = useState(true);
     const [randomPicks, setRandomPicks] = useState(null);
@@ -53,10 +53,20 @@ function FilterPicker({
         try { return JSON.parse(localStorage.getItem('favorites') || '[]'); } catch { return []; }
     });
     const [episodePanel, setEpisodePanel] = useState(null); // { title, image, videos, srts, filters }
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [suggestionIndex, setSuggestionIndex] = useState(-1);
     const [focusedIndex, setFocusedIndex] = useState(-1);
+    const searchRef = useRef(null);
     const [focusedEpIndex, setFocusedEpIndex] = useState(0);
     const [folders, setFolders] = useState(foldersProp || []);
     const [syncing, setSyncing] = useState(false);
+    const [epPanelWidth, setEpPanelWidth] = useState(() => {
+        const saved = Number(localStorage.getItem('epPanelWidth'));
+        return saved >= 280 && saved <= 900 ? saved : 520;
+    });
+    const epDragging = useRef(false);
+    const epDragStartX = useRef(0);
+    const epDragStartWidth = useRef(0);
     const containerRef = useRef();
     const focusedCardRef = useRef(null);
     const focusedEpRef = useRef(null);
@@ -80,6 +90,8 @@ function FilterPicker({
             const now = Date.now();
             localStorage.setItem(`storeCache_${apiUrl}`, JSON.stringify(data.files));
             localStorage.setItem(`storeCacheTime_${apiUrl}`, String(now));
+            window.__storeCache = window.__storeCache || {};
+            window.__storeCache[apiUrl] = data.files;
             setFolders(data.files);
             setLastSync(now);
         } catch (e) {
@@ -90,8 +102,8 @@ function FilterPicker({
     };
 
     useEffect(() => {
-        localStorage.setItem("byDate", byDate ? "1" : "")
-    }, [byDate]);
+        localStorage.setItem("sortBy", sortBy);
+    }, [sortBy]);
 
     const localFolders = useMemo(() => {
         const container = {};
@@ -103,14 +115,17 @@ function FilterPicker({
             container[folderName].push(folder);
         });
 
-        if (byDate) {
-            Object.keys(container).forEach((key) => {
+        Object.keys(container).forEach((key) => {
+            if (sortBy === 'date') {
                 container[key] = container[key].sort((a, b) => Number(b.time) - Number(a.time));
-            });
-        }
+            } else if (sortBy === 'alphabet') {
+                container[key] = container[key].sort((a, b) => (a.folder || '').localeCompare(b.folder || ''));
+            }
+        });
+
         setSelectedIndex(Number(localStorage.getItem("selectedIndex")) || 0);
         return container;
-    }, [folders, byDate]);
+    }, [folders, sortBy]);
 
     useEffect(() => {
         const folder = Object.keys(localFolders || {})?.[selectedIndex] || "";
@@ -151,10 +166,54 @@ function FilterPicker({
         sessionStorage["scrollValue"] = containerRef.current.scrollTop;
     };
 
+    const allFolderNames = useMemo(() => {
+        const seen = new Set();
+        Object.values(localFolders).forEach(items =>
+            items.forEach(item => item?.folder && seen.add(item.folder))
+        );
+        return [...seen];
+    }, [localFolders]);
+
+    const suggestions = useMemo(() => {
+        if (!filterText || filterText.length < 1) return [];
+        const q = filterText.toLowerCase();
+        return allFolderNames.filter(f => f.toLowerCase().includes(q)).slice(0, 8);
+    }, [filterText, allFolderNames]);
+
+    const applySuggestion = useCallback((value) => {
+        setFilterText(value.toLowerCase());
+        localStorage.setItem("filterText", value.toLowerCase());
+        setShowSuggestions(false);
+        setSuggestionIndex(-1);
+    }, []);
+
     const textChanged = (e) => {
         const val = e.target.value.toLowerCase();
         setFilterText(val);
         localStorage.setItem("filterText", val);
+        setShowSuggestions(true);
+        setSuggestionIndex(-1);
+    };
+
+    const onSearchKeyDown = (e) => {
+        if (!showSuggestions || suggestions.length === 0) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            e.stopPropagation();
+            setSuggestionIndex(i => Math.min(i + 1, suggestions.length - 1));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            e.stopPropagation();
+            setSuggestionIndex(i => Math.max(i - 1, -1));
+        } else if (e.key === 'Enter') {
+            if (suggestionIndex >= 0) {
+                e.preventDefault();
+                applySuggestion(suggestions[suggestionIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            setShowSuggestions(false);
+            setSuggestionIndex(-1);
+        }
     };
 
     const selectTab = (index) => {
@@ -180,6 +239,36 @@ function FilterPicker({
 
     // Scroll focused episode into view
     useEffect(() => { focusedEpRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [focusedEpIndex]);
+
+    const onEpResizeMouseDown = useCallback((e) => {
+        epDragging.current = true;
+        epDragStartX.current = e.clientX;
+        epDragStartWidth.current = epPanelWidth;
+        document.body.style.cursor = 'ew-resize';
+        document.body.style.userSelect = 'none';
+    }, [epPanelWidth]);
+
+    useEffect(() => {
+        const onMouseMove = (e) => {
+            if (!epDragging.current) return;
+            const delta = e.clientX - epDragStartX.current;
+            const next = Math.min(900, Math.max(280, epDragStartWidth.current + delta));
+            setEpPanelWidth(next);
+        };
+        const onMouseUp = () => {
+            if (!epDragging.current) return;
+            epDragging.current = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            setEpPanelWidth(w => { localStorage.setItem('epPanelWidth', w); return w; });
+        };
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+        };
+    }, []);
 
     const openEpisodePanel = ({ title, image, videos, srts, filters, names }) => {
         setEpisodePanel({ title, image, videos, srts, filters, names });
@@ -318,20 +407,30 @@ function FilterPicker({
 
                 {/* Toolbar */}
                 <div className="filters-container-toolbar">
-                    <input
-                        className="filters-container-input"
-                        placeholder="Search..."
-                        onChange={textChanged}
-                        value={filterText}
-                    />
-                    <label className="filters-container-sort-toggle">
+                    <div className="filters-search-wrap" ref={searchRef}>
                         <input
-                            type="checkbox"
-                            checked={byDate}
-                            onChange={() => setByDate(!byDate)}
+                            className="filters-container-input"
+                            placeholder="Search..."
+                            onChange={textChanged}
+                            onKeyDown={onSearchKeyDown}
+                            onFocus={() => filterText && setShowSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                            value={filterText}
                         />
-                        By Date
-                    </label>
+                        {showSuggestions && suggestions.length > 0 && (
+                            <ul className="filters-suggestions">
+                                {suggestions.map((s, i) => (
+                                    <li
+                                        key={s}
+                                        className={`filters-suggestion-item${i === suggestionIndex ? ' filters-suggestion-item--active' : ''}`}
+                                        onMouseDown={() => applySuggestion(s)}
+                                    >
+                                        {s}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
                     {apiUrl && (
                         <div className="filters-resync-group">
                             {lastSync && (
@@ -357,6 +456,15 @@ function FilterPicker({
                         <MdShuffle />
                         {randomPicks ? 'Clear picks' : 'Random 5'}
                     </button>
+                    <select
+                        className="filters-sortby-select"
+                        value={sortBy}
+                        onChange={e => { setSortBy(e.target.value); setRandomPicks(null); }}
+                    >
+                        <option value="alphabet">A → Z</option>
+                        <option value="date">Latest</option>
+                        <option value="none">Default</option>
+                    </select>
                 </div>
 
                 {/* Folder tabs */}
@@ -440,7 +548,8 @@ function FilterPicker({
                 {/* Episode panel */}
                 {episodePanel && (
                     <div className="episode-panel-overlay" onClick={closeEpisodePanel}>
-                        <div className="episode-panel" onClick={e => e.stopPropagation()}>
+                        <div className="episode-panel" style={{ width: epPanelWidth }} onClick={e => e.stopPropagation()}>
+
                             <div className="episode-panel-header">
                                 {episodePanel.image && (
                                     <img className="episode-panel-thumb" src={episodePanel.image} alt="" />
@@ -482,6 +591,7 @@ function FilterPicker({
                                 })}
                             </div>
                         </div>
+                        <div className="episode-panel-resize-handle" onMouseDown={onEpResizeMouseDown} onClick={e => e.stopPropagation()} />
                     </div>
                 )}
             </div>

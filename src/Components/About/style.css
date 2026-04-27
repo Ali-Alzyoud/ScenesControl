@@ -1,57 +1,180 @@
-.overlay{
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+.about-overlay {
+    position: fixed;
+    inset: 0;
     background: rgba(0, 0, 0, 0.85);
-    z-index: 10;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
 }
 
-.box{
-    position: absolute;
-    left: 5%;
-    top: 5%;
-    height: 90%;
-    width: 90%;
-    background: white;
+.about-overlay .about-box {
+    pointer-events: all;
 }
 
-.box > *{
-    user-select: text;
+.about-box {
+    width: 620px;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: #12121e;
+    border-radius: 14px;
+    border: 1px solid #2a2a40;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
-.box-links{
-    float: none !important;
-    color: black !important;
+/* ── Header ─────────────────────────────────────────────────── */
+.about-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #2a2a40;
+    background: #1a1a2e;
+    flex-shrink: 0;
+    cursor: grab;
+    user-select: none;
+}
+.about-header:active { cursor: grabbing; }
+
+.about-app-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #d0d0f0;
+    margin-bottom: 6px;
 }
 
-.button {
-    background-color: #7f7f7f;
-    border: none;
-    color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
+.about-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
     font-size: 12px;
-    margin: 4px 2px;
-    cursor: pointer;
+    color: #7070a0;
 }
 
-.part {
+.about-dot { color: #3a3a5a; }
+
+.about-link {
+    color: #7c74ff;
+    text-decoration: none;
+}
+.about-link:hover { text-decoration: underline; }
+
+.about-version {
+    background: #2a2a40;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    color: #6060a0;
+}
+
+.about-close {
+    background: none;
+    border: none;
+    color: #5050a0;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    line-height: 1;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+.about-close:hover { background: #e5393533; color: #e53935; }
+
+/* ── Scrollable body ─────────────────────────────────────────── */
+.about-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a44 transparent;
+}
+.about-body::-webkit-scrollbar { width: 5px; }
+.about-body::-webkit-scrollbar-thumb { background: #2a2a44; border-radius: 3px; }
+
+/* ── Section ─────────────────────────────────────────────────── */
+.about-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6c63ff;
+    margin-bottom: 8px;
+}
+
+.about-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* ── Row ─────────────────────────────────────────────────────── */
+.about-row td {
+    padding: 5px 8px;
+    vertical-align: middle;
+    border-radius: 6px;
+}
+.about-row:hover td { background: #1e1e32; }
+
+.about-keys {
+    width: 200px;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.about-desc {
+    font-size: 12px;
+    color: #9090c0;
+    text-align: left;
+}
+
+.about-sep {
+    color: #3a3a5a;
+    font-size: 11px;
+    margin: 0 2px;
+}
+
+/* ── Kbd ─────────────────────────────────────────────────────── */
+.about-kbd {
     display: inline-block;
-    text-align: left;
-    margin-left: 20px;
-    margin-right: 20px;
+    background: #1e1e32;
+    border: 1px solid #3a3a5a;
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    color: #b0b0e0;
+    white-space: nowrap;
 }
-.center {
-    text-align: center;
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.about-footer {
+    padding: 12px 24px;
+    border-top: 1px solid #2a2a40;
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    background: #1a1a2e;
 }
-.bold{
-    font-weight: bolder;
+
+.about-ok {
+    background: #6c63ff;
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
 }
-.overlay > p {
-    text-align: left;
-    margin-left: 30px;
-}
+.about-ok:hover { background: #574fd6; }

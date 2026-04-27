@@ -115,8 +115,8 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 </button>
                 <div className="dropdown-content">
                     <input className='hidden' key={key + "_1"} ref={videoInput} type='file' onChange={openVideoFile} />
-                    <input className='hidden' key={key + "_2"} ref={subtitleInput} type='file' onChange={openSubtitleFile} />
-                    <input className='hidden' key={key + "_2"} ref={subtitleSyncInput} type='file' onChange={openSubtitleFileSync} />
+                    <input className='hidden' key={key + "_2"} ref={subtitleInput} type='file' accept=".srt,.ass,.ssa" onChange={openSubtitleFile} />
+                    <input className='hidden' key={key + "_2"} ref={subtitleSyncInput} type='file' accept=".srt,.ass,.ssa" onChange={openSubtitleFileSync} />
                     <input className='hidden' key={key + "_3"} ref={filterInput} type='file' onChange={openFilterFile} />
                     <a href="#" onClick={() => videoInput.current.click()}>Open video</a>
                     <a href="#" onClick={() => subtitleInput.current.click()}>Open subtitle</a>
@@ -165,15 +165,27 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 </div>
                 <button onClick={async () => {
                     const url = domain+API;
+                    // 1. In-memory cache (no JSON.parse cost)
+                    const mem = window.__storeCache?.[url];
+                    if (mem) {
+                        setFolders(mem);
+                        setfilterPicker2(true);
+                        return;
+                    }
+                    // 2. localStorage cache (parse once then warm the memory cache)
                     const cacheKey = `storeCache_${url}`;
                     const cached = localStorage.getItem(cacheKey);
                     if (cached) {
                         try {
-                            setFolders(JSON.parse(cached));
+                            const parsed = JSON.parse(cached);
+                            window.__storeCache = window.__storeCache || {};
+                            window.__storeCache[url] = parsed;
+                            setFolders(parsed);
                             setfilterPicker2(true);
                             return;
                         } catch {}
                     }
+                    // 3. Network fetch
                     try {
                         const response = await fetch(url, {
                             method: "GET",
@@ -182,6 +194,8 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                         const data = await response.json();
                         localStorage.setItem(cacheKey, JSON.stringify(data.files));
                         localStorage.setItem(`storeCacheTime_${url}`, String(Date.now()));
+                        window.__storeCache = window.__storeCache || {};
+                        window.__storeCache[url] = data.files;
                         setFolders(data.files);
                         setfilterPicker2(true);
                     } catch (error) {
