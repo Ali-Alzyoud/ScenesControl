@@ -20,6 +20,7 @@
     "web-vitals": "^1.1.1"
   },
   "scripts": {
+    "postinstall": "npm uninstall @types/minimatch",
     "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider CI=false react-scripts start",
     "electron": "electron .",
     "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider CI=false react-scripts build",
