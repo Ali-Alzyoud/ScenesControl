@@ -4,6 +4,7 @@ import { Player } from './Components/Player';
  
 
 import Menu from './Components/Menu'
+import { QrLoginConfirm } from './Components/Login/Login'
 import SrtClass from './common/SrtClass'
 import FilterEditor from './Components/FilterFileEditor'
 import ConfigEditor from './Components/ConfigEditor'
@@ -45,16 +46,40 @@ function App(props) {
   const syncConfig = useSelector(getSyncConfig)
   
 
+  const [qrLogin, setQrLogin] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return p.get('qrlogin') ? { id: p.get('qrlogin'), domain: p.get('domain') || localStorage.getItem('domain') } : null;
+  });
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const server = urlParams.get('domain');
-    if(server && server != localStorage.getItem('domain')){
-      localStorage.setItem('domain',server);
+    const token = urlParams.get('token');
 
-      localStorage.setItem("remoteMeta","")
-      localStorage.setItem("remotePath","")
+    let needsReload = false;
 
-      window.location.reload();
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const { setAuth } = require('./common/auth');
+        setAuth(token, { username: payload.username || payload.sub || '' });
+      } catch {
+        const { setAuth } = require('./common/auth');
+        setAuth(token, {});
+      }
+    }
+
+    if (server && server !== localStorage.getItem('domain')) {
+      localStorage.setItem('domain', server);
+      localStorage.setItem('remoteMeta', '');
+      localStorage.setItem('remotePath', '');
+      needsReload = true;
+    }
+
+    if (needsReload || token) {
+      const clean = window.location.origin + window.location.pathname + window.location.hash;
+      window.history.replaceState({}, '', clean);
+      if (needsReload) window.location.reload();
     }
   }, []);
 
@@ -117,6 +142,7 @@ function App(props) {
     }
   }, [loadAll]);
 
+
   useEffect(() => {
     if(Utils.hasActiveInput()) return;
     const { modalOpen } = props;
@@ -140,6 +166,10 @@ function App(props) {
       window.removeEventListener('keydown', handleKeyDown);
     }
   }, [showEditor, showConfig]);
+
+  if (qrLogin) {
+    return <QrLoginConfirm domain={qrLogin.domain} qrId={qrLogin.id} onDone={() => setQrLogin(null)} />;
+  }
 
   return (
     <div className="App" ref={ref}>

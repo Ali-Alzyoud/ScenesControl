@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import * as API from '../../common/API/API'
+import { authFetch } from '../../common/auth'
 
 import { connect } from "react-redux";
 import { setFilterItems, setSubtitle, setModalOpen, setVideoSrc, setVideoName, setDuration, setTime } from '../../redux/actions'
@@ -82,10 +83,15 @@ function FilterPicker({
         if (!apiUrl || syncing) return;
         setSyncing(true);
         try {
-            const response = await fetch(apiUrl, {
+            const response = await authFetch(apiUrl, {
                 method: "GET",
                 headers: { accept: "application/json" },
             });
+            if (response.status === 401) {
+                alert.error?.('Login required — please sign in from the menu') || console.error('Unauthorized');
+                setSyncing(false);
+                return;
+            }
             const data = await response.json();
             const now = Date.now();
             localStorage.setItem(`storeCache_${apiUrl}`, JSON.stringify(data.files));
@@ -135,20 +141,20 @@ function FilterPicker({
     useEffect(() => {
         API.getMediaRecords();
         setModalOpen(true);
+        window.history.pushState({ modal: 'store' }, '');
+        const handlePopState = () => close();
+        window.addEventListener('popstate', handlePopState);
         return () => {
             setModalOpen(false);
             alert.removeAll();
+            window.removeEventListener('popstate', handlePopState);
         };
     }, []);
 
     useEffect(() => {
         if (containerRef.current) {
-            setTimeout(() => {
-                if (containerRef.current) {
-                    containerRef.current.focus();
-                    containerRef.current.tabIndex = 0;
-                }
-            }, 1000);
+            containerRef.current.tabIndex = 0;
+            containerRef.current.focus();
         }
     }, []);
 

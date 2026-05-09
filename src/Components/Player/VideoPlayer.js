@@ -4,7 +4,7 @@ import VideoFilter from "./VideoFilter";
 import VideoSrt from "./VideoSRT";
 
 import { connect } from "react-redux";
-import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName, selectVideoIsLoading, selectDrawingEnabled } from '../../redux/selectors'
+import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName, selectVideoIsLoading, selectDrawingEnabled, selectPlayerConfig } from '../../redux/selectors'
 import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume, setSpeed } from "../../redux/actions";
 import ToastMessage from "../Toast";
 import Utils from "../../utils/utils";
@@ -53,6 +53,11 @@ class VideoPlayer extends React.PureComponent {
         blurScreen: !this.state.blurScreen
       })
     }
+    if (e.code === 'ArrowUp') {
+      this.setState({
+        blackScreen: !this.state.blackScreen
+      })
+    }
     else if(e.code === 'Digit8'){
       const {speedMulti} = this.state;
       if(speedMulti>= 2.6){
@@ -94,7 +99,7 @@ class VideoPlayer extends React.PureComponent {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { time, playerState, volume, mute, speed, isDrawingEnabled } = this.props;
+    const { time, playerState, volume, mute, speed, isDrawingEnabled, playerConfig } = this.props;
 
     if (isDrawingEnabled && !this.state.ignoreNextMouseEvent) {
       clearTimeout(this.timer);
@@ -136,7 +141,7 @@ class VideoPlayer extends React.PureComponent {
         clearTimeout(this.hideTimer);
         this.hideTimer = null;
       }
-      this.setState({ visible: true, visibleAudio: true });
+      this.setState({ visible: true, visibleAudio: true, blackScreen: playerConfig.blackOnPause ? true : this.state.blackScreen });
     }
     //if (this.player.current.playbackRate !== speed) {
       this.player.current.playbackRate = speed * this.state.speedMulti;
@@ -298,6 +303,7 @@ const mapStateToProps = state => {
     videoName: selectVideoName(state),
     isLoading: selectVideoIsLoading(state),
     isDrawingEnabled: selectDrawingEnabled(state),
+    playerConfig: selectPlayerConfig(state),
   };
 };
 

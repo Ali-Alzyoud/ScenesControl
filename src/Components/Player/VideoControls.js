@@ -76,12 +76,15 @@ const KEY = {
     LEFT: 37,
     RIGHT: 39,
     F: 70,
+    ENTER: 13,
 
     MEDIA_PLAY_PAUSE: 179,
     FAST_FORWARD: 417,
     REWIND: 412,
     NEXT_TRACK:	0xB0,
     PREV_TRACK:	0xB1,
+    CHANNEL_UP:   33,
+    CHANNEL_DOWN: 34,
 };
 
 let PlayIcon = MdPlayArrow;
@@ -109,6 +112,8 @@ function VideoControls({ time,
     const seekbutton = useRef(null);
     const seekbar = useRef(null);
     const timeLabel = useRef(null);
+    const okTapCount = useRef(0);
+    const okTapTimer = useRef(null);
     const style = useMemo(() => { return { ...styleControls, opacity: visible ? 1 : 0 } }, [visible]);
     const styleAudio = useMemo(() => { return { zIndex: 100, opacity: (visibleAudio || visible) ? 1 : 0 } }, [visibleAudio, visible]);
 
@@ -167,6 +172,12 @@ function VideoControls({ time,
             case KEY.PREV_TRACK:
                 openItemFromList(-1);
                 break
+            case KEY.CHANNEL_UP:
+                if (document.fullscreenElement) openItemFromList(1);
+                break;
+            case KEY.CHANNEL_DOWN:
+                if (document.fullscreenElement) openItemFromList(-1);
+                break;
             case KEY.F:
                 onFullscreen()
                 break;
@@ -262,6 +273,36 @@ function VideoControls({ time,
             openItemFromList(0);
         }
     }
+
+    useEffect(() => {
+        const handleOkKey = (e) => {
+            if (Utils.hasActiveInput()) return;
+            if (modalOpen) return;
+            if (e.keyCode !== KEY.ENTER) return;
+            e.preventDefault();
+            okTapCount.current += 1;
+            if (okTapTimer.current) clearTimeout(okTapTimer.current);
+            okTapTimer.current = setTimeout(() => {
+                const taps = okTapCount.current;
+                okTapCount.current = 0;
+                okTapTimer.current = null;
+                if (taps === 1) {
+                    if (videoName) {
+                        setPlayerState(playerState === 'play' ? 'pause' : 'play');
+                    }
+                } else if (taps === 2) {
+                    onFullscreen();
+                } else {
+                    window.dispatchEvent(new CustomEvent('rc:content'));
+                }
+            }, 400);
+        };
+        window.addEventListener('keydown', handleOkKey);
+        return () => {
+            window.removeEventListener('keydown', handleOkKey);
+            if (okTapTimer.current) clearTimeout(okTapTimer.current);
+        };
+    }, [playerState, videoName, onFullscreen, modalOpen]);
 
     const openItemFromList = (dir) => {
         try {

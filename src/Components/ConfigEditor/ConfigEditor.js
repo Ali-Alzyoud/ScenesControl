@@ -38,6 +38,9 @@ function ConfigEditor({ playerConfig, setPlayerConfig }) {
     const setFilterRect = (value) =>
         setPlayerConfig({ filterRect: value === 'true' });
 
+    const setBlackOnPause = (value) =>
+        setPlayerConfig({ blackOnPause: value === 'true' });
+
     return (
         <div className="cfg-wrap">
             <div className="cfg-section-title">Scene Filter Actions</div>
@@ -87,6 +90,18 @@ function ConfigEditor({ playerConfig, setPlayerConfig }) {
                     className="cfg-select"
                     value={String(playerConfig.filterRect)}
                     onChange={e => setFilterRect(e.target.value)}
+                >
+                    <option value="true">Enabled</option>
+                    <option value="false">Disabled</option>
+                </select>
+            </div>
+
+            <div className="cfg-row cfg-extra-row">
+                <span className="cfg-extra-label">Black Screen on Pause</span>
+                <select
+                    className="cfg-select"
+                    value={String(playerConfig.blackOnPause)}
+                    onChange={e => setBlackOnPause(e.target.value)}
                 >
                     <option value="true">Enabled</option>
                     <option value="false">Disabled</option>

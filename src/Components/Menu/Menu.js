@@ -1,18 +1,20 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass } from '../../common/SceneGuide'
 import About from '../About'
 import Settings from '../Settings'
 import FilterPicker from '../FilterPicker'
 import FilterPicker2 from '../FilterPickerLocal'
+import Login from '../Login/Login'
 
-
+import { QRCodeSVG } from 'qrcode.react';
 import { connect } from "react-redux";
 import { setFilterItems, setVideoSrc, setSubtitle, setSubtitleSync, setVideoName, setTime, setDuration } from '../../redux/actions'
 
 import './menu.css'
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import StorageHelper from '../../Helpers/StorageHelper'
+import { authFetch, getUser, clearAuth, getToken } from '../../common/auth'
 
 const API = "/api/v1/files";
 const API_FILES = "/static";
@@ -69,11 +71,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
         setkey(key + 1);
     }
     useEffect(() => {
-        fetch('videos.json').then(res => {
-            res.json().then(content => {
-                // setFiles(content);
-            });
-        });
+        fetch('videos.json').then(res => { res.json().then(() => {}); });
     }, [])
     const loadURLS = () => {
         const vidURL = videoInputURL.current.value;
@@ -103,10 +101,65 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
     }
 
     const [domain, setDomain] = useState(localStorage.getItem("domain"));
+    const [loginOpen, setLoginOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState(getUser);
+    const [qrOpen, setQrOpen] = useState(false);
+
+    const buildMobileUrl = () => {
+        const base = window.location.origin + window.location.pathname;
+        const params = new URLSearchParams();
+        if (domain) params.set('domain', domain);
+        const token = getToken();
+        if (token) params.set('token', token);
+        return base + '?' + params.toString();
+    };
 
     useEffect(() => {
         localStorage.setItem("domain", domain);
     }, [domain])
+
+    const showStore = useCallback(async () => {
+        const url = domain + API;
+        const mem = window.__storeCache?.[url];
+        if (mem) {
+            setFolders(mem);
+            setfilterPicker2(true);
+            return;
+        }
+        const cacheKey = `storeCache_${url}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                window.__storeCache = window.__storeCache || {};
+                window.__storeCache[url] = parsed;
+                setFolders(parsed);
+                setfilterPicker2(true);
+                return;
+            } catch {}
+        }
+        try {
+            const response = await authFetch(url, {
+                method: "GET",
+                headers: { accept: "application/json" },
+            });
+            if (response.status === 401) { setLoginOpen(true); return; }
+            const data = await response.json();
+            localStorage.setItem(cacheKey, JSON.stringify(data.files));
+            localStorage.setItem(`storeCacheTime_${url}`, String(Date.now()));
+            window.__storeCache = window.__storeCache || {};
+            window.__storeCache[url] = data.files;
+            setFolders(data.files);
+            setfilterPicker2(true);
+        } catch (error) {
+            alert(error.message);
+        }
+    }, [domain]);
+
+    useEffect(() => {
+        window.addEventListener('rc:content', showStore);
+        return () => window.removeEventListener('rc:content', showStore);
+    }, [showStore]);
     
     return (
         <div className="navbar" style={{ display: 'flex' }}>
@@ -163,45 +216,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     setDomain(e.target.value);
                 }} placeholder='Meta'/>
                 </div>
-                <button onClick={async () => {
-                    const url = domain+API;
-                    // 1. In-memory cache (no JSON.parse cost)
-                    const mem = window.__storeCache?.[url];
-                    if (mem) {
-                        setFolders(mem);
-                        setfilterPicker2(true);
-                        return;
-                    }
-                    // 2. localStorage cache (parse once then warm the memory cache)
-                    const cacheKey = `storeCache_${url}`;
-                    const cached = localStorage.getItem(cacheKey);
-                    if (cached) {
-                        try {
-                            const parsed = JSON.parse(cached);
-                            window.__storeCache = window.__storeCache || {};
-                            window.__storeCache[url] = parsed;
-                            setFolders(parsed);
-                            setfilterPicker2(true);
-                            return;
-                        } catch {}
-                    }
-                    // 3. Network fetch
-                    try {
-                        const response = await fetch(url, {
-                            method: "GET",
-                            headers: { accept: "application/json" },
-                        });
-                        const data = await response.json();
-                        localStorage.setItem(cacheKey, JSON.stringify(data.files));
-                        localStorage.setItem(`storeCacheTime_${url}`, String(Date.now()));
-                        window.__storeCache = window.__storeCache || {};
-                        window.__storeCache[url] = data.files;
-                        setFolders(data.files);
-                        setfilterPicker2(true);
-                    } catch (error) {
-                        alert(error.message)
-                    }
-                }}>Show Store</button>
+                <button onClick={showStore}>Show Store</button>
                 <button onClick={async () => {
                     try {
                         const index = Number(localStorage.currentListIndex);
@@ -225,12 +240,32 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                 <button onClick={async () => {
                      window.location.href = window.location.origin + window.location.pathname;
                 }}>Clear</button>
+                {currentUser ? (
+                    <>
+                        <button onClick={() => setQrOpen(true)}>QR</button>
+                        <button onClick={() => { clearAuth(); setCurrentUser(null); }}>
+                            {currentUser.username} (Logout)
+                        </button>
+                    </>
+                ) : (
+                    <button onClick={() => setLoginOpen(true)}>Login</button>
+                )}
                 </div>
             </div>
             {about && <About close={() => { setabout(false) }} />}
             {settings && <Settings close={() => { setSettings(false) }} />}
             {filterPicker && <FilterPicker close={() => { setfilterPicker(false) }} />}
             {filterPicker2 && <FilterPicker2 folders={folders} path={domain+API_FILES} videoPath={domain+API_VIDEO} apiUrl={domain+API} close={() => { setfilterPicker2(false) }} />}
+            {loginOpen && <Login domain={domain} onClose={() => setLoginOpen(false)} onSuccess={() => { setCurrentUser(getUser()); setLoginOpen(false); showStore(); }} />}
+            {qrOpen && (
+                <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }} onClick={() => setQrOpen(false)}>
+                    <div style={{ background:'#1a1a2e', border:'1px solid #2a2a40', borderRadius:10, padding:'28px 24px', display:'flex', flexDirection:'column', alignItems:'center', gap:12 }} onClick={e => e.stopPropagation()}>
+                        <p style={{ color:'#888aaa', fontSize:12, margin:0, textTransform:'uppercase', letterSpacing:'0.04em' }}>Open on mobile</p>
+                        <QRCodeSVG value={buildMobileUrl()} size={200} bgColor="#0e0e1a" fgColor="#c0b8ff" level="M" />
+                        <p style={{ color:'#555577', fontSize:11, margin:0, maxWidth:220, wordBreak:'break-all', textAlign:'center' }}>{domain}</p>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

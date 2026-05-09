@@ -10,6 +10,7 @@ const savedPlayerConfig = {
   profanity: [PLAYER_ACTION.NOACTION, PLAYER_ACTION.MUTE],
   rightclick: [PLAYER_ACTION.BLUR_EXTREME, PLAYER_ACTION.MUTE],
   filterRect: true,
+  blackOnPause: false,
   ...savedConfig,
 }
 
