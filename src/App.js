@@ -1,10 +1,13 @@
 import './App.css';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { QRCodeSVG } from 'qrcode.react'
 import { Player } from './Components/Player';
  
 
 import Menu from './Components/Menu'
 import { QrLoginConfirm } from './Components/Login/Login'
+import { getToken } from './common/auth'
+import StorageHelper from './Helpers/StorageHelper'
 import SrtClass from './common/SrtClass'
 import FilterEditor from './Components/FilterFileEditor'
 import ConfigEditor from './Components/ConfigEditor'
@@ -15,7 +18,7 @@ import SeriesPanel from './Components/SeriesPanel/SeriesPanel'
 
 
 import { connect, useSelector } from "react-redux";
-import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems, setDuration, setTime, setVideoName, setSubtitleName } from './redux/actions'
+import { addFilterItems, setVideoSrc, setSubtitle, setFilterItems, setDuration, setTime, setVideoName, setSubtitleName, setFilterPath } from './redux/actions'
 import { getSyncConfig, selectModalOpen, selectVideoIsLoading, selectVideoName } from './redux/selectors'
 import Loader from './Components/Loader';
 import SubtitleEditor from './Components/SubtitleEditor/SubtitleEditor';
@@ -31,9 +34,74 @@ const KEY = {
   document.addEventListener('contextmenu', event => event.preventDefault());
 })()
 
+// Unique session ID per tab — persists across reloads, unique per tab
+if (!sessionStorage.getItem('__sessionId')) {
+  sessionStorage.setItem('__sessionId',
+    typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
+  );
+}
+const SESSION_ID = sessionStorage.getItem('__sessionId');
+
+function HomeQR({ domain }) {
+  const [token, setToken] = useState(() => getToken());
+  const qrId = useRef(
+    typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
+  );
+
+  // Poll for QR login session when not logged in
+  useEffect(() => {
+    if (token || !domain) return;
+    const id = setInterval(async () => {
+      try {
+        const res = await fetch(`${domain}/api/v1/auth/qr-session/${qrId.current}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.token) {
+            const { setAuth } = require('./common/auth');
+            setAuth(data.token, data.user || {});
+            setToken(data.token);
+          }
+        }
+      } catch {}
+    }, 2000);
+    return () => clearInterval(id);
+  }, [token, domain]);
+
+  if (!domain) return null;
+
+  if (token) {
+    const params = new URLSearchParams({ domain, token });
+    const url = window.location.origin + window.location.pathname + '?' + params.toString();
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '32px 0' }}>
+        <p style={{ margin: 0, color: '#888aaa', fontSize: 13 }}>Scan to cast to this screen</p>
+        <QRCodeSVG value={url} size={260} bgColor="#000000" fgColor="#ffffff" level="M" />
+      </div>
+    );
+  }
+
+  const loginUrl = (() => {
+    const base = window.location.origin + window.location.pathname;
+    const params = new URLSearchParams({ domain, qrlogin: qrId.current });
+    return base + '?' + params.toString();
+  })();
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '32px 0' }}>
+      <p style={{ margin: 0, color: '#888aaa', fontSize: 13 }}>Scan to sign in</p>
+      <QRCodeSVG value={loginUrl} size={260} bgColor="#000000" fgColor="#ffffff" level="M" />
+      <p style={{ margin: 0, color: '#555577', fontSize: 11 }}>Waiting for mobile…</p>
+    </div>
+  );
+}
+
 function App(props) {
 
-  const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading, videoName, setSubtitleName } = props;
+  const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading, videoName, setSubtitleName, setFilterPath } = props;
   const [showEditor, setShowEditor] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
@@ -45,6 +113,102 @@ function App(props) {
   const [keyEvent, setKeyEvent] = useState(null);
   const syncConfig = useSelector(getSyncConfig)
   
+
+  // ── Server sync ──────────────────────────────────────────
+  const syncDomain = localStorage.getItem('domain');
+  const syncPushTimer = useRef(null);
+
+  // Pull on load + push on sc:data-changed (debounced 60s)
+  useEffect(() => {
+    if (!syncDomain) return;
+    const token = getToken();
+    if (!token) return;
+    StorageHelper.pullFromServer(syncDomain, token).catch(() => {});
+
+    const onDataChanged = () => {
+      clearTimeout(syncPushTimer.current);
+      syncPushTimer.current = setTimeout(() => {
+        const t = getToken(); if (!t) return;
+        StorageHelper.pushToServer(syncDomain, t).catch(() => {});
+      }, 60_000);
+    };
+    window.addEventListener('sc:data-changed', onDataChanged);
+    return () => window.removeEventListener('sc:data-changed', onDataChanged);
+  }, [syncDomain]);
+
+  // Push favourites immediately on change
+  useEffect(() => {
+    if (!syncDomain) return;
+    const onFavChanged = () => {
+      const t = getToken(); if (!t) return;
+      clearTimeout(syncPushTimer.current);
+      StorageHelper.pushToServer(syncDomain, t).catch(e => console.error('[sync] push err', e));
+    };
+    window.addEventListener('sc:favourites-changed', onFavChanged);
+    return () => window.removeEventListener('sc:favourites-changed', onFavChanged);
+  }, [syncDomain]);
+
+  // Poll favourites every 30s — only when idle (no video loaded)
+  useEffect(() => {
+    if (!syncDomain || videoName) return;
+    const poll = async () => {
+      const t = getToken(); if (!t) return;
+      try {
+        const res = await fetch(`${syncDomain}/api/v1/userdata/favourites`, {
+          headers: { Authorization: `Bearer ${t}` },
+        });
+        if (!res.ok) { console.log('[sync] poll', res.status); return; }
+        const data = await res.json();
+        const serverTs = data.favsModified || 0;
+        const localTs = StorageHelper.getFavsModified();
+        if (serverTs > localTs) {
+          localStorage.setItem('favourites', JSON.stringify(data.favourites));
+          localStorage.setItem('favsModified', String(serverTs));
+          window.dispatchEvent(new Event('sc:favourites-updated'));
+        } else if (localTs > serverTs) {
+          StorageHelper.pushToServer(syncDomain, t).catch(e => console.error('[sync] push err', e));
+        }
+      } catch (e) { console.error('[sync] poll err', e); }
+    };
+    poll(); // also poll on every page load
+    const id = setInterval(poll, 30_000);
+    return () => clearInterval(id);
+  }, [syncDomain, videoName]);
+
+  // Poll for remote play commands — only when idle (no video loaded)
+  // Persist lastRemoteTs in sessionStorage so page reloads don't re-trigger the same command
+  const lastRemoteTs = useRef(Number(sessionStorage.getItem('__lastRemoteTs') || 0));
+  useEffect(() => {
+    if (!syncDomain || videoName) return;
+    const poll = async () => {
+      const t = getToken(); if (!t) return;
+      try {
+        const res = await fetch(`${syncDomain}/api/v1/remote/play`, {
+          headers: { Authorization: `Bearer ${t}` },
+        });
+        if (!res.ok) return;
+        const cmd = await res.json();
+        if (!cmd || !cmd.videoPath) return;
+        if (cmd.sourceSession === SESSION_ID) return; // ignore self
+        if (cmd.timestamp <= lastRemoteTs.current) return; // already handled
+        if (cmd.timestamp < Date.now() - 60_000) return; // ignore commands older than 60s
+        lastRemoteTs.current = cmd.timestamp;
+        sessionStorage.setItem('__lastRemoteTs', String(cmd.timestamp));
+        // Navigate directly — don't call openContent to avoid re-broadcasting
+        StorageHelper.addToWatchHistory({ videoPath: cmd.videoPath, srtPath: cmd.srtPath, filterPath: cmd.filterPath, imagePath: cmd.imagePath });
+        if (cmd.filterPath) localStorage.setItem('currentFilterPath', cmd.filterPath);
+        else localStorage.removeItem('currentFilterPath');
+        const str = window.location.origin + '#/'
+          + btoa(encodeURIComponent(cmd.videoPath)) + '/'
+          + btoa(encodeURIComponent(cmd.srtPath || '')) + '/'
+          + btoa(encodeURIComponent(cmd.filterPath || ''));
+        window.location.href = str;
+        window.location.reload();
+      } catch (e) { console.error('[remote] poll err', e); }
+    };
+    const id = setInterval(poll, 3_000);
+    return () => clearInterval(id);
+  }, [syncDomain, videoName]);
 
   const [qrLogin, setQrLogin] = useState(() => {
     const p = new URLSearchParams(window.location.search);
@@ -124,10 +288,12 @@ function App(props) {
       }
 
       if (filterURL.toLowerCase().startsWith('http')) {
+        setFilterPath(filterURL);
         SceneGuideClass.ReadFile(filterURL).then((records) => {
           addFilterItems(records);
         });
       } else {
+        setFilterPath('');
         setFilterItems([]);
       }
     }, []);
@@ -178,6 +344,7 @@ function App(props) {
         <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translateX(-50%) translateY(-50%);' }}><Loader /></div>
       }
       <div style={{ opacity: isLoading ? 0 : 1 }}>
+        {!videoName && !isLoading && <HomeQR domain={syncDomain} />}
         <div style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
           <Player />
         </div>
@@ -220,5 +387,5 @@ const mapStateToProps = state => {
 
 export default connect(
   mapStateToProps,
-  { addFilterItems, setVideoSrc, setSubtitle, setSubtitleName, setDuration, setTime, setVideoName }
+  { addFilterItems, setVideoSrc, setSubtitle, setSubtitleName, setDuration, setTime, setVideoName, setFilterPath }
 )(App);

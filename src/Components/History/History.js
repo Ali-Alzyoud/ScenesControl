@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react'
 import { MdClose, MdDeleteSweep } from 'react-icons/md'
-import { FaPlayCircle } from 'react-icons/fa'
+import { FaPlayCircle, FaStar, FaRegStar } from 'react-icons/fa'
 import StorageHelper from '../../Helpers/StorageHelper'
+import { useServerSync } from '../../Helpers/useServerSync'
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import './style.css'
 
@@ -35,28 +36,40 @@ function formatDate(timestamp) {
 export default function History({ close, currentVideo }) {
     const [revision, setRevision] = useState(0)
     const [confirming, setConfirming] = useState(false)
+    const [tab, setTab] = useState('all') // 'all' | 'favourites'
     const currentItemRef = useRef(null)
     const listRef = useRef(null)
+
+    const domain = localStorage.getItem('domain')
+    const { schedulePush } = useServerSync(domain)
 
     useEffect(() => {
         listRef.current?.focus()
         currentItemRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
     }, [])
 
+    useEffect(() => {
+        const handler = () => setRevision(r => r + 1);
+        window.addEventListener('sc:favourites-updated', handler);
+        return () => window.removeEventListener('sc:favourites-updated', handler);
+    }, [])
+
     const clearHistory = () => {
         StorageHelper.clearWatchHistory()
         setRevision(r => r + 1)
         setConfirming(false)
+        const token = localStorage.getItem('rc_auth_token')
+        if (domain && token) {
+            StorageHelper.clearRemoteHistory(domain, token).catch(() => {})
+        }
     }
 
-    const items = useMemo(() => {
-        // Rich data from watchHistory (image, full paths, timestamp)
+    const allItems = useMemo(() => {
         const historyMap = {}
         StorageHelper.getWatchHistory().forEach(h => {
             if (h.videoName) historyMap[h.videoName] = h
         })
 
-        // Full paths from currentList for replay
         const replayMap = {}
         try {
             const raw = localStorage.getItem('currentList')
@@ -64,19 +77,14 @@ export default function History({ close, currentVideo }) {
                 const { videos = [], srts = [], filters = [] } = JSON.parse(raw)
                 videos.forEach((videoPath, i) => {
                     const filename = videoPath.split('/').reverse()[0]
-                    replayMap[filename] = {
-                        videoPath,
-                        srtPath: srts[i] || '',
-                        filterPath: filters[i] || '',
-                    }
+                    replayMap[filename] = { videoPath, srtPath: srts[i] || '', filterPath: filters[i] || '' }
                 })
             }
-        } catch { /* ignore */ }
+        } catch {}
 
         const seen = new Set()
         const result = []
 
-        // First: entries from watchHistory (have timestamps + images)
         StorageHelper.getWatchHistory().forEach(h => {
             if (!h.videoName) return
             const progress = StorageHelper.getContentProgress({ videoName: h.videoName })
@@ -92,7 +100,6 @@ export default function History({ close, currentVideo }) {
             })
         })
 
-        // Second: scan all localStorage keys that look like video files
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i)
             if (!isVideoKey(key)) continue
@@ -111,7 +118,6 @@ export default function History({ close, currentVideo }) {
             })
         }
 
-        // Sort: by timestamp desc (watchHistory items), then by progress desc (legacy)
         result.sort((a, b) => {
             if (a.timestamp && b.timestamp) return b.timestamp - a.timestamp
             if (a.timestamp) return -1
@@ -121,6 +127,15 @@ export default function History({ close, currentVideo }) {
 
         return result
     }, [revision])
+
+    const favouriteItems = useMemo(() => {
+        return StorageHelper.getFavourites().map(f => ({
+            ...f,
+            progress: StorageHelper.getContentProgress({ videoName: f.videoName }),
+        }))
+    }, [revision])
+
+    const items = tab === 'favourites' ? favouriteItems : allItems
 
     return (
         <div className="history-overlay" onClick={close}>
@@ -140,15 +155,27 @@ export default function History({ close, currentVideo }) {
                     <button className="history-close" onClick={close}><MdClose /></button>
                 </div>
 
+                <div className="history-filter-tabs">
+                    <button className={`history-filter-tab${tab === 'all' ? ' active' : ''}`} onClick={() => setTab('all')}>All</button>
+                    <button className={`history-filter-tab${tab === 'favourites' ? ' active' : ''}`} onClick={() => setTab('favourites')}>
+                        Favourites {favouriteItems.length > 0 ? `(${favouriteItems.length})` : ''}
+                    </button>
+                </div>
+
                 {items.length === 0 ? (
                     <div className="history-empty">
                         <FaPlayCircle />
-                        <p>No watch history yet</p>
+                        <p>{tab === 'favourites' ? 'No favourites yet' : 'No watch history yet'}</p>
                     </div>
                 ) : (
                     <div className="history-list" ref={listRef} tabIndex={-1} style={{ outline: 'none' }}>
                         {items.map(item => (
-                            <HistoryItem key={item.videoName} item={item} itemRef={item.videoName === currentVideo ? currentItemRef : null} />
+                            <HistoryItem
+                                key={item.videoName}
+                                item={item}
+                                itemRef={item.videoName === currentVideo ? currentItemRef : null}
+                                onFavouriteChange={() => { setRevision(r => r + 1); schedulePush(); }}
+                            />
                         ))}
                     </div>
                 )}
@@ -157,8 +184,9 @@ export default function History({ close, currentVideo }) {
     )
 }
 
-function HistoryItem({ item, itemRef }) {
+function HistoryItem({ item, itemRef, onFavouriteChange }) {
     const { videoName, videoPath, srtPath, filterPath, imagePath, timestamp } = item
+    const [fav, setFav] = useState(() => StorageHelper.isFavourite(videoName))
     const progress = StorageHelper.getContentProgress({ videoName })
     const duration = StorageHelper.getContentDuration({ videoName })
     const progressLabel = formatTime(progress)
@@ -170,6 +198,13 @@ function HistoryItem({ item, itemRef }) {
     const play = () => {
         if (!canPlay) return
         openContent({ video: videoPath, srt: srtPath, filter: filterPath, image: imagePath })
+    }
+
+    const toggleFav = (e) => {
+        e.stopPropagation()
+        const next = StorageHelper.toggleFavourite({ videoName, videoPath, srtPath, filterPath, imagePath })
+        setFav(next)
+        onFavouriteChange?.()
     }
 
     return (
@@ -205,6 +240,10 @@ function HistoryItem({ item, itemRef }) {
                 </div>
                 {!canPlay && <span className="history-item-no-replay">open from store to replay</span>}
             </div>
+
+            <button className={`history-item-star${fav ? ' active' : ''}`} onClick={toggleFav} title={fav ? 'Remove from favourites' : 'Add to favourites'}>
+                {fav ? <FaStar /> : <FaRegStar />}
+            </button>
 
             {canPlay && (
                 <div className="history-item-play">

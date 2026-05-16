@@ -24,7 +24,8 @@ import {
   SET_TOAST_TIMEOUT,
   SET_SELECTED_ITEMS,
   SET_SUBTITLE_SYNC,
-  SET_SUBTITLE_NAME
+  SET_SUBTITLE_NAME,
+  SET_FILTER_PATH
 } from "./actionTypes";
 
 export const setSubtitle = subtitle => ({
@@ -40,6 +41,11 @@ export const setSubtitleName = subtitleName => ({
   payload: {
     subtitleName
   }
+});
+
+export const setFilterPath = filterPath => ({
+  type: SET_FILTER_PATH,
+  payload: { filterPath }
 });
 
 

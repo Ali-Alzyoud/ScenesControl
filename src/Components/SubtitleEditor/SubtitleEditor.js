@@ -1,9 +1,10 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react'
-import { FaSave, FaPlus, FaMinus, FaMendeley, FaChair, Fa500Px, FaSubscript } from 'react-icons/fa'
+import { FaSave, FaPlus, FaMinus, FaMendeley, FaChair, Fa500Px, FaSubscript, FaCloudUploadAlt, FaFolderOpen } from 'react-icons/fa'
 import { connect, useDispatch, useSelector } from "react-redux";
 import SrtClass from '../../common/SrtClass';
 import { setSettings_syncConfig, setSubtitle, setSubtitleName } from '../../redux/actions';
-import { getSyncConfig, selectSubtitle, selectSubtitleName, selectSubtitleSync, selectVideoName } from '../../redux/selectors';
+import { getSyncConfig, selectSubtitle, selectSubtitleName, selectSubtitleSync, selectVideoName, selectVideoSrc } from '../../redux/selectors';
+import { authFetch, getUser } from '../../common/auth';
 import store from '../../redux/store';
 
 import './style.css'
@@ -21,8 +22,41 @@ function SubtitleEditor(props) {
     const syncConfig = useSelector(getSyncConfig)
     const dispatch = useDispatch();
     const videoName = useSelector(selectVideoName);
+    const videoSrc = useSelector(selectVideoSrc);
     const [reRender, setReRender] = useState(false);
     const checkBox = useRef(null);
+
+    const saveRemote = async () => {
+        const domain = localStorage.getItem('domain');
+        if (!domain) return;
+        let filePath = null;
+        if (videoSrc) {
+            const bases = [domain + '/static', domain + '/video', domain];
+            let rel = videoSrc;
+            for (const b of bases) { if (videoSrc.startsWith(b)) { rel = videoSrc.slice(b.length); break; } }
+            filePath = rel.replace(/\.[^/.]+$/, '.srt');
+        }
+        if (!filePath) {
+            const input = window.prompt('Enter server path to save subtitle:', `/${videoName}.srt`);
+            if (!input) return;
+            filePath = input.startsWith('/') ? input : '/' + input;
+        }
+        const content = SrtClass.ToString(subtitle);
+        try {
+            const res = await authFetch(`${domain}/api/v1/files/save`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filePath, content }),
+            });
+            if (res.ok) {
+                const apiUrl = domain + '/api/v1/files';
+                localStorage.removeItem(`storeCache_${apiUrl}`);
+                localStorage.removeItem(`storeCacheTime_${apiUrl}`);
+                if (window.__storeCache) delete window.__storeCache[apiUrl];
+            }
+            alert(res.ok ? 'Saved to server' : 'Save failed');
+        } catch { alert('Save failed'); }
+    };
 
     const saveItems = () => {
         const subtitleToSave = [];
@@ -291,11 +325,30 @@ function SubtitleEditor(props) {
     }
 
 
+    const fileInputRef = useRef(null);
+    const openLocalFile = (e) => {
+        if (!e.target.files.length) return;
+        SrtClass.ReadFile(URL.createObjectURL(e.target.files[0])).then((records) => {
+            setSubtitle(records);
+            setSubtitleName(e.target.files[0].name);
+        });
+        e.target.value = '';
+    };
+
     return (
         <div className='editor-container'>
+            <input ref={fileInputRef} type='file' accept='.srt,.ass,.ssa' style={{ display: 'none' }} onChange={openLocalFile} />
+            <div className='container' onClick={() => fileInputRef.current.click()}>
+                <FaFolderOpen className='middle' />
+            </div>
             <div className='container' onClick={saveItems}>
                 <FaSave className='middle' />
             </div>
+            {getUser()?.role === 'admin' && (
+                <div className='container' onClick={saveRemote}>
+                    <FaCloudUploadAlt className='middle' />
+                </div>
+            )}
             <div className='container rect' onClick={()=>setShowSubtitle(!showSubtitle)}>
                 <span className='middle'>{showSubtitle ? "Hide" : "Show"}</span>
             </div>

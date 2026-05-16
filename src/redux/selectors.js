@@ -26,6 +26,10 @@ export const selectVideoName = (state) => {
     return state.media.videoName;
 }
 
+export const selectFilterPath = (state) => {
+    return state.media.filterPath || '';
+}
+
 export const selectTime = (state) => {
     return state.media.time;
 }

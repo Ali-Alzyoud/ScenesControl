@@ -119,6 +119,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
     }, [domain])
 
     const showStore = useCallback(async () => {
+        if (!getToken()) { setLoginOpen(true); return; }
         const url = domain + API;
         const mem = window.__storeCache?.[url];
         if (mem) {
@@ -237,13 +238,21 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     const domain = window.location.protocol+"//"+window.location.hostname;
                      setDomain(`${domain}:4001`);
                 }}>Local</button>
-                <button onClick={async () => {
-                     window.location.href = window.location.origin + window.location.pathname;
+                <button onClick={() => {
+                    const d = localStorage.getItem('domain');
+                    const t = getToken();
+                    if (d && t) {
+                        fetch(`${d}/api/v1/remote/play`, {
+                            method: 'DELETE',
+                            headers: { Authorization: `Bearer ${t}` },
+                        }).catch(() => {});
+                    }
+                    window.location.href = window.location.origin + window.location.pathname;
                 }}>Clear</button>
                 {currentUser ? (
                     <>
                         <button onClick={() => setQrOpen(true)}>QR</button>
-                        <button onClick={() => { clearAuth(); setCurrentUser(null); }}>
+                        <button onClick={() => { clearAuth(); setCurrentUser(null); window.__storeCache = {}; }}>
                             {currentUser.username} (Logout)
                         </button>
                     </>

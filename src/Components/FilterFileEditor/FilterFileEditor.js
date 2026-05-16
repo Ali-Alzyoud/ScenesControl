@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { FaSave, FaPlus, FaFastForward, FaFastBackward, FaToggleOn, FaToggleOff } from 'react-icons/fa'
+import { FaSave, FaPlus, FaFastForward, FaFastBackward, FaToggleOn, FaToggleOff, FaCloudUploadAlt } from 'react-icons/fa'
 import FilterRecord from './FilterRecord'
 import { SceneGuideRecord, SceneGuideClass, SceneType } from '../../common/SceneGuide'
 
 import { connect } from "react-redux";
-import { selectTime, selectRecords, selectVideoName, selectModalOpen } from '../../redux/selectors';
+import { selectTime, selectRecords, selectVideoName, selectModalOpen, selectFilterPath, selectVideoSrc } from '../../redux/selectors';
 import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled, setToastText, setSelectedFilterItems } from '../../redux/actions';
+import { authFetch, getUser } from '../../common/auth';
 import {FaMinus} from 'react-icons/fa'
 
 import './style.css'
@@ -30,6 +31,8 @@ function FilterFileEditor(props) {
         records,
         time,
         videoName,
+        videoSrc,
+        filterPath,
         addFilterItems,
         removeFilterIndex,
         removeAllFilters,
@@ -251,9 +254,57 @@ function FilterFileEditor(props) {
         const element = document.createElement("a");
         const file = new Blob([SceneGuideClass.ToString(records)], { type: 'text/plain' });
         element.href = URL.createObjectURL(file);
-        element.download = videoName+".txt";
-        document.body.appendChild(element); // Required for this to work in FireFox
+        element.download = videoName + ".txt";
+        document.body.appendChild(element);
         element.click();
+    }
+
+    const saveRemote = async () => {
+        const domain = localStorage.getItem('domain');
+        if (!domain) { setToastText('No domain set'); return; }
+        let resolvedPath = filterPath;
+        if (!resolvedPath && videoSrc) {
+            // Derive from video src: strip domain+/static or domain+/video prefix, append .txt
+            const staticBase = domain + '/static';
+            const videoBase = domain + '/video';
+            let relPath = videoSrc.startsWith(staticBase) ? videoSrc.slice(staticBase.length)
+                : videoSrc.startsWith(videoBase) ? videoSrc.slice(videoBase.length)
+                : videoSrc.startsWith(domain) ? videoSrc.slice(domain.length)
+                : videoSrc;
+            resolvedPath = relPath + '.txt';
+        }
+        if (!resolvedPath) {
+            const input = window.prompt('Enter server path to save filter:', `/${videoName}.txt`);
+            if (!input) return;
+            resolvedPath = input.startsWith('/') ? input : '/' + input;
+        }
+
+        const content = SceneGuideClass.ToString(records);
+        const staticBase = domain + '/static';
+        const filePath = resolvedPath.startsWith(staticBase)
+            ? resolvedPath.slice(staticBase.length)
+            : resolvedPath.startsWith(domain)
+                ? resolvedPath.slice(domain.length)
+                : resolvedPath;
+        try {
+            const res = await authFetch(`${domain}/api/v1/files/save`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filePath, content }),
+            });
+            if (res.ok) {
+                // Invalidate store cache so next open fetches fresh file list
+                const apiUrl = domain + '/api/v1/files';
+                localStorage.removeItem(`storeCache_${apiUrl}`);
+                localStorage.removeItem(`storeCacheTime_${apiUrl}`);
+                if (window.__storeCache) delete window.__storeCache[apiUrl];
+                setToastText('Saved to server');
+            } else {
+                setToastText('Save failed');
+            }
+        } catch {
+            setToastText('Save failed');
+        }
     }
 
     return (
@@ -264,6 +315,11 @@ function FilterFileEditor(props) {
             <div className='container' onClick={saveItems}>
                 <FaSave className='middle' />
             </div>
+            {getUser()?.role === 'admin' && (
+                <div className='container' onClick={saveRemote}>
+                    <FaCloudUploadAlt className='middle' />
+                </div>
+            )}
             <div className='container' onClick={() => selectime('from')}>
                 <FaFastBackward className='middle' style={!selectedRecord ? { pointerEvents: "none", opacity: "0.4" } : {}} />
             </div>
@@ -310,9 +366,11 @@ function FilterFileEditor(props) {
 const mapStateToProps = state => {
     const records = selectRecords(state);
     const videoName = selectVideoName(state);
+    const videoSrc = selectVideoSrc(state);
+    const filterPath = selectFilterPath(state);
     const time = selectTime(state);
     const modalOpen = selectModalOpen(state);
-    return { records, time, videoName, modalOpen };
+    return { records, time, videoName, videoSrc, filterPath, modalOpen };
 };
 
 export default connect(mapStateToProps, 

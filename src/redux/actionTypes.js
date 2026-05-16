@@ -24,6 +24,7 @@ export const SET_DRAWING_RECT = "SET_DRAWING_RECT";
 export const SET_TOAST_TEXT = "SET_TOAST_TEXT";
 export const SET_TOAST_TIMEOUT = "SET_TOAST_TIMEOUT";
 export const SET_SUBTITLE_NAME = "SET_SUBTITLE_NAME";
+export const SET_FILTER_PATH = "SET_FILTER_PATH";
 
 export const PLAYER_ACTION = {
     BLUR : 'Blur',
