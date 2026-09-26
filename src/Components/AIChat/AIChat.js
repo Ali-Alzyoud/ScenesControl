@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { authFetch, isController } from '../../common/auth';
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal';
 import StorageHelper from '../../Helpers/StorageHelper';
+import { playablesOf } from '../../common/episodes';
 import './AIChat.css';
 
 const withToken = (url) => {
@@ -9,28 +10,7 @@ const withToken = (url) => {
     return url && token ? `${url}${url.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}` : url;
 };
 const fileUrl = (domain, kind, folder, name) => withToken(`${domain}/${kind}/${folder}/${name}`);
-const baseName = (name) => name.split('/').pop().replace(/\.[^.]+$/, '');
 const titleOf = (folder) => folder.split('/').pop();
-
-// A library item ({ folder, files }, as the Store has them) broken into playable videos, each
-// with the subtitle / scene filter that belongs to it.
-function playablesOf(domain, item) {
-    const videos = item.files.filter(f => f.type === 'MEDIA').sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-    const srts = item.files.filter(f => f.type === 'SRT');
-    const filters = item.files.filter(f => f.type === 'FILTER');
-    return videos.map(v => {
-        // Filters are named "<video file>.txt"; subtitles start with the video's base name
-        // (falling back to the folder's only subtitle for a single film).
-        const filter = filters.find(f => f.name === `${v.name}.txt`) || (videos.length === 1 ? filters[0] : null);
-        const srt = srts.find(f => baseName(f.name).startsWith(baseName(v.name))) || (videos.length === 1 ? srts[0] : null);
-        return {
-            name: baseName(v.name),
-            video: fileUrl(domain, 'video', item.folder, v.name),
-            srt: srt ? fileUrl(domain, 'static', item.folder, srt.name) : undefined,
-            filter: filter ? fileUrl(domain, 'static', item.folder, filter.name) : undefined,
-        };
-    });
-}
 
 function ResultCard({ domain, item, onPlay }) {
     const [open, setOpen] = useState(false);

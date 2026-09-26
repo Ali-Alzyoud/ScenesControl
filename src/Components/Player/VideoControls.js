@@ -28,6 +28,7 @@ import { SCREEN_EFFECT_EVENT, screenEffects } from './screenEffects'
 import { getStreamMode, setStreamMode } from '../../common/streamMode'
 import { SUBTITLE_COLORS, clampFontSize, clampOpacity } from '../../common/subtitleStyle'
 import { sanitizeConfigPatch } from '../../common/playerConfig'
+import { playablesOf, libraryPath, findTitleForVideo, retoken } from '../../common/episodes'
 import { toggleRemoteFullscreen, exitPseudoFullscreen, isRemoteFullscreen } from './remoteFullscreen'
 
 var styleControls = {
@@ -381,16 +382,37 @@ function VideoControls({ time,
         };
     }, [playerState, videoName, onFullscreen, modalOpen]);
 
-    const openItemFromList = (dir) => {
+    // Next/previous episode. The saved list is only right if it was made on this device for this
+    // video — an episode cast here from a phone (Store, History, AI) left this screen with no list,
+    // or another title's, so Next/Prev did nothing. When the saved list doesn't contain what's
+    // playing, it's rebuilt from the video's own title folder on the server.
+    const openItemFromList = async (dir) => {
         try {
-            const index = Number(localStorage.currentListIndex) + dir;
-            const { videos,
-                srts,
-                filters, } = JSON.parse(localStorage.currentList);
-            if (index < 0 || index >= videos?.length) return;
-            localStorage.currentListIndex = index;
-            openContent({ video: videos[index], srt: srts[index], filter: filters[index] })
-        } catch (ex) { }
+            let list = null;
+            try { list = JSON.parse(localStorage.currentList); } catch {}
+            const current = libraryPath(videoSrcRef.current);
+            if (!current) {
+                // Nothing loaded (Play pressed on an empty player): reopen the saved list's item.
+                const i = Number(localStorage.currentListIndex) + dir;
+                if (!list?.videos || !(i >= 0 && i < list.videos.length)) return;
+                StorageHelper.saveToCurrentList({ ...list, index: i });
+                openContent({ video: retoken(list.videos[i]), srt: retoken(list.srts?.[i]), filter: retoken(list.filters?.[i]) });
+                return;
+            }
+            let index = list?.videos?.findIndex(v => libraryPath(v) === current) ?? -1;
+            if (index < 0) {
+                const title = await findTitleForVideo(videoSrcRef.current);
+                if (!title) return;
+                const episodes = playablesOf(localStorage.getItem('domain'), title);
+                list = { videos: episodes.map(e => e.video), srts: episodes.map(e => e.srt), filters: episodes.map(e => e.filter) };
+                index = list.videos.findIndex(v => libraryPath(v) === current);
+                if (index < 0) return;
+            }
+            const next = index + dir;
+            if (next < 0 || next >= list.videos.length) return;
+            StorageHelper.saveToCurrentList({ ...list, index: next });
+            openContent({ video: retoken(list.videos[next]), srt: retoken(list.srts?.[next]), filter: retoken(list.filters?.[next]) });
+        } catch (ex) { console.error('[next/prev]', ex); }
     }
 
     // The poll above is set up once, so it reads the current video through a ref.
