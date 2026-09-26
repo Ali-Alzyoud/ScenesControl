@@ -1,8 +1,32 @@
 .App {
   text-align: center;
-  min-width: 500px;
+  /* No min-width: a fixed 500px minimum made phones lay the page out wider than their screen,
+     so it scrolled sideways and cut off the navbar icons, the player's right-hand controls and
+     the Remote Control panel. */
   background: #0e0e1a;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Everything below the menu bar — sized to fill exactly what's left of the viewport. Scrolls
+   internally (rather than the page/body scrolling) only if something inside genuinely can't
+   shrink further, e.g. the Editor/Config panels. */
+.App-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* The player wrapper only needs to claim remaining space while a video is actually loaded
+   (App.js applies .App-player-active then) — otherwise it should stay compact, sized by
+   .player.no-source's own min-height, not stretch to fill whatever room is left. */
+.App-player-active {
+  flex: 1;
+  min-height: 0;
 }
 
 /* Video name display */
@@ -80,4 +104,31 @@ svg {
   paint-order: stroke fill;
   stroke-width: 1;
   stroke: rgba(255,255,255,0.08);
+}
+
+/* Homepage shortcuts (HomeQR) — Scan QR / Open Remote Control */
+.home-shortcut-btn {
+  background: #6c63ff;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.home-shortcut-btn:hover {
+  background: #7c73ff;
+}
+
+.home-qr-code {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+  margin-left: 6px;
 }

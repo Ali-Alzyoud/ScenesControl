@@ -1,0 +1,348 @@
+.remote-control-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.remote-control-panel {
+    background: #1a1a2e;
+    border: 1px solid #2a2a40;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: min(360px, 92vw);
+    box-sizing: border-box;
+    max-height: 94vh;
+    overflow-y: auto;
+}
+
+.remote-control-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #c8c8e8;
+    font-size: 14px;
+}
+
+.remote-control-close {
+    background: transparent;
+    border: none;
+    color: #c8c8e8;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+}
+
+.remote-control-close:hover {
+    color: #ffffff;
+}
+
+.remote-control-nowplaying {
+    color: #e0e0f0;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.remote-control-seek-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.remote-control-time {
+    color: #888aaa;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.remote-control-seek {
+    flex: 1;
+    accent-color: #6c63ff;
+    cursor: pointer;
+}
+
+.remote-control-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.remote-control-btn {
+    background: #1e1e30;
+    border: 1px solid #2a2a40;
+    border-radius: 50%;
+    color: #c8c8e8;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.remote-control-btn:hover {
+    background: #2a2a44;
+    border-color: #6c63ff66;
+    color: #ffffff;
+}
+
+.remote-control-btn--primary {
+    width: 56px;
+    height: 56px;
+    font-size: 28px;
+    background: #6c63ff;
+    border-color: #6c63ff;
+    color: #ffffff;
+}
+
+.remote-control-btn--primary:hover {
+    background: #5a52e0;
+}
+
+.remote-control-stop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid #ff6b6b66;
+    border-radius: 8px;
+    color: #ff8080;
+    padding: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.remote-control-stop:hover {
+    background: #ff6b6b22;
+    border-color: #ff6b6b;
+}
+
+.remote-control-empty {
+    color: #555577;
+    font-size: 13px;
+    text-align: center;
+    padding: 24px 0;
+}
+
+.remote-control-error {
+    color: #ff8080;
+    font-size: 12px;
+    text-align: center;
+}
+
+.remote-control-change-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid #6c63ff66;
+    border-radius: 8px;
+    color: #c0b8ff;
+    padding: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.remote-control-change-content:hover {
+    background: #6c63ff22;
+    border-color: #6c63ff;
+}
+
+.remote-control-cast-notice {
+    color: #a0e0a0;
+    font-size: 12px;
+    text-align: center;
+}
+
+.remote-control-row {
+    display: flex;
+    gap: 8px;
+}
+
+.remote-control-row > button {
+    flex: 1;
+}
+
+.remote-control-secondary,
+.remote-control-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid #2a2a40;
+    border-radius: 8px;
+    color: #c8c8e8;
+    padding: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.remote-control-secondary:hover {
+    background: #2a2a44;
+    border-color: #6c63ff66;
+}
+
+.remote-control-logout {
+    color: #888aaa;
+}
+
+.remote-control-logout:hover {
+    background: #ff6b6b22;
+    border-color: #ff6b6b;
+    color: #ff8080;
+}
+
+.remote-control-audio-row,
+.remote-control-subs-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.remote-control-subs-row > button {
+    flex: 0 0 auto;
+    min-width: 64px;
+}
+
+.remote-control-subs-label {
+    flex: 1;
+    text-align: center;
+    color: #c8c8e8;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.remote-control-icon-btn {
+    background: transparent;
+    border: 1px solid #2a2a40;
+    border-radius: 8px;
+    color: #c8c8e8;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.remote-control-secondary:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.remote-control-secondary.is-active {
+    background: #6c63ff;
+    border-color: #6c63ff;
+    color: #ffffff;
+}
+
+.remote-control-icon-row {
+    display: flex;
+    justify-content: space-around;
+    gap: 6px;
+}
+
+.remote-control-icon-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.remote-control-icon-btn.is-active {
+    background: #6c63ff;
+    border-color: #6c63ff;
+    color: #ffffff;
+}
+
+.remote-control-subview-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #c8c8e8;
+    font-size: 14px;
+}
+
+.remote-control-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.remote-control-list-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+    background: #1e1e30;
+    border: 1px solid #2a2a40;
+    border-radius: 6px;
+    color: #c8c8e8;
+    padding: 8px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.remote-control-list-item:hover {
+    background: #2a2a44;
+}
+
+.remote-control-list-item.is-active {
+    border-color: #6c63ff;
+    color: #ffffff;
+}
+
+/* Each row is one group of related controls, set off in its own box. */
+.remote-control-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 6px;
+    padding: 8px;
+    background: #151526;
+    border: 1px solid #22223a;
+    border-radius: 10px;
+}
+
+.remote-control-group > .remote-control-seek {
+    flex: 1;
+}
+
+.remote-control-group.remote-control-buttons .remote-control-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+}
+
+.remote-control-group.remote-control-buttons .remote-control-btn--primary {
+    width: 52px;
+    height: 52px;
+    font-size: 28px;
+}

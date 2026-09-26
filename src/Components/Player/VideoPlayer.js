@@ -9,6 +9,8 @@ import { setTime, setDuration, setPlayerState, setVideoIsLoading, setVolume, set
 import ToastMessage from "../Toast";
 import Utils from "../../utils/utils";
 import StorageHelper from "../../Helpers/StorageHelper";
+import { SCREEN_EFFECT_EVENT, screenEffects } from "./screenEffects";
+import { exitPseudoFullscreen } from "./remoteFullscreen";
 
 const debounce = (func1, func, delay) => {
   let inDebounce;
@@ -84,10 +86,18 @@ class VideoPlayer extends React.PureComponent {
 
     
     document.addEventListener('keydown',this.keyHandler);
+    window.addEventListener(SCREEN_EFFECT_EVENT, this.onScreenEffect);
+  }
+
+  onScreenEffect = (e) => {
+    const effect = e.detail?.effect;
+    if (effect === 'black') this.setState({ blackScreen: !this.state.blackScreen });
+    else if (effect === 'blur') this.setState({ blurScreen: !this.state.blurScreen });
   }
 
   componentWillUnmount() {
     document.removeEventListener('keydown',this.keyHandler);
+    window.removeEventListener(SCREEN_EFFECT_EVENT, this.onScreenEffect);
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -100,6 +110,8 @@ class VideoPlayer extends React.PureComponent {
 
   componentDidUpdate(prevProps, prevState) {
     const { time, playerState, volume, mute, speed, isDrawingEnabled, playerConfig } = this.props;
+    screenEffects.black = this.state.blackScreen;
+    screenEffects.blur = this.state.blurScreen;
 
     if (isDrawingEnabled && !this.state.ignoreNextMouseEvent) {
       clearTimeout(this.timer);
@@ -149,6 +161,8 @@ class VideoPlayer extends React.PureComponent {
   }
 
   onFullscreen = () => {
+    // Leaving the CSS fullscreen a remote may have put this screen in (see remoteFullscreen.js).
+    if (exitPseudoFullscreen()) return;
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
@@ -236,7 +250,13 @@ class VideoPlayer extends React.PureComponent {
             if (videoName && dur > 0) {
               StorageHelper.saveContentProgress({ videoName, time: getCurrentTime, duration: dur });
             }
-            setPlayerState("pause");
+            // A remote "reload" of a video that was playing asks for it to carry on playing.
+            if (sessionStorage.getItem('rc_resume_play') === '1') {
+              sessionStorage.removeItem('rc_resume_play');
+              setPlayerState("play");
+            } else {
+              setPlayerState("pause");
+            }
           }}
           onSeeking={(event) => {
             const { currentTime } = this.player.current;
@@ -248,6 +268,31 @@ class VideoPlayer extends React.PureComponent {
           }}
           onTimeUpdate={(event) => {
             setTime(event.target.currentTime);
+          }}
+          onError={() => {
+            // A video src almost always gets here carrying a token in its query string (see
+            // withToken() in FilterPickerLocal.js) that's only ever valid for as long as that
+            // session's JWT is — if this page was reopened from a URL/history entry left over
+            // from an earlier, since-expired session (a bookmark, or just not having closed the
+            // tab), the browser still has a #/<stale token> hash in its address bar and replays
+            // it into this video src on every load. Without handling this, the request 401s,
+            // onLoadedData never fires, setVideoIsLoading(false) never happens, and the app is
+            // stuck showing its loading spinner forever — with no error and, notably, no way to
+            // ever reach the home screen underneath, since that only renders once loading clears.
+            setVideoIsLoading(false);
+            if (videoSrc) {
+              const { debugLog } = require('../../common/auth');
+              debugLog('video onError — falling back to home', { src: String(videoSrc).replace(/token=[^&]+/, 'token=REDACTED') });
+              // A navigation that differs from the current URL *only* by its hash is a
+              // same-document "fragment navigation" per spec — it never reloads the page, with
+              // or without an explicit reload() call after it (tried that first: it raced the
+              // in-flight fragment navigation and just reloaded the still-broken hash, looping
+              // forever). history.replaceState first makes the hash-free URL the one already on
+              // the address bar *before* reload() re-fetches — the same working pattern App.js's
+              // own token-handling effect already uses.
+              window.history.replaceState({}, '', window.location.origin + window.location.pathname);
+              window.location.reload();
+            }
           }}
         ></video>
         <VideoFilter blackScreen={blackScreen} blurScreen={blurScreen} videoAspectRatio={

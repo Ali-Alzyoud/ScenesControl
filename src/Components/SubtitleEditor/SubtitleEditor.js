@@ -6,6 +6,7 @@ import { setSettings_syncConfig, setSubtitle, setSubtitleName } from '../../redu
 import { getSyncConfig, selectSubtitle, selectSubtitleName, selectSubtitleSync, selectVideoName, selectVideoSrc } from '../../redux/selectors';
 import { authFetch, getUser } from '../../common/auth';
 import store from '../../redux/store';
+import Utils from '../../utils/utils';
 
 import './style.css'
 import SubtitleRecord from './SubtitleRecord';
@@ -25,6 +26,20 @@ function SubtitleEditor(props) {
     const videoSrc = useSelector(selectVideoSrc);
     const [reRender, setReRender] = useState(false);
     const checkBox = useRef(null);
+    const [sourceLang, setSourceLang] = useState('en');
+    const [targetLang, setTargetLang] = useState('ar');
+    const [languages, setLanguages] = useState([{ code: 'en', name: 'English' }, { code: 'ar', name: 'Arabic' }]);
+    const [saveToServer, setSaveToServer] = useState(false);
+    const [savingTranslation, setSavingTranslation] = useState(false);
+
+    useEffect(() => {
+        const domain = localStorage.getItem('domain');
+        if (!domain) return;
+        authFetch(`${domain}/api/v1/translate/languages`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => { if (data?.languages?.length) setLanguages(data.languages); })
+            .catch(() => {});
+    }, []);
 
     const saveRemote = async () => {
         const domain = localStorage.getItem('domain');
@@ -34,7 +49,9 @@ function SubtitleEditor(props) {
             const bases = [domain + '/static', domain + '/video', domain];
             let rel = videoSrc;
             for (const b of bases) { if (videoSrc.startsWith(b)) { rel = videoSrc.slice(b.length); break; } }
-            filePath = rel.replace(/\.[^/.]+$/, '.srt');
+            // videoSrc carries a ?token=... query string for playback auth — strip it before
+            // swapping the extension, or the token ends up embedded in the saved server path.
+            filePath = rel.split('?')[0].replace(/\.[^/.]+$/, '.srt');
         }
         if (!filePath) {
             const input = window.prompt('Enter server path to save subtitle:', `/${videoName}.srt`);
@@ -48,12 +65,6 @@ function SubtitleEditor(props) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ filePath, content }),
             });
-            if (res.ok) {
-                const apiUrl = domain + '/api/v1/files';
-                localStorage.removeItem(`storeCache_${apiUrl}`);
-                localStorage.removeItem(`storeCacheTime_${apiUrl}`);
-                if (window.__storeCache) delete window.__storeCache[apiUrl];
-            }
             alert(res.ok ? 'Saved to server' : 'Save failed');
         } catch { alert('Save failed'); }
     };
@@ -229,41 +240,89 @@ function SubtitleEditor(props) {
         }
     }, []);
 
-    const translate = async () => {
+    // Runs the batch translation over the current subtitle, reporting progress via onProgress.
+    // Returns the translated records, or null if translation failed (an alert is shown either way).
+    const runTranslate = async (onProgress) => {
+        const domain = localStorage.getItem('domain');
+        if (!domain) { alert('Set a domain in the menu before translating'); return null; }
+
         const newSubtitle = [...subtitle];
-        const SIZE = 5;
+        const SIZE = 20;
         for (let i = 0; i < subtitle.length; i += SIZE) {
             const items = subtitle.slice(i, i + SIZE);
-            const resProm = [];
-            for (let it = 0; it < (SIZE || items.length); it++) {
-                resProm.push(fetch("http://91.92.136.127/t/translate", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        q: items[it]?.content?.join?.('\n') || '',
-                        source: "en",
-                        target: "ar",
-                        format: "text",
-                        api_key: ""
-                    }),
-                    headers: { "Content-Type": "application/json" }
-                }));
-            }
-            const res = await Promise.all(resProm);
+            const texts = items.map((item) => item?.content?.join?.('\n') || '');
 
-            for (let it = 0; it < res.length; it++) {
+            let translations;
+            try {
+                const res = await authFetch(`${domain}/api/v1/translate/batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: texts, source: sourceLang, target: targetLang }),
+                });
+                if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || `Request failed (${res.status})`);
+                ({ translations } = await res.json());
+            } catch (error) {
+                alert('Translate failed: ' + error.message);
+                return null;
+            }
+
+            for (let it = 0; it < translations.length; it++) {
                 const record = newSubtitle[i + it];
-                const text = (await res[it].json())?.translatedText;
-                if(checkBox.current.checked){
+                const text = translations[it];
+                if (checkBox.current.checked) {
                     record.content = [record.content?.join?.('\n'), text];
                 } else {
                     record.content = [text];
                 }
             }
-            store.dispatch(setSubtitle(newSubtitle));
-            setReRender((i + 1) / subtitle.length);
+            onProgress?.(newSubtitle, (i + items.length) / subtitle.length);
+        }
+        return newSubtitle;
+    }
+
+    const translate = async () => {
+        const domain = localStorage.getItem('domain');
+        if (saveToServer && !domain) { alert('Set a domain in the menu before translating'); return; }
+
+        setSavingTranslation(saveToServer);
+        try {
+            const translated = await runTranslate((newSubtitle, progress) => {
+                store.dispatch(setSubtitle(newSubtitle));
+                setReRender(progress);
+            });
+            if (!translated || !saveToServer) return;
+
+            // Prefer the loaded subtitle's own server path; fall back to the video's path (matching saveRemote).
+            let filePath = subtitleName?.toLowerCase().startsWith('http')
+                ? Utils.serverRelativePath(subtitleName, domain)
+                : null;
+            if (!filePath && videoSrc) {
+                const rel = Utils.serverRelativePath(videoSrc, domain);
+                if (rel) filePath = rel.replace(/\.[^/.]+$/, '.srt');
+            }
+            if (!filePath) {
+                const input = window.prompt('Enter server path to save subtitle:', `/${videoName}.srt`);
+                if (!input) return;
+                filePath = input.startsWith('/') ? input : '/' + input;
+            }
+
+            const content = SrtClass.ToString(translated);
+            const res = await authFetch(`${domain}/api/v1/files/save`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filePath, content }),
+            });
+            if (res.ok) {
+                setSubtitleName(domain + '/static' + filePath);
+            } else {
+                alert('Save failed');
+            }
+        } finally {
+            setSavingTranslation(false);
         }
     }
-    
+
+
 
     const onCheckSubtitle2 = useCallback(
         (record, checked) => {
@@ -384,15 +443,28 @@ function SubtitleEditor(props) {
             <div className='container rect' onClick={sync}>
                 <span className='middle'>Sync</span>
             </div>
+            <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
+                {languages.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
+            </select>
+            <span className='middle-text'>{'->'}</span>
+            <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
+                {languages.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
+            </select>
+            {getUser()?.role === 'admin' && (
+                <>
+                    <input type='checkbox' checked={saveToServer} onChange={(e) => setSaveToServer(e.target.checked)} />
+                    <span className='middle-text'>Save</span>
+                </>
+            )}
             <div className='container rect' onClick={translate}>
-                <span className='middle'>Translate<span style={{fontSize:12}}>&nbsp;{(reRender*100).toFixed(2)}%</span></span>
+                <span className='middle'>{savingTranslation ? `Translating…${(reRender * 100).toFixed(0)}%` : 'Translate'}</span>
             </div>
             <br/>
             <br/>
             <input type='checkbox' ref={checkBox}/><span>Keep original subtitle when translate</span>
             <br/>
             <br/>
-            {showFiles ? 
+            {showFiles ?
                 <table style={{marginRight: '20px', display: 'inline-block'}}>
                     {
                         refFiles.current.map((file, index) => {

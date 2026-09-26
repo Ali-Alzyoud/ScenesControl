@@ -1,0 +1,127 @@
+.qr-scanner-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.qr-scanner-panel {
+    background: #1a1a2e;
+    border: 1px solid #2a2a40;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(420px, 90vw);
+}
+
+.qr-scanner-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #c8c8e8;
+    font-size: 14px;
+}
+
+.qr-scanner-close {
+    background: transparent;
+    border: none;
+    color: #c8c8e8;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+}
+
+.qr-scanner-close:hover {
+    color: #ffffff;
+}
+
+.qr-scanner-video {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #000000;
+}
+
+.qr-scanner-error {
+    color: #ff8080;
+    font-size: 12px;
+    text-align: center;
+}
+
+.qr-scanner-hint {
+    color: #888aaa;
+    font-size: 12px;
+    text-align: center;
+}
+
+.qr-scanner-debug {
+    color: #555577;
+    font-size: 10px;
+    text-align: center;
+}
+
+.qr-scanner-zoom {
+    align-self: center;
+    background: #1e1e30;
+    border: 1px solid #2a2a40;
+    border-radius: 6px;
+    color: #c8c8e8;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.qr-scanner-code {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-top: 8px;
+    border-top: 1px solid #2a2a40;
+}
+
+.qr-scanner-code label {
+    color: #888aaa;
+    font-size: 12px;
+}
+
+.qr-scanner-code input {
+    width: 150px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    padding: 6px 0 6px 0.35em;
+    background: #0e0e1a;
+    border: 1px solid #333355;
+    border-radius: 8px;
+    color: #ffffff;
+    outline: none;
+    font-variant-numeric: tabular-nums;
+}
+
+.qr-scanner-code input:focus {
+    border-color: #6c63ff;
+}
+
+.qr-scanner-native-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #6c63ff;
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    padding: 12px;
+    font-size: 15px;
+    cursor: pointer;
+}

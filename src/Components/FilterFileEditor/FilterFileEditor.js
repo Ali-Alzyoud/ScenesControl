@@ -5,7 +5,7 @@ import { SceneGuideRecord, SceneGuideClass, SceneType } from '../../common/Scene
 
 import { connect } from "react-redux";
 import { selectTime, selectRecords, selectVideoName, selectModalOpen, selectFilterPath, selectVideoSrc } from '../../redux/selectors';
-import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setDrawingEnabled, setToastText, setSelectedFilterItems } from '../../redux/actions';
+import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setFilterItems, setDrawingEnabled, setToastText, setSelectedFilterItems } from '../../redux/actions';
 import { authFetch, getUser } from '../../common/auth';
 import {FaMinus} from 'react-icons/fa'
 
@@ -37,6 +37,7 @@ function FilterFileEditor(props) {
         removeFilterIndex,
         removeAllFilters,
         updateFilterItem,
+        setFilterItems,
         modalOpen,
         setDrawingEnabled,
         setToastText,
@@ -47,6 +48,7 @@ function FilterFileEditor(props) {
     const [keyEvent, setKeyEvent] = useState(null);
     const selectNext = useRef(null);
     const [toggleRow, setToggleRow] = useState(false);
+    const [rawText, setRawText] = useState('');
 
     useEffect(()=>{
         if(selectNext.current){
@@ -250,9 +252,24 @@ function FilterFileEditor(props) {
         setKey(key + 1);
     }
 
+    // Re-parses the raw-text editor's current content back into structured records and pushes
+    // it into the store, so switching back to the table (or saving) reflects whatever was typed
+    // there. Only relevant while the raw view is showing — otherwise the structured records are
+    // already the source of truth.
+    const applyRawTextIfEditing = () => {
+        if (!toggleRow) return records;
+        const parsed = SceneGuideClass.FromString(rawText);
+        setFilterItems(parsed);
+        // Re-serialize so the textarea reflects the canonical form of what was just saved,
+        // instead of drifting from whatever formatting the user happened to type.
+        setRawText(SceneGuideClass.ToString(parsed));
+        return parsed;
+    }
+
     const saveItems = () => {
+        const currentRecords = applyRawTextIfEditing();
         const element = document.createElement("a");
-        const file = new Blob([SceneGuideClass.ToString(records)], { type: 'text/plain' });
+        const file = new Blob([SceneGuideClass.ToString(currentRecords)], { type: 'text/plain' });
         element.href = URL.createObjectURL(file);
         element.download = videoName + ".txt";
         document.body.appendChild(element);
@@ -262,7 +279,7 @@ function FilterFileEditor(props) {
     const saveRemote = async () => {
         const domain = localStorage.getItem('domain');
         if (!domain) { setToastText('No domain set'); return; }
-        let resolvedPath = filterPath;
+        let resolvedPath = filterPath ? filterPath.split('?')[0] : filterPath;
         if (!resolvedPath && videoSrc) {
             // Derive from video src: strip domain+/static or domain+/video prefix, append .txt
             const staticBase = domain + '/static';
@@ -271,7 +288,9 @@ function FilterFileEditor(props) {
                 : videoSrc.startsWith(videoBase) ? videoSrc.slice(videoBase.length)
                 : videoSrc.startsWith(domain) ? videoSrc.slice(domain.length)
                 : videoSrc;
-            resolvedPath = relPath + '.txt';
+            // videoSrc carries a ?token=... query string for playback auth — strip it before
+            // appending the extension, or it ends up embedded in the saved server path.
+            resolvedPath = relPath.split('?')[0] + '.txt';
         }
         if (!resolvedPath) {
             const input = window.prompt('Enter server path to save filter:', `/${videoName}.txt`);
@@ -279,7 +298,7 @@ function FilterFileEditor(props) {
             resolvedPath = input.startsWith('/') ? input : '/' + input;
         }
 
-        const content = SceneGuideClass.ToString(records);
+        const content = SceneGuideClass.ToString(applyRawTextIfEditing());
         const staticBase = domain + '/static';
         const filePath = resolvedPath.startsWith(staticBase)
             ? resolvedPath.slice(staticBase.length)
@@ -293,11 +312,6 @@ function FilterFileEditor(props) {
                 body: JSON.stringify({ filePath, content }),
             });
             if (res.ok) {
-                // Invalidate store cache so next open fetches fresh file list
-                const apiUrl = domain + '/api/v1/files';
-                localStorage.removeItem(`storeCache_${apiUrl}`);
-                localStorage.removeItem(`storeCacheTime_${apiUrl}`);
-                if (window.__storeCache) delete window.__storeCache[apiUrl];
                 setToastText('Saved to server');
             } else {
                 setToastText('Save failed');
@@ -329,15 +343,28 @@ function FilterFileEditor(props) {
             <div className='container red' onClick={() => removeAll('to')}>
                 <FaMinus className='middle' />
             </div>
-            <div className='container' onClick={() => setToggleRow(!toggleRow)}>
+            <div className='container' onClick={() => {
+                if (!toggleRow) {
+                    // Entering the raw view — seed the textarea from the current structured records.
+                    setRawText(SceneGuideClass.ToString(records));
+                } else {
+                    // Leaving it — parse whatever was typed back into structured records so the
+                    // table (and any edits made there afterward) reflect the raw-text changes.
+                    setFilterItems(SceneGuideClass.FromString(rawText));
+                }
+                setToggleRow(!toggleRow);
+            }}>
                 {toggleRow ? <FaToggleOn className='middle' /> : <FaToggleOff className='middle' />}
             </div>
             <br /><br />
             <div className='table-container' key={key}>
-                {toggleRow ? 
-                <textarea readOnly style={{ width: '400px', height: '400px' }}>
-                    {SceneGuideClass.ToString(records)}
-                </textarea> :
+                {toggleRow ?
+                <textarea
+                    value={rawText}
+                    onChange={e => setRawText(e.target.value)}
+                    spellCheck={false}
+                    style={{ width: '400px', height: '400px' }}
+                /> :
                 <table>
                     <tr>
                         <th>From</th>
@@ -379,6 +406,7 @@ export default connect(mapStateToProps,
         removeFilterIndex,
         removeAllFilters,
         updateFilterItem,
+        setFilterItems,
         setDrawingEnabled,
         setToastText,
         setSelectedFilterItems

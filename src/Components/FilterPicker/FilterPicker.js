@@ -41,7 +41,7 @@ function FilterPicker({
         }
         if (selectedRecord.video) {
             setVideoSrc(selectedRecord.video);
-            const fileName = selectedRecord.video.replace(/^.*[\\\/]/, '') || 'sample';
+            const fileName = selectedRecord.video.split('?')[0].replace(/^.*[\\\/]/, '') || 'sample';
             setVideoName(fileName);
             setDuration(0);
         }

@@ -84,8 +84,90 @@
     background: #2a2a44;
 }
 
-.dropdown:hover .dropdown-content {
+/* Direct child only — a submenu-panel is also .dropdown-content, but nested several levels
+   deeper inside .menu-root, so a descendant selector here would reveal every submenu at once
+   as soon as the Menu button is hovered. Each submenu-panel's own visibility is governed
+   separately below by .dropdown-submenu:hover. */
+.dropdown:hover > .dropdown-content {
     display: block;
+}
+
+.dropdown-content a.blue {
+    color: #a89fff;
+    font-weight: 600;
+}
+
+/* ── Nested submenus (File / Load from URL / Connection / Account) ── */
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu > .submenu-label {
+    display: block;
+    padding: 11px 16px;
+    font-size: 13px;
+    color: #c8c8e8;
+    cursor: default;
+    user-select: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.dropdown-submenu > .submenu-label::after {
+    content: '\203A';
+    float: right;
+    margin-left: 10px;
+    color: #6a6a90;
+}
+
+.dropdown-submenu:hover > .submenu-label {
+    background: #2a2a44;
+    color: #ffffff;
+}
+
+.dropdown-submenu > .submenu-panel {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 100%;
+}
+
+.dropdown-submenu:hover > .submenu-panel {
+    display: block;
+}
+
+/* Buttons that live inside a dropdown panel (Connection submenu) render as flat
+   list rows, matching the <a> items around them, instead of the old standalone pill style. */
+.dropdown-content button {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    outline: none;
+    margin: 0;
+    font-family: inherit;
+    color: #c8c8e8;
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.dropdown-content button:hover {
+    background: #2a2a44;
+    color: #ffffff;
+}
+
+.connection-panel {
+    min-width: 220px;
+    padding: 10px 0;
+}
+
+.connection-panel > input {
+    display: block;
+    margin: 4px 16px 10px;
+    width: calc(100% - 32px);
 }
 
 /* ── URL dropdown (files variant) ───────────────────────────── */
@@ -140,14 +222,6 @@
     color: #ffffff;
 }
 
-/* ── Right-side action bar (domain input + buttons) ─────────── */
-.navbar .dropdown:last-of-type {
-    margin-left: auto;
-    padding: 6px 10px;
-    display: flex;
-    align-items: center;
-}
-
 /* Domain / meta input */
 .navbar input[type="text"],
 .navbar input:not([type]) {
@@ -171,8 +245,21 @@
     color: #555577;
 }
 
-/* Action buttons: Show Store, Resume, Remote, Local, Clear */
-.navbar button:not(.dropbtn) {
+/* ── Quick actions (Show Store, Login/Logout) — kept out of the Menu dropdown since
+   they're the most frequently used actions ─────────────────────────────────────── */
+.navbar-quick-actions {
+    margin-left: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 6px 10px;
+}
+
+.navbar-quick-actions button {
     background: #1e1e30;
     border: 1px solid #2a2a40;
     border-radius: 6px;
@@ -181,15 +268,28 @@
     font-size: 12px;
     font-family: inherit;
     cursor: pointer;
-    margin-left: 6px;
     white-space: nowrap;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.navbar button:not(.dropbtn):hover {
+.navbar-quick-actions button:hover {
     background: #2a2a44;
     border-color: #6c63ff66;
     color: #ffffff;
+}
+
+/* The Android app overlays a 48px settings button 8px from the top-right corner; App.js sizes
+   --app-overlay-inset for it, accounting for the WebView's zoom. */
+html.in-app .navbar-quick-actions {
+    padding-right: var(--app-overlay-inset, 64px);
+}
+
+.navbar-quick-actions .navbar-icon-btn {
+    padding: 5px;
+    font-size: 18px;
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
 }
 
 /* Hidden file inputs */

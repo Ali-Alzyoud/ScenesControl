@@ -48,7 +48,10 @@ class StorageHelper {
         imagePath?: string;
     }) {
         if (!videoPath) return;
-        const videoName = videoPath.split('/').reverse()[0];
+        // Without the query string: media URLs carry an auth token there, so keeping it made the
+        // same video a different history entry each time its token changed, and never matched
+        // the progress saved under the plain file name.
+        const videoName = videoPath.split('?')[0].split('/').reverse()[0];
         const history = this.getWatchHistory();
         const existingIdx = history.findIndex((h: any) => h.videoName === videoName);
         const existing = existingIdx >= 0 ? history[existingIdx] : null;
@@ -62,6 +65,11 @@ class StorageHelper {
             timestamp: Date.now(),
         });
         localStorage.setItem('watchHistory', JSON.stringify(history.slice(0, 200)));
+        // Opening content reloads the page almost immediately afterward (see openContent in
+        // FilterPickerLocal.js), which tears down any pending debounced sync push before it
+        // ever fires — history was effectively never reaching the server. Dedicated event so
+        // it pushes right away, same as favourites already do.
+        window.dispatchEvent(new Event('sc:history-changed'));
         window.dispatchEvent(new Event('sc:data-changed'));
     }
 
@@ -132,33 +140,24 @@ class StorageHelper {
         return idx < 0;
     }
 
-    // ── Folder Favorites ─────────────────────────────────────
-
-    static getFolderFavorites(): string[] {
-        try { return JSON.parse(localStorage.getItem('favorites') || '[]'); } catch { return []; }
-    }
-
-    static setFolderFavorites(folders: string[]) {
-        localStorage.setItem('favorites', JSON.stringify(folders));
-        const domain = localStorage.getItem('domain');
-        const token = localStorage.getItem('rc_auth_token');
-        if (domain && token) {
-            this.pushToServer(domain, token).catch(e => console.error('[sync] folder fav push err', e));
-        }
-    }
+    // Note: folder favorites (the star on library cards) are server-only —
+    // see FilterPickerLocal.js, which talks to /api/v1/userdata/folder-favorites
+    // directly instead of going through localStorage/this helper.
 
     // ── Server Sync ───────────────────────────────────────────
 
-    static async pushToServer(domain: string, token: string) {
+    // keepalive lets this survive a page unload/reload in flight (e.g. closing the tab right
+    // after a progress update) — a plain fetch gets cancelled when the page tears down.
+    static async pushToServer(domain: string, token: string, { keepalive = false }: { keepalive?: boolean } = {}) {
         const body = {
             favourites: this.getFavourites(),
             favsModified: this.getFavsModified(),
             watchHistory: this.getWatchHistory(),
             watchProgress: this.getAllWatchProgress(),
-            folderFavorites: this.getFolderFavorites(),
         };
         await fetch(`${domain}/api/v1/userdata`, {
             method: 'POST',
+            keepalive,
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(body),
         });
@@ -205,13 +204,6 @@ class StorageHelper {
                 }
             }
             localStorage.setItem('watchProgress', JSON.stringify(local));
-        }
-
-        // Restore folder favorites (server wins if present)
-        if (Array.isArray(data.folderFavorites)) {
-            const local = this.getFolderFavorites();
-            const merged = Array.from(new Set([...local, ...data.folderFavorites]));
-            localStorage.setItem('favorites', JSON.stringify(merged));
         }
     }
 }

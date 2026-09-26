@@ -47,6 +47,21 @@
     color: #555577;
 }
 
+.login-remember {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #888aaa;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.login-remember input {
+    accent-color: #6c63ff;
+    cursor: pointer;
+}
+
 .login-error {
     color: #ff6b6b;
     font-size: 13px;

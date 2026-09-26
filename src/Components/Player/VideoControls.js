@@ -11,16 +11,21 @@ import { MdReplay30 } from 'react-icons/md'
 import { MdSkipNext, MdSkipPrevious } from 'react-icons/md'
 
 import { GiExpand } from 'react-icons/gi'
-import { MdPlayArrow, MdPause } from 'react-icons/md'
+import { MdPlayArrow, MdPause, MdSubtitles } from 'react-icons/md'
 
 import './style.css'
 
 import { connect, useDispatch, useSelector } from "react-redux";
-import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName, getSyncConfig } from '../../redux/selectors';
-import { setTime, setPlayerState, setVolume, setSettings_syncConfig } from '../../redux/actions';
+import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName, selectVideoSrc, selectSubtitleName, getSyncConfig } from '../../redux/selectors';
+import { setTime, setPlayerState, setVolume, setSettings_syncConfig, setSubtitle, setSubtitleName } from '../../redux/actions';
 import Slider from '../Slider';
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import Utils from '../../utils/utils'
+import SrtClass from '../../common/SrtClass'
+import StorageHelper from '../../Helpers/StorageHelper'
+import { authFetch, getToken, clearAuth, isController } from '../../common/auth'
+import { SCREEN_EFFECT_EVENT, screenEffects } from './screenEffects'
+import { toggleRemoteFullscreen, exitPseudoFullscreen, isRemoteFullscreen } from './remoteFullscreen'
 
 var styleControls = {
     width: '90%',
@@ -91,6 +96,39 @@ let PlayIcon = MdPlayArrow;
 
 const SPEED_PRESETS = [0.5, 1, 2, 3];
 
+// Subtitle files sitting in the same folder as the given video, as [{ name, url }]. Uses the
+// search endpoint for just that folder rather than downloading the whole library listing, and
+// includes the auth token in each URL — static files require it, and without it a picked
+// subtitle silently loaded as an empty file.
+const subtitleBaseName = (url) => {
+    if (!url) return '';
+    const name = String(url).split('?')[0].split('/').pop();
+    try { return decodeURIComponent(name); } catch { return name; }
+};
+
+export const findSubtitlesForVideo = async (videoSrc) => {
+    const domain = localStorage.getItem('domain');
+    const token = getToken();
+    if (!domain || !videoSrc || !token) return [];
+    let rel = Utils.serverRelativePath(videoSrc, domain);
+    if (!rel) return [];
+    try { rel = decodeURIComponent(rel); } catch {}
+    rel = rel.replace(/^\//, '');
+    const videoDir = rel.includes('/') ? rel.slice(0, rel.lastIndexOf('/')) : '';
+    if (!videoDir) return [];
+    try {
+        const res = await authFetch(`${domain}/api/v1/files/search?q=${encodeURIComponent(videoDir)}&limit=100`);
+        if (!res.ok) return [];
+        const { items = [] } = await res.json();
+        const folder = items.find(i => i.folder === videoDir);
+        return (folder?.files || [])
+            .filter(f => f.type === 'SRT')
+            .map(f => ({ name: f.name, url: `${domain}/static/${videoDir}/${f.name}?token=${encodeURIComponent(token)}` }));
+    } catch {
+        return [];
+    }
+};
+
 function VideoControls({ time,
     setTime,
     duration,
@@ -126,6 +164,35 @@ function VideoControls({ time,
     const subtitleDelay = useSelector(getSyncConfig).subtitleDelay;
     const subtitleSlope = useSelector(getSyncConfig).subtitleSlope;
     const syncConfig = useSelector(getSyncConfig)
+    const videoSrc = useSelector(selectVideoSrc);
+    const subtitleName = useSelector(selectSubtitleName);
+    const [showSubtitlePicker, setShowSubtitlePicker] = useState(false);
+    const [subtitleOptions, setSubtitleOptions] = useState([]);
+    const [loadingSubs, setLoadingSubs] = useState(false);
+
+    const toggleSubtitlePicker = (e) => {
+        e.stopPropagation();
+        if (showSubtitlePicker) { setShowSubtitlePicker(false); return; }
+        setShowSubtitlePicker(true);
+        setLoadingSubs(true);
+        findSubtitlesForVideo(videoSrc)
+            .then(setSubtitleOptions)
+            .finally(() => setLoadingSubs(false));
+    };
+
+    const selectSubtitleOption = (url) => {
+        SrtClass.ReadFile(url).then((records) => {
+            dispatch(setSubtitle(records));
+            dispatch(setSubtitleName(url));
+        });
+        setShowSubtitlePicker(false);
+    };
+
+    const clearSubtitleOption = () => {
+        dispatch(setSubtitle([]));
+        dispatch(setSubtitleName(''));
+        setShowSubtitlePicker(false);
+    };
 
 
     const timeToString = (time) => {
@@ -152,33 +219,38 @@ function VideoControls({ time,
         if (keyEvent.ctrlKey) jump *= 2;
         if (keyEvent.altKey) jump /= 2;
 
-        switch (keyEvent.keyCode) {
-            case KEY.SPACE:
-            case KEY.SPACE_ANDROID_V_KB:
-            case KEY.MEDIA_PLAY_PAUSE:
+        // Checked against both the legacy numeric keyCode (real physical/OS keyboard events
+        // still populate this) and the modern string key (also required for the Flutter app's
+        // remote-control forwarding: its synthetic KeyboardEvent only sets key/code, since
+        // keyCode isn't settable via the KeyboardEvent constructor — Chromium computes it as 0
+        // for script-constructed events, so a keyCode-only check silently never matches a D-pad
+        // press forwarded that way).
+        const code = keyEvent.keyCode;
+        const key = keyEvent.key;
+        switch (true) {
+            case code === KEY.SPACE || code === KEY.SPACE_ANDROID_V_KB || code === KEY.MEDIA_PLAY_PAUSE
+                || key === ' ' || key === 'MediaPlayPause':
                 onPlayClick()
                 break;
-            case KEY.LEFT:
-            case KEY.REWIND:
+            case code === KEY.LEFT || code === KEY.REWIND || key === 'ArrowLeft' || key === 'MediaRewind':
                 setTime(time - jump)
                 break;
-            case KEY.RIGHT:
-            case KEY.FAST_FORWARD:
+            case code === KEY.RIGHT || code === KEY.FAST_FORWARD || key === 'ArrowRight' || key === 'MediaFastForward':
                 setTime(time + jump)
                 break;
-            case KEY.NEXT_TRACK:
+            case code === KEY.NEXT_TRACK || key === 'MediaTrackNext':
                 openItemFromList(1);
                 break
-            case KEY.PREV_TRACK:
+            case code === KEY.PREV_TRACK || key === 'MediaTrackPrevious':
                 openItemFromList(-1);
                 break
-            case KEY.CHANNEL_UP:
+            case code === KEY.CHANNEL_UP || key === 'PageUp':
                 if (document.fullscreenElement) openItemFromList(1);
                 break;
-            case KEY.CHANNEL_DOWN:
+            case code === KEY.CHANNEL_DOWN || key === 'PageDown':
                 if (document.fullscreenElement) openItemFromList(-1);
                 break;
-            case KEY.F:
+            case code === KEY.F || key === 'f' || key === 'F':
                 onFullscreen()
                 break;
         }
@@ -316,6 +388,213 @@ function VideoControls({ time,
         } catch (ex) { }
     }
 
+    // The poll above is set up once, so it reads the current video through a ref.
+    const videoSrcRef = useRef(videoSrc);
+    useEffect(() => { videoSrcRef.current = videoSrc; }, [videoSrc]);
+    // Same for the values the audio/subtitle commands adjust relative to their current value.
+    const latestRef = useRef({});
+    latestRef.current = { volume, syncConfig, time, duration, videoName, playing: playerState === 'play' };
+
+    // Remote "mute" is volume 0, with the previous level remembered for unmuting — not the
+    // player's own mute flag, which the scene filters (VideoFilter) set and clear on every tick
+    // and would immediately undo.
+    const toggleRemoteMute = () => {
+        const current = latestRef.current.volume;
+        const next = current > 0 ? 0 : (Number(localStorage.getItem('rc_prev_volume')) || 1);
+        if (current > 0) localStorage.setItem('rc_prev_volume', String(current));
+        setVolume(next);
+        latestRef.current.volume = next; // several commands can apply before the next render
+    };
+
+    // Subtitles available for the current video, for the remote's subtitle picker.
+    const remoteSubsRef = useRef([]);
+    useEffect(() => {
+        remoteSubsRef.current = [];
+        if (!videoSrc) return;
+        let cancelled = false;
+        findSubtitlesForVideo(videoSrc).then(list => { if (!cancelled) remoteSubsRef.current = list; });
+        return () => { cancelled = true; };
+    }, [videoSrc]);
+
+    const selectRemoteSubtitle = (name) => {
+        if (!name) { dispatch(setSubtitle([])); dispatch(setSubtitleName('')); return; }
+        const sub = remoteSubsRef.current.find(x => x.name === name);
+        if (!sub) return;
+        SrtClass.ReadFile(sub.url).then(records => {
+            dispatch(setSubtitle(records));
+            dispatch(setSubtitleName(sub.url));
+        });
+    };
+
+    // Blur from the remote also mutes (the point is usually to hide a scene entirely), and turning
+    // it back off restores the sound — but only if it was this that muted it.
+    const toggleRemoteBlur = () => {
+        const turningOn = !screenEffects.blur;
+        window.dispatchEvent(new CustomEvent(SCREEN_EFFECT_EVENT, { detail: { effect: 'blur' } }));
+        if (turningOn && latestRef.current.volume > 0) {
+            toggleRemoteMute();
+            localStorage.setItem('rc_blur_muted', '1');
+        } else if (!turningOn && localStorage.getItem('rc_blur_muted') === '1') {
+            localStorage.removeItem('rc_blur_muted');
+            if (latestRef.current.volume === 0) toggleRemoteMute();
+        }
+    };
+
+    const shiftSubtitles = (delta) => {
+        const cfg = latestRef.current.syncConfig;
+        const next = { ...cfg, subtitleDelay: Math.round((cfg.subtitleDelay + delta) * 100) / 100 };
+        dispatch(setSettings_syncConfig(next));
+        latestRef.current.syncConfig = next; // several commands can apply before the next render
+    };
+
+    // Escape leaves the CSS fullscreen, as it would real fullscreen.
+    useEffect(() => {
+        const onKey = (e) => { if (e.key === 'Escape') exitPseudoFullscreen(); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
+
+    // Remote control: a controller device (a phone paired via the home screen QR) sends commands
+    // that this screen applies — same per-username command-queue model /remote/play already uses
+    // for "open this content". Polled even with nothing loaded, since fullscreen and logout still
+    // apply then; the playback commands just do nothing without a video. Controllers never poll:
+    // they're the ones sending.
+    const lastControlTs = useRef(Number(sessionStorage.getItem('__lastControlTs') || 0));
+    // False until this tab's first poll has come back (unless it already handled commands before
+    // a reload) — see the skip on the first poll below.
+    const controlPrimed = useRef(!!lastControlTs.current);
+    useEffect(() => {
+        if (isController()) return;
+        const domain = localStorage.getItem('domain');
+        if (!domain) return;
+        const poll = async () => {
+            if (!getToken()) return; // signed out: nothing to authenticate the poll with
+            try {
+                const res = await authFetch(`${domain}/api/v1/remote/control?after=${lastControlTs.current}`);
+                if (!res.ok) return;
+                const cmds = await res.json();
+                if (!Array.isArray(cmds)) return;
+                // A screen that's just opened skips whatever is already queued on its first poll
+                // — those commands were sent before it was here to receive them.
+                if (!controlPrimed.current) {
+                    controlPrimed.current = true;
+                    if (cmds.length) {
+                        lastControlTs.current = cmds[cmds.length - 1].timestamp;
+                        sessionStorage.setItem('__lastControlTs', String(lastControlTs.current));
+                    }
+                    return;
+                }
+                for (const cmd of cmds) {
+                    lastControlTs.current = cmd.timestamp;
+                    sessionStorage.setItem('__lastControlTs', String(cmd.timestamp));
+                    // Commands are queued per-account, not per-device — a device that sent one
+                    // itself mustn't apply it too (including "stop", which reloads the page).
+                    if (cmd.sourceSession && cmd.sourceSession === sessionStorage.getItem('__sessionId')) continue;
+                    // Staleness is enforced server-side, against the one server clock, not here
+                    // against this device's own (often wrong, on a TV box) clock.
+                    const hasVideo = !!videoSrcRef.current;
+                    switch (cmd.action) {
+                        case 'play': if (hasVideo) setPlayerState('play'); break;
+                        case 'pause': if (hasVideo) setPlayerState('pause'); break;
+                        case 'seek': if (hasVideo && typeof cmd.value === 'number') setTime(cmd.value); break;
+                        case 'seek-by': {
+                            // Relative, so quick repeated taps on the remote add up instead of all
+                            // landing on the same spot computed from its last status report.
+                            if (!hasVideo || typeof cmd.value !== 'number') break;
+                            const target = Math.max(0, latestRef.current.time + cmd.value);
+                            setTime(target);
+                            latestRef.current.time = target; // several can apply before the next render
+                            break;
+                        }
+                        case 'next': if (hasVideo) openItemFromList(1); break;
+                        case 'prev': if (hasVideo) openItemFromList(-1); break;
+                        case 'fullscreen': toggleRemoteFullscreen(); break;
+                        case 'subtitle-shift': if (typeof cmd.value === 'number') shiftSubtitles(cmd.value); break;
+                        case 'black': window.dispatchEvent(new CustomEvent(SCREEN_EFFECT_EVENT, { detail: { effect: 'black' } })); break;
+                        case 'blur': toggleRemoteBlur(); break;
+                        case 'subtitle': selectRemoteSubtitle(typeof cmd.value === 'string' ? cmd.value : ''); break;
+                        case 'volume': if (typeof cmd.value === 'number') setVolume(Math.min(1, Math.max(0, cmd.value))); break;
+                        case 'mute': toggleRemoteMute(); break;
+                        case 'reload': {
+                            // Pick up exactly where it was: the position is normally only saved
+                            // every few seconds, and whether it was playing isn't saved at all.
+                            const { videoName: name, time: t0, duration: d0, playing } = latestRef.current;
+                            if (name && t0) StorageHelper.saveContentProgress({ videoName: name, time: t0, duration: d0 });
+                            if (playing) sessionStorage.setItem('rc_resume_play', '1');
+                            window.location.reload();
+                            break;
+                        }
+                        case 'logout': {
+                            const { debugLog } = require('../../common/auth');
+                            debugLog('Screen applying remote logout', { cmdAge: 'ts ' + cmd.timestamp, lastHandled: lastControlTs.current });
+                            clearAuth();
+                            window.history.replaceState({}, '', window.location.origin + window.location.pathname);
+                            window.location.reload();
+                            break;
+                        }
+                        case 'stop': {
+                            const t = getToken();
+                            if (t) {
+                                fetch(`${domain}/api/v1/remote/play`, { method: 'DELETE', headers: { Authorization: `Bearer ${t}` } }).catch(() => {});
+                            }
+                            // A navigation differing from the current URL only by its hash is a
+                            // same-document fragment navigation and never actually reloads — with or
+                            // without an explicit reload() right after (that races it and can just
+                            // reload the still-hash-bearing page instead). history.replaceState makes
+                            // the hash-free URL the one on the address bar first, so reload() re-fetches
+                            // against that.
+                            window.history.replaceState({}, '', window.location.origin + window.location.pathname);
+                            window.location.reload();
+                            break;
+                        }
+                        default: break;
+                    }
+                    if (cmd.action === 'logout' || cmd.action === 'stop' || cmd.action === 'reload') break; // page is reloading
+                }
+            } catch (e) { console.error('[remote control] poll err', e); }
+        };
+        const id = setInterval(poll, 800);
+        return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Reports this device's live playback state so a controller device can show what's playing
+    // and its progress, and render the correct play/pause icon, instead of guessing. Keeps the
+    // latest values in a ref, synced every render, so the push interval below can stay on a
+    // stable 2s cadence instead of restarting (and losing its timing) on every time-code tick.
+    const statusRef = useRef(null);
+    useEffect(() => {
+        statusRef.current = {
+            videoName, playing: playerState === 'play', currentTime: time, duration,
+            volume, subtitleDelay: syncConfig.subtitleDelay, hasSubtitle: !!subtitleName,
+            subtitle: subtitleBaseName(subtitleName),
+        };
+    });
+
+    useEffect(() => {
+        if (!videoSrc) return;
+        const domain = localStorage.getItem('domain');
+        if (!domain) return;
+        const push = () => {
+            authFetch(`${domain}/api/v1/remote/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // Black/blur are VideoPlayer state, which doesn't re-render this component, so
+                // they're read fresh at push time rather than captured into statusRef.
+                body: JSON.stringify({
+                    ...statusRef.current,
+                    black: screenEffects.black,
+                    blur: screenEffects.blur,
+                    fullscreen: isRemoteFullscreen(),
+                    subtitles: remoteSubsRef.current.map(x => x.name),
+                }),
+            }).catch(() => {});
+        };
+        push();
+        const id = setInterval(push, 1200);
+        return () => clearInterval(id);
+    }, [videoSrc]);
+
     const player_controls = (
         <div className='main-controls'>
             {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} /> */}
@@ -350,7 +629,7 @@ function VideoControls({ time,
 
         <div ref={ref}>
             <div style={style}>
-                {onSpeedChange && (
+                {onSpeedChange && videoSrc && (
                     <div className="speed-presets" onClick={e => e.stopPropagation()}>
                         {SPEED_PRESETS.map(s => (
                             <button
@@ -383,6 +662,47 @@ function VideoControls({ time,
                 </div>
                 <p ref={timeLabel} className='controltime' />
                 {player_controls}
+                <MdSubtitles
+                    id="subtitle-picker-toggle"
+                    alt='error'
+                    style={{
+                        ...styleButton,
+                        width: '38px',
+                        height: '38px',
+                        bottom: '14px',
+                        position: 'absolute',
+                        right: '50px',
+                        color: showSubtitlePicker || subtitleName ? '#6c63ff' : 'white',
+                        paintOrder: 'stroke fill',
+                        strokeWidth: '20px',
+                        stroke: 'black'
+                    }}
+                    onClick={toggleSubtitlePicker}
+                    onPointerEnter={() => { mousein("Button") }}
+                    onPointerLeave={() => { mouseout("Button") }}
+                />
+                {showSubtitlePicker && (
+                    <div className="subtitle-picker" onClick={e => e.stopPropagation()}>
+                        {loadingSubs && <div className="subtitle-picker-item">Loading…</div>}
+                        {!loadingSubs && (
+                            <div className="subtitle-picker-item" onClick={clearSubtitleOption}>
+                                Off
+                            </div>
+                        )}
+                        {!loadingSubs && subtitleOptions.length === 0 && (
+                            <div className="subtitle-picker-item subtitle-picker-item--empty">No subtitles found</div>
+                        )}
+                        {!loadingSubs && subtitleOptions.map(sub => (
+                            <div
+                                key={sub.url}
+                                className={`subtitle-picker-item${subtitleName === sub.url ? ' subtitle-picker-item--active' : ''}`}
+                                onClick={() => selectSubtitleOption(sub.url)}
+                            >
+                                {sub.name}
+                            </div>
+                        ))}
+                    </div>
+                )}
                 <GiExpand
                     id="full-screen"
                     alt='error'

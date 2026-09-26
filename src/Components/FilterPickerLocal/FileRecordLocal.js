@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useRef } from 'react'
 import StorageHelper from '../../Helpers/StorageHelper'
-import { FaEye, FaFilter, FaPlayCircle, FaPencilAlt, FaDownload, FaTrash } from 'react-icons/fa'
+import { FaEye, FaFilter, FaPlayCircle, FaPencilAlt, FaDownload, FaTrash, FaClosedCaptioning } from 'react-icons/fa'
 import { MdVideoLibrary, MdFavorite, MdFavoriteBorder } from 'react-icons/md'
 
 
-export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy, focused, focusRef, isFavorite, onToggleFavorite, onRename, onDownload, onDelete, draggable, onDragStart, dropTarget, folderKey }) {
+function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy, focused, focusRef, isFavorite, onToggleFavorite, onRename, onDownload, onSearchSubtitle, onDelete, draggable, onDragStart, dropTarget, folderKey }) {
     const parts = title?.split("/");
     const localTitle = parts?.length > 1 ? parts[parts.length - 1] : title;
     const [editing, setEditing] = useState(false);
@@ -41,7 +41,7 @@ export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, epis
         <div ref={focusRef} className={`file-record2${focused ? ' file-record2--focused' : ''}${dropTarget ? ' file-record2--drop-target' : ''}`} onClick={editing ? undefined : copy} draggable={draggable} onDragStart={onDragStart} data-cardfolder={folderKey}>
             <div className="file-record2-image-wrap">
                 {imgSrc
-                    ? <img src={imgSrc} alt={localTitle} draggable={false} />
+                    ? <img src={imgSrc} alt={localTitle} draggable={false} loading="lazy" decoding="async" />
                     : <div className="file-record2-no-image"><FaPlayCircle /></div>
                 }
                 <button
@@ -84,7 +84,7 @@ export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, epis
                 ) : (
                     <>
                         <span className="file-record2-title">{localTitle}</span>
-                        {(onDownload || onRename || onDelete) && (
+                        {(onDownload || onSearchSubtitle || onRename || onDelete) && (
                             <div className="file-record2-actions">
                                 {onDownload && (
                                     <button
@@ -93,6 +93,15 @@ export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, epis
                                         title="Download into this folder"
                                     >
                                         <FaDownload />
+                                    </button>
+                                )}
+                                {onSearchSubtitle && (
+                                    <button
+                                        className="file-record2-action-btn"
+                                        onClick={e => { e.stopPropagation(); onSearchSubtitle(); }}
+                                        title="Search subtitles"
+                                    >
+                                        <FaClosedCaptioning />
                                     </button>
                                 )}
                                 {onRename && (
@@ -121,3 +130,5 @@ export default function FileRecord({ imgSrc, title, filter, isMultiEpisode, epis
         </div>
     )
 }
+
+export default React.memo(FileRecord);
