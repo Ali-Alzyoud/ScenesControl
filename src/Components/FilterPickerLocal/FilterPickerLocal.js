@@ -21,6 +21,10 @@ const withToken = (url) => {
     return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
 };
 
+// The Favourites tab: the user's pinned titles from every folder (served by the backend under
+// this name, like a real top-level folder).
+const FAVORITES_TAB = '__favorites__';
+
 const CARD_SIZE_MIN = 80;
 const CARD_SIZE_MAX = 320;
 const CARD_SIZE_STEP = 20;
@@ -63,7 +67,11 @@ export const openContent = ({ video, srt, filter, image }) => {
         + btoa(encodeURIComponent(video)) + '/'
         + btoa(encodeURIComponent(srt ? (srt) : '')) + '/'
         + btoa(encodeURIComponent(filter ? (filter) : ''));
-    window.location.href = str;
+    // Only the #fragment differs from the current URL when something is already open, and a
+    // fragment-only href change followed by reload() can race — some WebViews reload the old
+    // URL, so the click seemed to do nothing until Clear content removed the old fragment.
+    // replaceState makes the new URL current synchronously, then reload() loads exactly that.
+    window.history.replaceState({}, '', str);
     window.location.reload();
 }
 
@@ -101,7 +109,9 @@ function FilterPicker({
     const [focusedEpIndex, setFocusedEpIndex] = useState(0);
     // Paginated per-tab loading — see fetchTabs/fetchTabPage below. Replaces the old model of
     // fetching the entire library (~600 folders / ~7000 files) into `folders` state up front.
-    const [tabs, setTabs] = useState([]); // [{ name, count }]
+    const [tabs, setTabs] = useState([]); // [{ name, count }] — the library's top-level folders
+    // What the tab picker shows: Favourites first, then the folders.
+    const allTabs = useMemo(() => [{ name: FAVORITES_TAB, count: favorites.length }, ...tabs], [tabs, favorites.length]);
     const [tabItems, setTabItems] = useState({}); // { [tabName]: { items, offset, total, hasMore, loading } }
     const [searchResults, setSearchResults] = useState({ items: [], offset: 0, total: 0, hasMore: false, loading: false });
     const [syncing, setSyncing] = useState(false);
@@ -795,14 +805,35 @@ function FilterPicker({
     // Fetch the tab list once on open, then restore whichever tab was last selected.
     useEffect(() => {
         fetchTabs().then(list => {
-            if (list.length) setSelectedIndex(Math.min(Number(localStorage.getItem("selectedIndex")) || 0, list.length - 1));
+            // Restored by name; before the Favourites tab existed only an index was saved, and
+            // that tab now sits in front of the folders, hence the +1.
+            const names = [FAVORITES_TAB, ...list.map(t => t.name)];
+            let index = names.indexOf(localStorage.getItem('selectedTab'));
+            if (index < 0) index = Math.min((Number(localStorage.getItem('selectedIndex')) || 0) + 1, names.length - 1);
+            setSelectedIndex(index);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        setSelectedFolder(tabs[selectedIndex]?.name || "");
-    }, [selectedIndex, tabs]);
+        setSelectedFolder(allTabs[selectedIndex]?.name || "");
+    }, [selectedIndex, allTabs]);
+
+    // Pinning/unpinning changes what the Favourites tab holds: reload it if it's showing,
+    // otherwise just drop it so it loads fresh when next opened.
+    const favoritesKey = favorites.join('\n');
+    const prevFavoritesKey = useRef(favoritesKey);
+    useEffect(() => {
+        if (prevFavoritesKey.current === favoritesKey) return;
+        prevFavoritesKey.current = favoritesKey;
+        if (selectedFolder === FAVORITES_TAB) fetchTabPage(FAVORITES_TAB, { reset: true });
+        else if (tabItemsRef.current[FAVORITES_TAB]) {
+            const { [FAVORITES_TAB]: _dropped, ...rest } = tabItemsRef.current;
+            tabItemsRef.current = rest;
+            setTabItems(rest);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [favoritesKey]);
 
     // Load a tab's first page the first time it's selected — switching back to an
     // already-loaded tab just shows what's already there.
@@ -971,12 +1002,13 @@ function FilterPicker({
         setSelectedIndex(index);
         setRandomPicks(null);
         localStorage.setItem("selectedIndex", index);
+        localStorage.setItem("selectedTab", allTabs[index]?.name ?? '');
         sessionStorage.removeItem("scrollRow");
         sessionStorage.removeItem("scrollFolder");
         if (containerRef.current) containerRef.current.scrollTop = 0;
     };
 
-    const tabKeys = tabs.map(t => t.name);
+    const tabKeys = allTabs.map(t => t.name);
 
     // Debounced global search — fires the /search endpoint while typing, replacing the old
     // "filter the already-fully-loaded list client-side" behavior. filterText itself is
@@ -1406,14 +1438,14 @@ function FilterPicker({
                                 setNewFolderName('');
                             }}
                         >
-                            {tabs.map(t => (
+                            {allTabs.map(t => (
                                 <option key={t.name} value={t.name}>
-                                    {(t.name || '(root)')} ({t.count})
+                                    {t.name === FAVORITES_TAB ? '★ Favourites' : (t.name || '(root)')} ({t.count})
                                 </option>
                             ))}
                         </select>
                     )}
-                    {isAdmin && renamingTab !== selectedFolder && (
+                    {isAdmin && renamingTab !== selectedFolder && selectedFolder !== FAVORITES_TAB && (
                         <>
                             <button className="filters-toolbar-btn" title="Create folder here"
                                 onClick={() => { setShowNewFolder(selectedFolder); setNewFolderName(''); }}>+</button>
@@ -1646,7 +1678,11 @@ function FilterPicker({
                     )}
                     {!(isSearching ? searchResults.loading : tabItems[selectedFolder]?.loading) && displayItems.length === 0 && (
                         <div className="filter-files-empty">
-                            {isSearching ? `No matches for "${filterText}"` : 'Nothing here yet'}
+                            {isSearching
+                                ? `No matches for "${filterText}"`
+                                : selectedFolder === FAVORITES_TAB
+                                    ? 'No favourites yet — tap the ♡ on any card to add it here'
+                                    : 'Nothing here yet'}
                         </div>
                     )}
                 </div>

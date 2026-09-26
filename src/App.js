@@ -377,7 +377,8 @@ function App(props) {
           + btoa(encodeURIComponent(cmd.videoPath)) + '/'
           + btoa(encodeURIComponent(cmd.srtPath || '')) + '/'
           + btoa(encodeURIComponent(cmd.filterPath || ''));
-        window.location.href = str;
+        // replaceState, not href=: see openContent (a fragment-only change + reload() races).
+        window.history.replaceState({}, '', str);
         window.location.reload();
       } catch (e) { console.error('[remote] poll err', e); }
     };
