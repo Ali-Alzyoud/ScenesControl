@@ -87,10 +87,12 @@
       "Bash(ln -s /tmp/symtest/real_target /tmp/symtest/watched_root/linked)",
       "Bash(mkdir -p /media/ubuntu/movies/.fswatch_test___TRACKED_VAR__/sub)",
       "Bash(rm -rf /media/ubuntu/movies/.fswatch_test___TRACKED_VAR__)",
-      "Bash(curl -s -o /dev/null -w \"tabs endpoint http status: %{http_code}\\\\n\" \"http://127.0.0.1:4001/api/v1/files/tabs\" -H \"Authorization: Bearer invalid\")"
+      "Bash(curl -s -o /dev/null -w \"tabs endpoint http status: %{http_code}\\\\n\" \"http://127.0.0.1:4001/api/v1/files/tabs\" -H \"Authorization: Bearer invalid\")",
+      "Bash(node -c src/routes/ai.js)"
     ],
     "additionalDirectories": [
-      "/tmp"
+      "/tmp",
+      "/media/ubuntu/movies/movies/__ai_test__"
     ]
   }
 }

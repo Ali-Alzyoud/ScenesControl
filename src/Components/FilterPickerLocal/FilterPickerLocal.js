@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle, MdFileDownload, MdPlaylistAdd, MdAdd, MdRemove, MdVisibility, MdVisibilityOff } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
+import { createPortal } from 'react-dom'
+import AIChat from '../AIChat/AIChat'
 import * as API from '../../common/API/API'
 import { authFetch, getUser, isController } from '../../common/auth'
 
@@ -159,6 +161,8 @@ function FilterPicker({
     const genId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
     const [moving, setMoving] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+    // The card whose AI button was pressed: the AI chat opens about that title.
+    const [aiItem, setAiItem] = useState(null);
     const [dlHistory, setDlHistory] = useState([]);
 
     // Subtitle search
@@ -1559,6 +1563,7 @@ function FilterPicker({
                                         onDragStart={isAdmin ? e => { e.dataTransfer.setData('text/plain', item.folder); dragItem.current = item.folder;} : undefined}
                                         dropTarget={isAdmin && cardDragOver === item.folder}
                                         folderKey={item.folder}
+                                        onAskAI={() => setAiItem(item)}
                                     />
                                 );
                             }
@@ -1592,6 +1597,7 @@ function FilterPicker({
                                         onDragStart={isAdmin ? e => { e.dataTransfer.setData('text/plain', item.folder); dragItem.current = item.folder;} : undefined}
                                         dropTarget={isAdmin && cardDragOver === item.folder}
                                         folderKey={item.folder}
+                                        onAskAI={() => setAiItem(item)}
                                     />
                                 );
                             } else {
@@ -1627,6 +1633,7 @@ function FilterPicker({
                                         onDragStart={isAdmin ? e => { e.dataTransfer.setData('text/plain', item.folder); dragItem.current = item.folder;} : undefined}
                                         dropTarget={isAdmin && cardDragOver === item.folder}
                                         folderKey={item.folder}
+                                        onAskAI={() => setAiItem(item)}
                                     />
                                 );
                             }
@@ -1768,6 +1775,12 @@ function FilterPicker({
                             )}
                         </div>
                     </div>
+                )}
+                {/* Portalled so the Store's own layout can't clip it; React events still bubble
+                    to this body, which keeps clicks in the chat from closing the Store. */}
+                {aiItem && createPortal(
+                    <AIChat domain={localStorage.getItem('domain')} item={aiItem} onClose={() => setAiItem(null)} onChanged={resync} />,
+                    document.body
                 )}
             </div>
         </div>

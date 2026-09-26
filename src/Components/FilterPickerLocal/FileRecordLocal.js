@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useRef } from 'react'
 import StorageHelper from '../../Helpers/StorageHelper'
 import { FaEye, FaFilter, FaPlayCircle, FaPencilAlt, FaDownload, FaTrash, FaClosedCaptioning } from 'react-icons/fa'
-import { MdVideoLibrary, MdFavorite, MdFavoriteBorder } from 'react-icons/md'
+import { MdVideoLibrary, MdFavorite, MdFavoriteBorder, MdAutoAwesome } from 'react-icons/md'
 
 
-function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy, focused, focusRef, isFavorite, onToggleFavorite, onRename, onDownload, onSearchSubtitle, onDelete, draggable, onDragStart, dropTarget, folderKey }) {
+function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy, focused, focusRef, isFavorite, onToggleFavorite, onRename, onDownload, onSearchSubtitle, onDelete, onAskAI, draggable, onDragStart, dropTarget, folderKey }) {
     const parts = title?.split("/");
     const localTitle = parts?.length > 1 ? parts[parts.length - 1] : title;
     const [editing, setEditing] = useState(false);
@@ -84,8 +84,17 @@ function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasPr
                 ) : (
                     <>
                         <span className="file-record2-title">{localTitle}</span>
-                        {(onDownload || onSearchSubtitle || onRename || onDelete) && (
+                        {(onAskAI || onDownload || onSearchSubtitle || onRename || onDelete) && (
                             <div className="file-record2-actions">
+                                {onAskAI && (
+                                    <button
+                                        className="file-record2-action-btn file-record2-ai-btn"
+                                        onClick={e => { e.stopPropagation(); onAskAI(); }}
+                                        title="Ask AI about this (subtitles, translation…)"
+                                    >
+                                        <MdAutoAwesome />
+                                    </button>
+                                )}
                                 {onDownload && (
                                     <button
                                         className="file-record2-action-btn"

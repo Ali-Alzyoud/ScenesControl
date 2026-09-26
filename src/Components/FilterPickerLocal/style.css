@@ -475,6 +475,7 @@
     opacity: 0;
     transition: opacity 0.15s;
 }
+.file-record2--focused .file-record2-actions,
 .file-record2:hover .file-record2-actions {
     opacity: 1;
 }
@@ -983,3 +984,10 @@
     white-space: nowrap;
     font-family: monospace;
 }
+
+/* No hover on touch screens (phones, TV remotes' touch pads): always show the card buttons. */
+@media (hover: none) {
+    .file-record2-actions { opacity: 1; }
+}
+
+.file-record2-ai-btn { color: #b8a8ff !important; }
