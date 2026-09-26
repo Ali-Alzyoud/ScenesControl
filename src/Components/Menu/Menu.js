@@ -258,7 +258,17 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     <MdVideoLibrary />
                 </button>
                 {currentUser ? (
-                    <button className="navbar-icon-btn" title={`Log out (${currentUser.username})`} aria-label="Log out" onClick={() => { clearAuth(); setCurrentUser(null); }}>
+                    <button className="navbar-icon-btn" title={`Log out (${currentUser.username})`} aria-label="Log out" onClick={() => {
+                        // Logging out also clears what's on this screen (and any pending cast),
+                        // like the Clear content button.
+                        const d = localStorage.getItem('domain');
+                        const t = getToken();
+                        if (d && t) fetch(`${d}/api/v1/remote/play`, { method: 'DELETE', headers: { Authorization: `Bearer ${t}` }, keepalive: true }).catch(() => {});
+                        clearAuth();
+                        setCurrentUser(null);
+                        window.history.replaceState({}, '', window.location.origin + window.location.pathname);
+                        window.location.reload();
+                    }}>
                         <MdLogout />
                     </button>
                 ) : (

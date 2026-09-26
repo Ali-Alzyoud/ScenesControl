@@ -170,6 +170,14 @@ class StorageHelper {
         if (!res.ok) return;
         const data = await res.json();
 
+        // History was cleared (on another device, or from a remote) since this device last
+        // synced — drop the local copy too, rather than merging it back in.
+        const clearedAt = Number(data.historyClearedAt) || 0;
+        if (clearedAt > (Number(localStorage.getItem('historyClearedAt')) || 0)) {
+            this.clearWatchHistory();
+            localStorage.setItem('historyClearedAt', String(clearedAt));
+        }
+
         // Merge favourites
         if (Array.isArray(data.favourites)) {
             const local = this.getFavourites();

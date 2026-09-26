@@ -8,6 +8,7 @@ export const STREAM_MODES = [
     { value: 'hls-720', label: 'HLS 720p (~2.5 Mbps)' },
     { value: 'hls-540', label: 'HLS 540p (~1.6 Mbps)' },
     { value: 'hls-480', label: 'HLS 480p (~1 Mbps)' },
+    { value: 'hls-360', label: 'HLS 360p (~0.7 Mbps)' },
 ];
 export const STREAM_MODE_EVENT = 'sc:stream-mode-changed';
 const KEY = 'streamMode';

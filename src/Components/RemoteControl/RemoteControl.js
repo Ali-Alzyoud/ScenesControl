@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { MdClose, MdPlayArrow, MdPause, MdSkipNext, MdSkipPrevious, MdReplay10, MdForward10, MdReplay30, MdForward30, MdStop, MdVideoLibrary, MdFullscreen, MdLogout, MdVolumeOff, MdVolumeUp, MdBlurOn, MdTvOff, MdSubtitles, MdHistory, MdAdd, MdRemove, MdArrowBack, MdCheck, MdRefresh, MdHighQuality, MdSettings } from 'react-icons/md'
+import { MdClose, MdPlayArrow, MdPause, MdSkipNext, MdSkipPrevious, MdReplay10, MdForward10, MdReplay30, MdForward30, MdStop, MdVideoLibrary, MdFullscreen, MdLogout, MdVolumeOff, MdVolumeUp, MdBlurOn, MdTvOff, MdSubtitles, MdHistory, MdAdd, MdRemove, MdArrowBack, MdCheck, MdRefresh, MdHighQuality, MdSettings, MdDeleteSweep } from 'react-icons/md'
 import { STREAM_MODES } from '../../common/streamMode'
 import { SUBTITLE_COLORS, clampFontSize, clampOpacity } from '../../common/subtitleStyle'
 import { VIDEO_OPTIONS, AUDIO_OPTIONS, FILTER_ROWS } from '../../common/playerConfig'
@@ -341,6 +341,18 @@ function RemoteControl({ domain, onClose }) {
     };
 
 
+    const clearHistory = async () => {
+        if (!window.confirm('Clear the watch history (and resume positions) on all devices?')) return;
+        try {
+            const res = await authFetch(`${domain}/api/v1/userdata/history`, { method: 'DELETE' });
+            if (!res.ok) { setError(`Couldn't clear history (${res.status})`); return; }
+            setHistory([]);
+            setError('');
+        } catch (e) {
+            setError(`Can't reach server (${e?.message || 'network error'})`);
+        }
+    };
+
     // Only one of these full-screen overlays is ever shown at a time — while pickerOpen, Remote
     // Control's own overlay is skipped entirely, both because two stacked full-screen overlays
     // looked broken and because nesting the Store inside .remote-control-overlay's
@@ -454,6 +466,8 @@ function RemoteControl({ domain, onClose }) {
                 <div className="remote-control-subview-header">
                     {iconBtn('Back', <MdArrowBack />, () => setView('main'))}
                     <span>History</span>
+                    <span className="remote-control-header-spacer" />
+                    {iconBtn('Clear history', <MdDeleteSweep />, clearHistory, { disabled: !history?.length })}
                 </div>
                 <div className="remote-control-list">
                     {history === null && <div className="remote-control-empty">Loading…</div>}

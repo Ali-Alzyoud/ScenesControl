@@ -442,3 +442,7 @@
 .remote-control-list > * {
     flex-shrink: 0;
 }
+
+.remote-control-header-spacer {
+    flex: 1;
+}

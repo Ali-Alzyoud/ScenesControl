@@ -549,6 +549,8 @@ function VideoControls({ time,
                         case 'logout': {
                             const { debugLog } = require('../../common/auth');
                             debugLog('Screen applying remote logout', { cmdAge: 'ts ' + cmd.timestamp, lastHandled: lastControlTs.current });
+                            const t = getToken();
+                            if (t) fetch(`${domain}/api/v1/remote/play`, { method: 'DELETE', headers: { Authorization: `Bearer ${t}` }, keepalive: true }).catch(() => {});
                             clearAuth();
                             window.history.replaceState({}, '', window.location.origin + window.location.pathname);
                             window.location.reload();
