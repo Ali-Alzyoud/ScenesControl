@@ -11,6 +11,8 @@ import Utils from "../../utils/utils";
 import StorageHelper from "../../Helpers/StorageHelper";
 import { SCREEN_EFFECT_EVENT, screenEffects } from "./screenEffects";
 import { exitPseudoFullscreen } from "./remoteFullscreen";
+import Hls from "hls.js";
+import { getStreamMode, hlsUrlFor, STREAM_MODE_EVENT } from "../../common/streamMode";
 
 const debounce = (func1, func, delay) => {
   let inDebounce;
@@ -35,7 +37,10 @@ class VideoPlayer extends React.PureComponent {
       blurScreen: false,
       ignoreNextMouseEvent: false,
       speedMulti: 1,
+      streamMode: getStreamMode(),
+      hlsFailedFor: null, // a videoSrc whose HLS stream failed — played directly instead
     };
+    this.hls = null;
     this.player = createRef();
     this.hideTimer = null;
     this.localStorageUpdateCounter = 0;
@@ -87,6 +92,61 @@ class VideoPlayer extends React.PureComponent {
     
     document.addEventListener('keydown',this.keyHandler);
     window.addEventListener(SCREEN_EFFECT_EVENT, this.onScreenEffect);
+    window.addEventListener(STREAM_MODE_EVENT, this.onStreamModeChange);
+    this.setupSource();
+  }
+
+  // The HLS stream to play for the current video, or null to play the file directly.
+  hlsUrl = () => {
+    const { videoSrc } = this.props;
+    if (!videoSrc || this.state.hlsFailedFor === videoSrc) return null;
+    return hlsUrlFor(videoSrc, this.state.streamMode);
+  }
+
+  // Points the <video> at either the original file or the HLS stream. Managed here rather than
+  // through a src prop, since hls.js owns the element's source while it's attached.
+  setupSource = () => {
+    const video = this.player.current;
+    if (!video) return;
+    if (this.hls) { this.hls.destroy(); this.hls = null; }
+    const { videoSrc, videoName } = this.props;
+    const url = this.hlsUrl();
+    if (!url) {
+      if (videoSrc) { if (video.getAttribute('src') !== videoSrc) video.src = videoSrc; }
+      else { video.removeAttribute('src'); video.load(); }
+      return;
+    }
+    if (Hls.isSupported()) {
+      // Start loading from the saved position, instead of loading the start and then seeking
+      // (each seek outside what's already converted restarts the conversion on the server).
+      const resume = Number(StorageHelper.getContentProgress({ videoName })) || 0;
+      const hls = new Hls({ startPosition: resume > 0 ? resume : -1, maxBufferLength: 30, backBufferLength: 60 });
+      hls.on(Hls.Events.ERROR, (_e, data) => {
+        if (!data.fatal || this.hls !== hls) return;
+        console.error('[hls] fatal error, playing the original file instead', data.type, data.details);
+        this.setState({ hlsFailedFor: videoSrc });
+      });
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      this.hls = hls;
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url; // Safari plays HLS natively
+    } else {
+      video.src = videoSrc;
+    }
+  }
+
+  onStreamModeChange = (e) => {
+    const mode = e.detail || getStreamMode();
+    if (mode === this.state.streamMode) return;
+    // Carry on from the same point, in the same play/pause state, after switching.
+    const video = this.player.current;
+    const { videoName } = this.props;
+    if (video && videoName && video.currentTime > 0) {
+      StorageHelper.saveContentProgress({ videoName, time: video.currentTime, duration: video.duration || 0 });
+      if (!video.paused) sessionStorage.setItem('rc_resume_play', '1');
+    }
+    this.setState({ streamMode: mode, hlsFailedFor: null });
   }
 
   onScreenEffect = (e) => {
@@ -98,6 +158,8 @@ class VideoPlayer extends React.PureComponent {
   componentWillUnmount() {
     document.removeEventListener('keydown',this.keyHandler);
     window.removeEventListener(SCREEN_EFFECT_EVENT, this.onScreenEffect);
+    window.removeEventListener(STREAM_MODE_EVENT, this.onStreamModeChange);
+    if (this.hls) { this.hls.destroy(); this.hls = null; }
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -117,6 +179,11 @@ class VideoPlayer extends React.PureComponent {
       clearTimeout(this.timer);
       this.timer = null;
       this.setState({ ignoreNextMouseEvent: true });
+    }
+    if (this.props.videoSrc !== prevProps.videoSrc
+      || this.state.streamMode !== prevState.streamMode
+      || this.state.hlsFailedFor !== prevState.hlsFailedFor) {
+      this.setupSource();
     }
     if (this.props.videoSrc !== prevProps.videoSrc) {
       this.setState({
@@ -239,7 +306,6 @@ class VideoPlayer extends React.PureComponent {
       >
         <video
           className={`player ${videoSrc ? '' : 'no-source'}`}
-          src={videoSrc}
           ref={this.player}
           onLoadedData={(event) => {
             setVideoIsLoading(false);
@@ -270,6 +336,8 @@ class VideoPlayer extends React.PureComponent {
             setTime(event.target.currentTime);
           }}
           onError={() => {
+            // HLS reports its own errors (and falls back to the file) — see setupSource.
+            if (this.hls) return;
             // A video src almost always gets here carrying a token in its query string (see
             // withToken() in FilterPickerLocal.js) that's only ever valid for as long as that
             // session's JWT is — if this page was reopened from a URL/history entry left over

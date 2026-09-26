@@ -68,3 +68,16 @@ export const toggleRemoteFullscreen = () => {
     if (req && typeof req.catch === 'function') req.catch(enterPseudo);
     else enterPseudo();
 };
+
+// Tells the Android app (when running inside it) whenever the video enters or leaves either kind
+// of fullscreen, so it can hide its own settings button over the video. Watches both the real
+// Fullscreen API and the CSS class, whatever toggled them.
+let lastReported = null;
+const reportToApp = () => {
+    const value = isRemoteFullscreen();
+    if (value === lastReported) return;
+    lastReported = value;
+    window.flutter_inappwebview?.callHandler?.('fullscreenChanged', value);
+};
+document.addEventListener('fullscreenchange', reportToApp);
+new MutationObserver(reportToApp).observe(document.body, { attributes: true, attributeFilter: ['class'] });

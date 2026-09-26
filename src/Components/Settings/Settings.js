@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from 'react'
 import { connect } from "react-redux";
 import { getFontConfig, getSyncConfig } from '../../redux/selectors';
 import { setSettings_fontConfig, setSettings_syncConfig } from '../../redux/actions';
+import { STREAM_MODES, STREAM_MODE_EVENT, getStreamMode, setStreamMode } from '../../common/streamMode';
+import { SUBTITLE_COLORS } from '../../common/subtitleStyle';
 import './style.css'
 
 function Stepper({ label, hint, value, onDec, onInc }) {
@@ -25,6 +27,14 @@ function Settings({ close, fontConfig, syncConfig, setSettings_fontConfig, setSe
     const dragging = useRef(false);
     const dragOffset = useRef({ x: 0, y: 0 });
     const modalRef = useRef(null);
+    const [streamMode, setStreamModeState] = useState(getStreamMode);
+    const changeStreamMode = (value) => { setStreamMode(value); setStreamModeState(value); };
+    // A remote can change it while this is open.
+    useEffect(() => {
+        const onChange = (e) => setStreamModeState(e.detail);
+        window.addEventListener(STREAM_MODE_EVENT, onChange);
+        return () => window.removeEventListener(STREAM_MODE_EVENT, onChange);
+    }, []);
 
     useEffect(() => {
         const onMouseMove = (e) => {
@@ -80,6 +90,17 @@ function Settings({ close, fontConfig, syncConfig, setSettings_fontConfig, setSe
                 </div>
 
                 <div className="settings-body">
+                    <div className="settings-section-title">Playback</div>
+                    <div className="settings-row">
+                        <div className="settings-row-label">
+                            <span className="settings-label">Streaming</span>
+                            <span className="settings-hint">HLS is lighter over remote links</span>
+                        </div>
+                        <select className="settings-select" value={streamMode} onChange={e => changeStreamMode(e.target.value)}>
+                            {STREAM_MODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                        </select>
+                    </div>
+
                     <div className="settings-section-title">Subtitle</div>
                     <Stepper
                         label="Font Size"
@@ -95,6 +116,24 @@ function Settings({ close, fontConfig, syncConfig, setSettings_fontConfig, setSe
                         onDec={decBackground}
                         onInc={incBackground}
                     />
+                    <div className="settings-row">
+                        <div className="settings-row-label">
+                            <span className="settings-label">Color</span>
+                            <span className="settings-hint">Subtitle text color</span>
+                        </div>
+                        <div className="settings-swatches">
+                            {SUBTITLE_COLORS.map(c => (
+                                <button
+                                    key={c.value}
+                                    className={`settings-swatch${(fontConfig.color || 'white') === c.value ? ' is-active' : ''}`}
+                                    style={{ background: c.value }}
+                                    title={c.label}
+                                    aria-label={c.label}
+                                    onClick={() => setSettings_fontConfig({ ...fontConfig, color: c.value })}
+                                />
+                            ))}
+                        </div>
+                    </div>
                     <Stepper
                         label="Sync Delay"
                         hint="Offset subtitle timing"

@@ -16,8 +16,8 @@ import { MdPlayArrow, MdPause, MdSubtitles } from 'react-icons/md'
 import './style.css'
 
 import { connect, useDispatch, useSelector } from "react-redux";
-import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName, selectVideoSrc, selectSubtitleName, getSyncConfig } from '../../redux/selectors';
-import { setTime, setPlayerState, setVolume, setSettings_syncConfig, setSubtitle, setSubtitleName } from '../../redux/actions';
+import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName, selectVideoSrc, selectSubtitleName, getSyncConfig, getFontConfig } from '../../redux/selectors';
+import { setTime, setPlayerState, setVolume, setSettings_syncConfig, setSettings_fontConfig, setSubtitle, setSubtitleName } from '../../redux/actions';
 import Slider from '../Slider';
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import Utils from '../../utils/utils'
@@ -25,6 +25,8 @@ import SrtClass from '../../common/SrtClass'
 import StorageHelper from '../../Helpers/StorageHelper'
 import { authFetch, getToken, clearAuth, isController } from '../../common/auth'
 import { SCREEN_EFFECT_EVENT, screenEffects } from './screenEffects'
+import { getStreamMode, setStreamMode } from '../../common/streamMode'
+import { SUBTITLE_COLORS, clampFontSize, clampOpacity } from '../../common/subtitleStyle'
 import { toggleRemoteFullscreen, exitPseudoFullscreen, isRemoteFullscreen } from './remoteFullscreen'
 
 var styleControls = {
@@ -164,6 +166,7 @@ function VideoControls({ time,
     const subtitleDelay = useSelector(getSyncConfig).subtitleDelay;
     const subtitleSlope = useSelector(getSyncConfig).subtitleSlope;
     const syncConfig = useSelector(getSyncConfig)
+    const fontConfig = useSelector(getFontConfig)
     const videoSrc = useSelector(selectVideoSrc);
     const subtitleName = useSelector(selectSubtitleName);
     const [showSubtitlePicker, setShowSubtitlePicker] = useState(false);
@@ -393,7 +396,7 @@ function VideoControls({ time,
     useEffect(() => { videoSrcRef.current = videoSrc; }, [videoSrc]);
     // Same for the values the audio/subtitle commands adjust relative to their current value.
     const latestRef = useRef({});
-    latestRef.current = { volume, syncConfig, time, duration, videoName, playing: playerState === 'play' };
+    latestRef.current = { volume, syncConfig, fontConfig, time, duration, videoName, playing: playerState === 'play' };
 
     // Remote "mute" is volume 0, with the previous level remembered for unmuting — not the
     // player's own mute flag, which the scene filters (VideoFilter) set and clear on every tick
@@ -445,6 +448,13 @@ function VideoControls({ time,
         const next = { ...cfg, subtitleDelay: Math.round((cfg.subtitleDelay + delta) * 100) / 100 };
         dispatch(setSettings_syncConfig(next));
         latestRef.current.syncConfig = next; // several commands can apply before the next render
+    };
+
+    // Subtitle look, set from the remote (absolute values, like the volume slider).
+    const setSubtitleStyle = (patch) => {
+        const next = { ...latestRef.current.fontConfig, ...patch };
+        dispatch(setSettings_fontConfig(next));
+        latestRef.current.fontConfig = next;
     };
 
     // Escape leaves the CSS fullscreen, as it would real fullscreen.
@@ -515,6 +525,10 @@ function VideoControls({ time,
                         case 'subtitle': selectRemoteSubtitle(typeof cmd.value === 'string' ? cmd.value : ''); break;
                         case 'volume': if (typeof cmd.value === 'number') setVolume(Math.min(1, Math.max(0, cmd.value))); break;
                         case 'mute': toggleRemoteMute(); break;
+                        case 'sub-size': if (typeof cmd.value === 'number') setSubtitleStyle({ size: clampFontSize(cmd.value) }); break;
+                        case 'sub-bg': if (typeof cmd.value === 'number') setSubtitleStyle({ transparency: clampOpacity(cmd.value) }); break;
+                        case 'sub-color': if (SUBTITLE_COLORS.some(c => c.value === cmd.value)) setSubtitleStyle({ color: cmd.value }); break;
+                        case 'stream-mode': if (typeof cmd.value === 'string') setStreamMode(cmd.value); break;
                         case 'reload': {
                             // Pick up exactly where it was: the position is normally only saved
                             // every few seconds, and whether it was playing isn't saved at all.
@@ -565,17 +579,21 @@ function VideoControls({ time,
     const statusRef = useRef(null);
     useEffect(() => {
         statusRef.current = {
-            videoName, playing: playerState === 'play', currentTime: time, duration,
+            videoName: videoSrc ? videoName : '', playing: playerState === 'play', currentTime: time, duration,
             volume, subtitleDelay: syncConfig.subtitleDelay, hasSubtitle: !!subtitleName,
             subtitle: subtitleBaseName(subtitleName),
+            fontSize: fontConfig.size, subBg: fontConfig.transparency, subColor: fontConfig.color || 'white',
         };
     });
 
+    // Screens report even with nothing loaded, so the remote can still change their settings;
+    // a controller only reports while it's playing something itself.
     useEffect(() => {
-        if (!videoSrc) return;
+        if (!videoSrc && isController()) return;
         const domain = localStorage.getItem('domain');
         if (!domain) return;
         const push = () => {
+            if (!getToken()) return;
             authFetch(`${domain}/api/v1/remote/status`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -586,6 +604,7 @@ function VideoControls({ time,
                     black: screenEffects.black,
                     blur: screenEffects.blur,
                     fullscreen: isRemoteFullscreen(),
+                    streamMode: getStreamMode(),
                     subtitles: remoteSubsRef.current.map(x => x.name),
                 }),
             }).catch(() => {});

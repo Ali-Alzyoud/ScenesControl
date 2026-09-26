@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { MdClose, MdPlayArrow, MdPause, MdSkipNext, MdSkipPrevious, MdReplay10, MdForward10, MdReplay30, MdForward30, MdStop, MdVideoLibrary, MdFullscreen, MdLogout, MdVolumeOff, MdVolumeUp, MdBlurOn, MdTvOff, MdSubtitles, MdHistory, MdAdd, MdRemove, MdArrowBack, MdCheck, MdRefresh } from 'react-icons/md'
+import { MdClose, MdPlayArrow, MdPause, MdSkipNext, MdSkipPrevious, MdReplay10, MdForward10, MdReplay30, MdForward30, MdStop, MdVideoLibrary, MdFullscreen, MdLogout, MdVolumeOff, MdVolumeUp, MdBlurOn, MdTvOff, MdSubtitles, MdHistory, MdAdd, MdRemove, MdArrowBack, MdCheck, MdRefresh, MdHighQuality, MdSettings } from 'react-icons/md'
+import { STREAM_MODES } from '../../common/streamMode'
+import { SUBTITLE_COLORS, clampFontSize, clampOpacity } from '../../common/subtitleStyle'
 import { authFetch, debugLog } from '../../common/auth'
 import StorePicker from '../FilterPickerLocal'
 
@@ -28,7 +30,7 @@ function RemoteControl({ domain, onClose }) {
     const [error, setError] = useState('');
     const [pickerOpen, setPickerOpen] = useState(false); // Store, opened in "cast to the playing device" mode
     // Secondary views inside the panel, replacing the main controls while open.
-    const [view, setView] = useState('main'); // 'main' | 'subtitles' | 'history'
+    const [view, setView] = useState('main'); // 'main' | 'subtitles' | 'history' | 'stream' | 'settings'
     const [history, setHistory] = useState(null); // watch history from the server, or null while loading
     const [castNotice, setCastNotice] = useState('');
     // Play/pause is the only control whose button reflects real state (an icon), and that state
@@ -218,6 +220,47 @@ function RemoteControl({ domain, onClose }) {
         toggleEffect('blur');
     };
 
+    // Subtitle look on the screen — sent as absolute values, shown optimistically.
+    const shownFontSize = shown('fontSize', 40);
+    const shownSubBg = shown('subBg', 0.7);
+    const shownSubColor = shown('subColor', 'white');
+    const setSubStyle = (key, action, value) => { setOptimisticValue(key, value); sendCommand(action, value); };
+    const stepRow = (label, value, onDec, onInc, disabled) => (
+        <div className="remote-control-subs-row">
+            <span className="remote-control-row-label">{label}</span>
+            {iconBtn(`${label} down`, <MdRemove />, onDec, { disabled })}
+            <span className="remote-control-subs-label">{value}</span>
+            {iconBtn(`${label} up`, <MdAdd />, onInc, { disabled })}
+        </div>
+    );
+    const subtitleStyleControls = () => (
+        <>
+            {stepRow('Size', `${shownFontSize}px`,
+                () => setSubStyle('fontSize', 'sub-size', clampFontSize(shownFontSize - 2)),
+                () => setSubStyle('fontSize', 'sub-size', clampFontSize(shownFontSize + 2)))}
+            {stepRow('Backdrop', `${Math.round(shownSubBg * 100)}%`,
+                () => setSubStyle('subBg', 'sub-bg', clampOpacity(shownSubBg - 0.1)),
+                () => setSubStyle('subBg', 'sub-bg', clampOpacity(shownSubBg + 0.1)))}
+            <div className="remote-control-subs-row">
+                <span className="remote-control-row-label">Color</span>
+                <div className="remote-control-swatches">
+                    {SUBTITLE_COLORS.map(c => (
+                        <button
+                            key={c.value}
+                            className={`remote-control-swatch${shownSubColor === c.value ? ' is-active' : ''}`}
+                            style={{ background: c.value }}
+                            title={c.label}
+                            aria-label={c.label}
+                            onClick={() => setSubStyle('subColor', 'sub-color', c.value)}
+                        />
+                    ))}
+                </div>
+            </div>
+        </>
+    );
+    const syncRow = () => stepRow('Sync', `${shownDelay > 0 ? '+' : ''}${shownDelay.toFixed(1)}s`,
+        () => shiftSubtitles(-0.5), () => shiftSubtitles(0.5), !shown('hasSubtitle', false));
+
     const shownSubtitle = shown('subtitle', '');
     const pickSubtitle = (name) => {
         setOptimisticValue('subtitle', name);
@@ -303,11 +346,60 @@ function RemoteControl({ domain, onClose }) {
                     ))}
                     {!options.length && <div className="remote-control-empty">No subtitle files next to this video</div>}
                 </div>
-                <div className="remote-control-subs-row">
-                    {iconBtn('Subtitles 0.5s earlier', <MdRemove />, () => shiftSubtitles(-0.5), { disabled: !shown('hasSubtitle', false) })}
-                    <span className="remote-control-subs-label">{`${shownDelay > 0 ? '+' : ''}${shownDelay.toFixed(1)}s`}</span>
-                    {iconBtn('Subtitles 0.5s later', <MdAdd />, () => shiftSubtitles(0.5), { disabled: !shown('hasSubtitle', false) })}
+                <div className="remote-control-group remote-control-group--column">
+                    {syncRow()}
+                    {subtitleStyleControls()}
                 </div>
+            </>
+        );
+    } else if (view === 'settings') {
+        const current = shown('streamMode', 'direct');
+        body = (
+            <>
+                <div className="remote-control-subview-header">
+                    {iconBtn('Back', <MdArrowBack />, () => setView('main'))}
+                    <span>Screen settings</span>
+                </div>
+                <div className="remote-control-section-title">Streaming</div>
+                <div className="remote-control-list">
+                    {STREAM_MODES.map(m => (
+                        <button
+                            key={m.value}
+                            className={`remote-control-list-item${current === m.value ? ' is-active' : ''}`}
+                            onClick={() => { setOptimisticValue('streamMode', m.value); sendCommand('stream-mode', m.value); }}
+                        >
+                            {current === m.value && <MdCheck />} {m.label}
+                        </button>
+                    ))}
+                </div>
+                <div className="remote-control-section-title">Subtitles</div>
+                <div className="remote-control-group remote-control-group--column">
+                    {syncRow()}
+                    {subtitleStyleControls()}
+                </div>
+                {!status && <div className="remote-control-empty">The screen isn't reporting yet — changes still apply once it's online.</div>}
+            </>
+        );
+    } else if (view === 'stream') {
+        const current = shown('streamMode', 'direct');
+        body = (
+            <>
+                <div className="remote-control-subview-header">
+                    {iconBtn('Back', <MdArrowBack />, () => setView('main'))}
+                    <span>Streaming</span>
+                </div>
+                <div className="remote-control-list">
+                    {STREAM_MODES.map(m => (
+                        <button
+                            key={m.value}
+                            className={`remote-control-list-item${current === m.value ? ' is-active' : ''}`}
+                            onClick={() => { setOptimisticValue('streamMode', m.value); sendCommand('stream-mode', m.value); setView('main'); }}
+                        >
+                            {current === m.value && <MdCheck />} {m.label}
+                        </button>
+                    ))}
+                </div>
+                <div className="remote-control-empty">HLS converts on the fly at the chosen quality — use it when playback over a remote connection stutters.</div>
             </>
         );
     } else if (view === 'history') {
@@ -384,6 +476,7 @@ function RemoteControl({ domain, onClose }) {
                             {iconBtn('Black screen', <MdTvOff />, () => toggleEffect('black'), { active: shownBlack })}
                             {iconBtn('Blur (also mutes)', <MdBlurOn />, toggleBlur, { active: shownBlur })}
                             {iconBtn(shown('fullscreen', false) ? 'Exit fullscreen' : 'Fullscreen', <MdFullscreen />, () => toggleEffect('fullscreen'), { active: shown('fullscreen', false) })}
+                            {iconBtn('Streaming quality', <MdHighQuality />, () => setView('stream'), { active: shown('streamMode', 'direct') !== 'direct' })}
                         </div>
                     </>
                 ) : (
@@ -393,6 +486,7 @@ function RemoteControl({ domain, onClose }) {
                 <div className="remote-control-group">
                     {iconBtn('Change content', <MdVideoLibrary />, () => setPickerOpen(true))}
                     {iconBtn('History', <MdHistory />, openHistory)}
+                    {iconBtn('Screen settings', <MdSettings />, () => setView('settings'))}
                     {iconBtn('Reload screen', <MdRefresh />, () => sendCommand('reload'))}
                     {iconBtn('Log out screen', <MdLogout />, () => { if (window.confirm('Sign the other screen out?')) sendCommand('logout'); })}
                 </div>

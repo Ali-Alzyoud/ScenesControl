@@ -168,3 +168,33 @@
     transition: background 0.15s;
 }
 .settings-ok:hover { background: #574fd6; }
+
+.settings-select {
+    background: #0e0e1a;
+    border: 1px solid #333355;
+    border-radius: 6px;
+    color: #e0e0f0;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-family: inherit;
+    max-width: 55%;
+}
+
+.settings-swatches {
+    display: flex;
+    gap: 6px;
+}
+
+.settings-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #333355;
+    padding: 0;
+    cursor: pointer;
+}
+
+.settings-swatch.is-active {
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 2px #6c63ff;
+}

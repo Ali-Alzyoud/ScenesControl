@@ -10,15 +10,16 @@ let style = {
     backgroundColor: 'rgba(0,0,0,0.7)',
 };
 
-function VideoSRT({ subtitle, subtitleDelay, subtitleSlope, time, fontSize, fontTransparency }) {
+function VideoSRT({ subtitle, subtitleDelay, subtitleSlope, time, fontSize, fontTransparency, fontColor }) {
 
     const style1 = useMemo(() => {
         return {
             ...style,
             backgroundColor: 'rgba(0,0,0,'+ fontTransparency +')',
-            fontSize : fontSize + 'px'
+            fontSize : fontSize + 'px',
+            color: fontColor || 'white',
         }
-    }, [fontTransparency, fontSize]);
+    }, [fontTransparency, fontSize, fontColor]);
 
     const style2 = useMemo(() => {
         return {
@@ -45,9 +46,10 @@ const mapStateToProps = state => {
     const time = selectTime(state);
     const fontSize = getFontConfig(state).size;
     const fontTransparency = getFontConfig(state).transparency;
+    const fontColor = getFontConfig(state).color;
     const subtitleDelay = getSyncConfig(state).subtitleDelay;
     const subtitleSlope = getSyncConfig(state).subtitleSlope;
-    return { subtitle, time, fontSize, fontTransparency, subtitleDelay, subtitleSlope };
+    return { subtitle, time, fontSize, fontTransparency, fontColor, subtitleDelay, subtitleSlope };
   };
 
 export default connect(mapStateToProps)(VideoSRT);
