@@ -1,0 +1,9 @@
+[
+    {
+        "name" : "Joker Sample online",
+        "video" : "https://github.com/Ali-Alzyoud/ScenesControl/raw/main/public/video/joker/v.webm",
+        "subtitle" : "https://raw.github.com/Ali-Alzyoud/ScenesControl/public/video/joker/s.srt",
+        "filter" : "https://raw.github.com/Ali-Alzyoud/ScenesControl/main/public/video/joker/f.txt",
+        "poster" : "https://raw.github.com/Ali-Alzyoud/ScenesControl/main/public/video/joker/p.jpg"
+    }
+]
