@@ -11,6 +11,7 @@ import Sessions from '../Sessions/Sessions'
 import QRScanner from '../QRScanner/QRScanner'
 import RemoteControl from '../RemoteControl/RemoteControl'
 
+import { REMOTE_DOMAIN } from '../../common/domain';
 import { MdQrCodeScanner, MdSettingsRemote, MdVideoLibrary, MdLogin, MdLogout, MdClearAll } from 'react-icons/md';
 import { connect } from "react-redux";
 import { setFilterItems, setVideoSrc, setSubtitle, setSubtitleSync, setVideoName, setTime, setDuration } from '../../redux/actions'
@@ -234,7 +235,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
 
                             }}>Resume</button>
                             <button onClick={async () => {
-                                setDomain("https://m.camel-goldeye.ts.net");
+                                setDomain(REMOTE_DOMAIN);
                             }}>Remote</button>
                             <button onClick={async () => {
                                 setDomain(`https://${window.location.hostname}:4443`);

@@ -82,6 +82,10 @@ export function QrScanHandler({ domain, qrId, onDone }) {
 
     const finish = (message) => {
         setDeviceKind('controller');
+        // Talk to the same backend as the screen this phone just paired with — otherwise a
+        // phone whose saved server differs (e.g. a default for another host) would pair
+        // successfully and then send every Remote Control command somewhere else.
+        if (domain) localStorage.setItem('domain', domain);
         // Read by Menu after the reload below, to land straight on Remote Control.
         sessionStorage.setItem('rc_open_remote', '1');
         setDoneMessage(message);

@@ -7,6 +7,7 @@ import { Player } from './Components/Player';
 import Menu from './Components/Menu'
 import { getToken, getUser, debugLog, isController, setDeviceKind } from './common/auth'
 import { QrScanHandler } from './Components/Login/Login'
+import { defaultDomain } from './common/domain'
 import StorageHelper from './Helpers/StorageHelper'
 import SrtClass from './common/SrtClass'
 import FilterEditor from './Components/FilterFileEditor'
@@ -68,10 +69,13 @@ const SESSION_ID = sessionStorage.getItem('__sessionId');
 
 // A browser that has never had a server configured would otherwise have no domain at all (or the
 // literal string "null", which Menu writes back when its state is empty) and show no QR to sign
-// in with. Default to the same address Menu's "Local" button sets.
+// in with. An earlier version of this defaulted to "this host on :4443" everywhere, which is
+// wrong off the home network (there's no backend on the Cloudflare site's host) — that stored
+// value is corrected too.
 {
   const d = localStorage.getItem('domain');
-  if (!d || d === 'null') localStorage.setItem('domain', `https://${window.location.hostname}:4443`);
+  const wrongOldDefault = `https://${window.location.hostname}:4443` !== defaultDomain() && d === `https://${window.location.hostname}:4443`;
+  if (!d || d === 'null' || wrongOldDefault) localStorage.setItem('domain', defaultDomain());
 }
 
 // A scanned home-screen QR (?qr=<id>&domain=...) is consumed once, here, before anything
@@ -84,7 +88,7 @@ const PENDING_QR = (() => {
   if (!id) return null;
   // No domain in the QR means the screen used the default for its host — which, since this page
   // was opened from that same QR, is this page's host too.
-  const domain = p.get('domain') || `https://${window.location.hostname}:4443`;
+  const domain = p.get('domain') || defaultDomain();
   window.history.replaceState({}, '', window.location.origin + window.location.pathname + window.location.hash);
   return { id, domain };
 })();
@@ -182,9 +186,9 @@ function HomeQR({ domain }) {
   if (token && !offered) return null;
 
   // Only include the server address when it isn't the default a scanning device would assume
-  // anyway (this same host on :4443) — it's most of the URL's length otherwise.
+  // anyway (see defaultDomain) — it's most of the URL's length otherwise.
   const params = { qr: qrId };
-  if (domain !== `https://${window.location.hostname}:4443`) params.domain = domain;
+  if (domain !== defaultDomain()) params.domain = domain;
   const url = window.location.origin + window.location.pathname + '?' + new URLSearchParams(params).toString();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '32px 0' }}>

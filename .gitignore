@@ -24,3 +24,8 @@ package-lock.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Android app builds are served only by the home server (they exceed Cloudflare Pages'
+# 25 MiB per-file limit); keep them, and the update manifest pointing at them, out of git.
+/public/*.apk
+/public/app-version.json

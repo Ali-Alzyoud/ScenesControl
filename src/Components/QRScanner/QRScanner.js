@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import jsQR from 'jsqr'
 import { MdClose, MdQrCodeScanner } from 'react-icons/md'
+import { defaultDomain } from '../../common/domain'
 
 import './style.css'
 
@@ -64,7 +65,7 @@ function QRScanner({ onClose }) {
 
     const submitCode = async (value) => {
         if (codeBusy || !/^\d{4}$/.test(value)) return;
-        const domain = localStorage.getItem('domain') || `https://${window.location.hostname}:4443`;
+        const domain = localStorage.getItem('domain') || defaultDomain();
         setCodeBusy(true);
         setCodeError('');
         try {
@@ -73,7 +74,7 @@ function QRScanner({ onClose }) {
             if (!res.ok || !data.id) { setCodeError(data.error || 'Code not found'); setCode(''); return; }
             // Continue exactly as if the QR itself had been scanned.
             const params = { qr: data.id };
-            if (domain !== `https://${window.location.hostname}:4443`) params.domain = domain;
+            if (domain !== defaultDomain()) params.domain = domain;
             window.location.href = window.location.origin + window.location.pathname + '?' + new URLSearchParams(params).toString();
         } catch {
             setCodeError("Can't reach server");
