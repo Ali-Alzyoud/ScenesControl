@@ -11,7 +11,7 @@ import Sessions from '../Sessions/Sessions'
 import QRScanner from '../QRScanner/QRScanner'
 import RemoteControl from '../RemoteControl/RemoteControl'
 
-import { REMOTE_DOMAIN } from '../../common/domain';
+import { REMOTE_DOMAIN, apkDownloadUrl } from '../../common/domain';
 import { MdQrCodeScanner, MdSettingsRemote, MdVideoLibrary, MdLogin, MdLogout, MdClearAll } from 'react-icons/md';
 import { connect } from "react-redux";
 import { setFilterItems, setVideoSrc, setSubtitle, setSubtitleSync, setVideoName, setTime, setDuration } from '../../redux/actions'
@@ -210,7 +210,7 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
                     <a href="#" className="blue" onClick={e => { e.preventDefault(); setfilterPicker(true); }}>Store</a>
                     <a href="#" onClick={e => { e.preventDefault(); setSettings(true); }}>Settings</a>
                     <a href="#" onClick={e => { e.preventDefault(); setabout(true); }}>About</a>
-                    <a href="/ScenesControl.apk" download>Download App</a>
+                    <a href={apkDownloadUrl()} download>Download App</a>
                     {currentUser?.role === 'admin' && (
                         <a href="#" onClick={e => { e.preventDefault(); setSessionsOpen(true); }}>Sessions</a>
                     )}
