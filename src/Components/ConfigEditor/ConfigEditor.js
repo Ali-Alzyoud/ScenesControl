@@ -1,32 +1,9 @@
 import React from 'react'
 import { connect } from "react-redux";
-import { PLAYER_ACTION } from '../../redux/actionTypes'
 import { selectPlayerConfig } from '../../redux/selectors';
 import { setPlayerConfig } from '../../redux/actions';
+import { VIDEO_OPTIONS, AUDIO_OPTIONS, FILTER_ROWS as ROWS } from '../../common/playerConfig'
 import './style.css'
-
-const VIDEO_OPTIONS = [
-    PLAYER_ACTION.BLUR,
-    PLAYER_ACTION.BLUR_EXTRA,
-    PLAYER_ACTION.BLUR_EXTREME,
-    PLAYER_ACTION.BLUR_EXTREME_X2,
-    PLAYER_ACTION.BLACK,
-    PLAYER_ACTION.SKIP,
-    PLAYER_ACTION.NOACTION,
-];
-
-const AUDIO_OPTIONS = [
-    PLAYER_ACTION.MUTE,
-    PLAYER_ACTION.NOACTION,
-];
-
-const ROWS = [
-    { key: 'violence',  label: 'Violence',   icon: '⚔️' },
-    { key: 'nudity',    label: 'Nudity',      icon: '🙈' },
-    { key: 'sex',       label: 'Sex',         icon: '🔞' },
-    { key: 'profanity', label: 'Profanity',   icon: '🤬' },
-    { key: 'rightclick',label: 'Right Click', icon: '🖱️' },
-];
 
 function ConfigEditor({ playerConfig, setPlayerConfig }) {
     const setVideo = (key, value) =>

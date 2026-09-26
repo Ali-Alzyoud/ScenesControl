@@ -16,8 +16,8 @@ import { MdPlayArrow, MdPause, MdSubtitles } from 'react-icons/md'
 import './style.css'
 
 import { connect, useDispatch, useSelector } from "react-redux";
-import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName, selectVideoSrc, selectSubtitleName, getSyncConfig, getFontConfig } from '../../redux/selectors';
-import { setTime, setPlayerState, setVolume, setSettings_syncConfig, setSettings_fontConfig, setSubtitle, setSubtitleName } from '../../redux/actions';
+import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName, selectVideoSrc, selectSubtitleName, getSyncConfig, getFontConfig, selectPlayerConfig } from '../../redux/selectors';
+import { setTime, setPlayerState, setVolume, setSettings_syncConfig, setSettings_fontConfig, setSubtitle, setSubtitleName, setPlayerConfig } from '../../redux/actions';
 import Slider from '../Slider';
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import Utils from '../../utils/utils'
@@ -27,6 +27,7 @@ import { authFetch, getToken, clearAuth, isController } from '../../common/auth'
 import { SCREEN_EFFECT_EVENT, screenEffects } from './screenEffects'
 import { getStreamMode, setStreamMode } from '../../common/streamMode'
 import { SUBTITLE_COLORS, clampFontSize, clampOpacity } from '../../common/subtitleStyle'
+import { sanitizeConfigPatch } from '../../common/playerConfig'
 import { toggleRemoteFullscreen, exitPseudoFullscreen, isRemoteFullscreen } from './remoteFullscreen'
 
 var styleControls = {
@@ -167,6 +168,7 @@ function VideoControls({ time,
     const subtitleSlope = useSelector(getSyncConfig).subtitleSlope;
     const syncConfig = useSelector(getSyncConfig)
     const fontConfig = useSelector(getFontConfig)
+    const playerConfig = useSelector(selectPlayerConfig)
     const videoSrc = useSelector(selectVideoSrc);
     const subtitleName = useSelector(selectSubtitleName);
     const [showSubtitlePicker, setShowSubtitlePicker] = useState(false);
@@ -528,6 +530,12 @@ function VideoControls({ time,
                         case 'sub-size': if (typeof cmd.value === 'number') setSubtitleStyle({ size: clampFontSize(cmd.value) }); break;
                         case 'sub-bg': if (typeof cmd.value === 'number') setSubtitleStyle({ transparency: clampOpacity(cmd.value) }); break;
                         case 'sub-color': if (SUBTITLE_COLORS.some(c => c.value === cmd.value)) setSubtitleStyle({ color: cmd.value }); break;
+                        case 'player-config': {
+                            let patch = null;
+                            try { patch = sanitizeConfigPatch(JSON.parse(cmd.value)); } catch {}
+                            if (patch && Object.keys(patch).length) dispatch(setPlayerConfig(patch));
+                            break;
+                        }
                         case 'stream-mode': if (typeof cmd.value === 'string') setStreamMode(cmd.value); break;
                         case 'reload': {
                             // Pick up exactly where it was: the position is normally only saved
@@ -583,6 +591,7 @@ function VideoControls({ time,
             volume, subtitleDelay: syncConfig.subtitleDelay, hasSubtitle: !!subtitleName,
             subtitle: subtitleBaseName(subtitleName),
             fontSize: fontConfig.size, subBg: fontConfig.transparency, subColor: fontConfig.color || 'white',
+            playerConfig,
         };
     });
 

@@ -6,6 +6,7 @@ export const STREAM_MODES = [
     { value: 'direct', label: 'Direct (original file)' },
     { value: 'hls-1080', label: 'HLS 1080p (~5 Mbps)' },
     { value: 'hls-720', label: 'HLS 720p (~2.5 Mbps)' },
+    { value: 'hls-540', label: 'HLS 540p (~1.6 Mbps)' },
     { value: 'hls-480', label: 'HLS 480p (~1 Mbps)' },
 ];
 export const STREAM_MODE_EVENT = 'sc:stream-mode-changed';

@@ -67,15 +67,14 @@ const SESSION_ID = sessionStorage.getItem('__sessionId');
   if (typeof ResizeObserver === 'function') new ResizeObserver(refresh).observe(root);
 }
 
-// A browser that has never had a server configured would otherwise have no domain at all (or the
-// literal string "null", which Menu writes back when its state is empty) and show no QR to sign
-// in with. An earlier version of this defaulted to "this host on :4443" everywhere, which is
-// wrong off the home network (there's no backend on the Cloudflare site's host) — that stored
-// value is corrected too.
-{
-  const d = localStorage.getItem('domain');
-  const wrongOldDefault = `https://${window.location.hostname}:4443` !== defaultDomain() && d === `https://${window.location.hostname}:4443`;
-  if (!d || d === 'null' || wrongOldDefault) localStorage.setItem('domain', defaultDomain());
+// The page's own address decides the backend on every load: the public site always uses the
+// remote service, and localhost / a home IP always uses this host's local one. Both reach the same
+// server (same accounts and tokens), so a server picked by hand, or saved by QR pairing or a
+// cast link, only lasts until the next reload instead of sticking to the wrong one.
+if (localStorage.getItem('domain') !== defaultDomain()) {
+  localStorage.setItem('domain', defaultDomain());
+  localStorage.setItem('remoteMeta', '');
+  localStorage.setItem('remotePath', '');
 }
 
 // A scanned home-screen QR (?qr=<id>&domain=...) is consumed once, here, before anything
@@ -412,7 +411,9 @@ function App(props) {
       }
     }
 
-    if (server && server !== localStorage.getItem('domain')) {
+    // The server is chosen by this page's address (see defaultDomain), so a ?domain= link only
+    // applies when it matches — adopting another one would just be undone on the next load.
+    if (server && server === defaultDomain() && server !== localStorage.getItem('domain')) {
       localStorage.setItem('domain', server);
       localStorage.setItem('remoteMeta', '');
       localStorage.setItem('remotePath', '');

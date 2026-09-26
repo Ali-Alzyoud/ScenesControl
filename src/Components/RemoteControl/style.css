@@ -387,3 +387,58 @@
     border-color: #6c63ff;
     box-shadow: 0 0 0 2px #6c63ff;
 }
+
+.remote-control-cfg-row {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr 1fr;
+    align-items: center;
+    gap: 6px;
+}
+
+.remote-control-cfg-row .remote-control-row-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.remote-control-cfg-head {
+    color: #6c6c90;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.remote-control-select {
+    min-width: 0;
+    background: #0e0e1a;
+    border: 1px solid #333355;
+    border-radius: 6px;
+    color: #e0e0f0;
+    padding: 6px 4px;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.remote-control-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #c8c8e8;
+    font-size: 13px;
+    padding: 4px 2px;
+    cursor: pointer;
+}
+
+.remote-control-toggle-row input {
+    width: 20px;
+    height: 20px;
+    accent-color: #6c63ff;
+}
+
+/* The panel scrolls as a whole; its sections keep their natural height instead of being squeezed. */
+.remote-control-panel > * {
+    flex-shrink: 0;
+}
+.remote-control-list > * {
+    flex-shrink: 0;
+}

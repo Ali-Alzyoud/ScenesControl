@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { MdClose, MdPlayArrow, MdPause, MdSkipNext, MdSkipPrevious, MdReplay10, MdForward10, MdReplay30, MdForward30, MdStop, MdVideoLibrary, MdFullscreen, MdLogout, MdVolumeOff, MdVolumeUp, MdBlurOn, MdTvOff, MdSubtitles, MdHistory, MdAdd, MdRemove, MdArrowBack, MdCheck, MdRefresh, MdHighQuality, MdSettings } from 'react-icons/md'
 import { STREAM_MODES } from '../../common/streamMode'
 import { SUBTITLE_COLORS, clampFontSize, clampOpacity } from '../../common/subtitleStyle'
+import { VIDEO_OPTIONS, AUDIO_OPTIONS, FILTER_ROWS } from '../../common/playerConfig'
 import { authFetch, debugLog } from '../../common/auth'
 import StorePicker from '../FilterPickerLocal'
 
@@ -86,7 +87,9 @@ function RemoteControl({ domain, onClose }) {
                             const reported = data?.[key];
                             const matches = typeof reported === 'number'
                                 ? Math.abs(reported - next[key]) < 0.01
-                                : reported === next[key];
+                                : (reported && typeof reported === 'object')
+                                    ? JSON.stringify(reported) === JSON.stringify(next[key])
+                                    : reported === next[key];
                             if (matches) delete next[key];
                         }
                         return next;
@@ -261,6 +264,47 @@ function RemoteControl({ domain, onClose }) {
     const syncRow = () => stepRow('Sync', `${shownDelay > 0 ? '+' : ''}${shownDelay.toFixed(1)}s`,
         () => shiftSubtitles(-0.5), () => shiftSubtitles(0.5), !shown('hasSubtitle', false));
 
+    // The screen's scene-filter config (its Config panel). Changes are sent as a small patch.
+    const shownConfig = shown('playerConfig', null);
+    const setConfig = (patch) => {
+        if (shownConfig) setOptimisticValue('playerConfig', { ...shownConfig, ...patch });
+        sendCommand('player-config', JSON.stringify(patch));
+    };
+    const filterConfigControls = () => {
+        if (!shownConfig) return <div className="remote-control-empty">Waiting for the screen to report its config…</div>;
+        return (
+            <div className="remote-control-group remote-control-group--column">
+                <div className="remote-control-cfg-row remote-control-cfg-head">
+                    <span />
+                    <span>Video</span>
+                    <span>Audio</span>
+                </div>
+                {FILTER_ROWS.map(({ key, label, icon }) => {
+                    const [video, audio] = shownConfig[key] || [];
+                    return (
+                        <div key={key} className="remote-control-cfg-row">
+                            <span className="remote-control-row-label" title={label}>{icon} {label}</span>
+                            <select className="remote-control-select" value={video || ''} aria-label={`${label} video`}
+                                onChange={e => setConfig({ [key]: [e.target.value, audio] })}>
+                                {VIDEO_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                            <select className="remote-control-select" value={audio || ''} aria-label={`${label} audio`}
+                                onChange={e => setConfig({ [key]: [video, e.target.value] })}>
+                                {AUDIO_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                        </div>
+                    );
+                })}
+                {[['filterRect', 'Filter area rectangle'], ['blackOnPause', 'Black screen on pause']].map(([key, label]) => (
+                    <label key={key} className="remote-control-toggle-row">
+                        <span>{label}</span>
+                        <input type="checkbox" checked={!!shownConfig[key]} onChange={e => setConfig({ [key]: e.target.checked })} />
+                    </label>
+                ))}
+            </div>
+        );
+    };
+
     const shownSubtitle = shown('subtitle', '');
     const pickSubtitle = (name) => {
         setOptimisticValue('subtitle', name);
@@ -372,6 +416,8 @@ function RemoteControl({ domain, onClose }) {
                         </button>
                     ))}
                 </div>
+                <div className="remote-control-section-title">Scene filters</div>
+                {filterConfigControls()}
                 <div className="remote-control-section-title">Subtitles</div>
                 <div className="remote-control-group remote-control-group--column">
                     {syncRow()}
