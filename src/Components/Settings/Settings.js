@@ -1,9 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { connect } from "react-redux";
-import { getFontConfig, getSyncConfig } from '../../redux/selectors';
-import { setSettings_fontConfig, setSettings_syncConfig } from '../../redux/actions';
+import { getFontConfig, getSyncConfig, selectPlayerConfig } from '../../redux/selectors';
+import { setSettings_fontConfig, setSettings_syncConfig, setPlayerConfig } from '../../redux/actions';
 import { STREAM_MODES, STREAM_MODE_EVENT, getStreamMode, setStreamMode } from '../../common/streamMode';
 import { SUBTITLE_COLORS } from '../../common/subtitleStyle';
+import { TTS_EVENT, TTS_PREFS_EVENT, getTtsEnabled, setTtsEnabled, getTtsPrefs, setTtsPrefs, ttsState } from '../../common/tts';
+import NarratorOptions from '../NarratorOptions/NarratorOptions';
 import './style.css'
 
 function Stepper({ label, hint, value, onDec, onInc }) {
@@ -22,13 +24,25 @@ function Stepper({ label, hint, value, onDec, onInc }) {
     )
 }
 
-function Settings({ close, fontConfig, syncConfig, setSettings_fontConfig, setSettings_syncConfig }) {
+function Settings({ close, fontConfig, syncConfig, playerConfig, setSettings_fontConfig, setSettings_syncConfig, setPlayerConfig }) {
     const [pos, setPos] = useState(null); // null = centered via CSS
     const dragging = useRef(false);
     const dragOffset = useRef({ x: 0, y: 0 });
     const modalRef = useRef(null);
     const [streamMode, setStreamModeState] = useState(getStreamMode);
     const changeStreamMode = (value) => { setStreamMode(value); setStreamModeState(value); };
+    const [tts, setTts] = useState(getTtsEnabled);
+    const [ttsPrefs, setTtsPrefsState] = useState(getTtsPrefs);
+    useEffect(() => {
+        const onTts = (e) => setTts(!!e.detail);
+        const onVoice = (e) => setTtsPrefsState(e.detail);
+        window.addEventListener(TTS_EVENT, onTts);
+        window.addEventListener(TTS_PREFS_EVENT, onVoice);
+        return () => {
+            window.removeEventListener(TTS_EVENT, onTts);
+            window.removeEventListener(TTS_PREFS_EVENT, onVoice);
+        };
+    }, []);
     // A remote can change it while this is open.
     useEffect(() => {
         const onChange = (e) => setStreamModeState(e.detail);
@@ -101,7 +115,42 @@ function Settings({ close, fontConfig, syncConfig, setSettings_fontConfig, setSe
                         </select>
                     </div>
 
+                    <div className="settings-row">
+                        <div className="settings-row-label">
+                            <span className="settings-label">Scene Filters</span>
+                            <span className="settings-hint">Ignore = play everything unfiltered</span>
+                        </div>
+                        <select className="settings-select" value={playerConfig?.ignoreFilters ? 'ignore' : 'apply'} onChange={e => setPlayerConfig({ ignoreFilters: e.target.value === 'ignore' })}>
+                            <option value="apply">Apply</option>
+                            <option value="ignore">Ignore</option>
+                        </select>
+                    </div>
+
                     <div className="settings-section-title">Subtitle</div>
+                    <div className="settings-row">
+                        <div className="settings-row-label">
+                            <span className="settings-label">Read Aloud</span>
+                            <span className="settings-hint">A voice reads the subtitles</span>
+                        </div>
+                        <select className="settings-select" value={tts ? 'on' : 'off'} onChange={e => { setTtsEnabled(e.target.value === 'on'); setTts(e.target.value === 'on'); }}>
+                            <option value="off">Off</option>
+                            <option value="on">On</option>
+                        </select>
+                    </div>
+                    {tts && (
+                        <div className="settings-row settings-row--block">
+                            <div className="settings-row-label">
+                                <span className="settings-label">Narrator</span>
+                                <span className="settings-hint">Voice per subtitle language, speed and pitch</span>
+                            </div>
+                            <NarratorOptions
+                                domain={localStorage.getItem('domain')}
+                                prefs={ttsPrefs}
+                                language={ttsState.language}
+                                onChange={patch => { setTtsPrefs(patch); setTtsPrefsState(getTtsPrefs()); }}
+                            />
+                        </div>
+                    )}
                     <Stepper
                         label="Font Size"
                         hint="Subtitle font size"
@@ -154,6 +203,7 @@ function Settings({ close, fontConfig, syncConfig, setSettings_fontConfig, setSe
 const mapStateToProps = state => ({
     fontConfig: getFontConfig(state),
     syncConfig: getSyncConfig(state),
+    playerConfig: selectPlayerConfig(state),
 });
 
-export default connect(mapStateToProps, { setSettings_fontConfig, setSettings_syncConfig })(Settings);
+export default connect(mapStateToProps, { setSettings_fontConfig, setSettings_syncConfig, setPlayerConfig })(Settings);

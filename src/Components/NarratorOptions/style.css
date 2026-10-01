@@ -1,0 +1,30 @@
+.narrator { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.narrator-row { display: flex; align-items: center; gap: 8px; }
+.narrator-label { flex: 0 0 70px; color: #9a9ac0; font-size: 12px; }
+.narrator-select {
+    flex: 1;
+    min-width: 0;
+    background: #0e0e1a;
+    border: 1px solid #333355;
+    border-radius: 6px;
+    color: #e0e0f0;
+    padding: 6px 6px;
+    font-size: 13px;
+    font-family: inherit;
+}
+.narrator-btn {
+    flex: 0 0 auto;
+    min-width: 34px;
+    height: 30px;
+    background: #1e1e30;
+    border: 1px solid #2a2a40;
+    border-radius: 6px;
+    color: #d0ccff;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+}
+.narrator-btn:hover:not(:disabled) { border-color: #6c63ff; color: #fff; }
+.narrator-btn:disabled { opacity: 0.4; cursor: default; }
+.narrator-value { flex: 1; text-align: center; color: #c8c8e8; font-size: 13px; font-variant-numeric: tabular-nums; }
+.narrator-note { color: #6c6c90; font-size: 11px; }

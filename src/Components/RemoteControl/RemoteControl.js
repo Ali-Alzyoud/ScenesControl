@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { MdClose, MdPlayArrow, MdPause, MdSkipNext, MdSkipPrevious, MdReplay10, MdForward10, MdReplay30, MdForward30, MdStop, MdVideoLibrary, MdFullscreen, MdLogout, MdVolumeOff, MdVolumeUp, MdBlurOn, MdTvOff, MdSubtitles, MdHistory, MdAdd, MdRemove, MdArrowBack, MdCheck, MdRefresh, MdHighQuality, MdSettings, MdDeleteSweep } from 'react-icons/md'
+import { MdClose, MdPlayArrow, MdPause, MdSkipNext, MdSkipPrevious, MdReplay10, MdForward10, MdReplay30, MdForward30, MdStop, MdVideoLibrary, MdFullscreen, MdLogout, MdVolumeOff, MdVolumeUp, MdBlurOn, MdTvOff, MdSubtitles, MdHistory, MdAdd, MdRemove, MdArrowBack, MdCheck, MdRefresh, MdHighQuality, MdSettings, MdDeleteSweep, MdAutoAwesome, MdMic, MdFilterAlt, MdFilterAltOff } from 'react-icons/md'
 import { STREAM_MODES } from '../../common/streamMode'
+import NarratorOptions from '../NarratorOptions/NarratorOptions'
 import { SUBTITLE_COLORS, clampFontSize, clampOpacity } from '../../common/subtitleStyle'
 import { VIDEO_OPTIONS, AUDIO_OPTIONS, FILTER_ROWS } from '../../common/playerConfig'
 import { authFetch, debugLog } from '../../common/auth'
 import StorePicker from '../FilterPickerLocal'
+import AIChat from '../AIChat/AIChat'
+import { playablesOf, libraryPath } from '../../common/episodes'
+import { startRecording, voiceSupported, micErrorMessage } from '../../common/voiceInput'
 
 import './style.css'
 
@@ -34,6 +38,12 @@ function RemoteControl({ domain, onClose }) {
     const [view, setView] = useState('main'); // 'main' | 'subtitles' | 'history' | 'stream' | 'settings'
     const [history, setHistory] = useState(null); // watch history from the server, or null while loading
     const [castNotice, setCastNotice] = useState('');
+    // AI remote: the chat (typed or spoken), and the quick 🎤 button on the main view.
+    const [aiChat, setAiChat] = useState(null); // null | { initialMessages }
+    const [voice, setVoice] = useState(null);   // null | { phase: 'listening', rec } | { phase: 'thinking' }
+    const [aiNotice, setAiNotice] = useState('');
+    const aiNoticeTimer = useRef(null);
+    const statusRef = useRef(null);
     // Play/pause is the only control whose button reflects real state (an icon), and that state
     // only updates once the full round trip lands: this device's command → the playing device's
     // poll picks it up (up to its own poll interval) → that device's next status push → this
@@ -261,6 +271,33 @@ function RemoteControl({ domain, onClose }) {
             </div>
         </>
     );
+    // Subtitles read aloud on the screen (a voice track the server makes from the subtitle).
+    const shownTts = shown('tts', false);
+    const ttsStatus = status?.ttsStatus;
+    const ttsRow = () => (
+        <label className="remote-control-toggle-row">
+            <span>
+                Read subtitles aloud
+                {shownTts && ttsStatus === 'preparing' && <span className="remote-control-hint"> — preparing voice…</span>}
+                {shownTts && ttsStatus === 'error' && <span className="remote-control-hint"> — voice failed</span>}
+                {shownTts && ttsStatus === 'blocked' && <span className="remote-control-hint"> — tap the screen once to allow sound</span>}
+            </span>
+            <input type="checkbox" checked={!!shownTts} onChange={e => { setOptimisticValue('tts', e.target.checked); sendCommand('tts', e.target.checked ? 'on' : 'off'); }} />
+        </label>
+    );
+    // The screen's narrator: voice per language, speed, pitch (changes sent as a small patch).
+    const shownTtsPrefs = shown('ttsPrefs', null) || { voices: {}, rate: 1, pitch: 0 };
+    const ttsVoiceRow = () => shownTts && (
+        <NarratorOptions
+            domain={domain}
+            prefs={shownTtsPrefs}
+            language={status?.ttsLanguage || ''}
+            onChange={patch => {
+                setOptimisticValue('ttsPrefs', { ...shownTtsPrefs, ...patch, voices: { ...shownTtsPrefs.voices, ...(patch.voices || {}) } });
+                sendCommand('tts-prefs', JSON.stringify(patch));
+            }}
+        />
+    );
     const syncRow = () => stepRow('Sync', `${shownDelay > 0 ? '+' : ''}${shownDelay.toFixed(1)}s`,
         () => shiftSubtitles(-0.5), () => shiftSubtitles(0.5), !shown('hasSubtitle', false));
 
@@ -295,10 +332,10 @@ function RemoteControl({ domain, onClose }) {
                         </div>
                     );
                 })}
-                {[['filterRect', 'Filter area rectangle'], ['blackOnPause', 'Black screen on pause']].map(([key, label]) => (
+                {[['ignoreFilters', 'Ignore filters (play unfiltered)'], ['uncertainBlur', 'AI-uncertain scenes: blur only'], ['filterRect', 'Filter area rectangle'], ['blackOnPause', 'Black screen on pause']].map(([key, label]) => (
                     <label key={key} className="remote-control-toggle-row">
                         <span>{label}</span>
-                        <input type="checkbox" checked={!!shownConfig[key]} onChange={e => setConfig({ [key]: e.target.checked })} />
+                        <input type="checkbox" checked={key === 'uncertainBlur' ? shownConfig[key] !== false : !!shownConfig[key]} onChange={e => setConfig({ [key]: e.target.checked })} />
                     </label>
                 ))}
             </div>
@@ -353,6 +390,84 @@ function RemoteControl({ domain, onClose }) {
         }
     };
 
+    statusRef.current = status;
+
+    // Carries out what the AI decided, with the same commands the buttons send.
+    const runAiActions = async (actions) => {
+        for (const a of actions || []) {
+            if (a.type === 'control') {
+                if (a.action === 'volume' && typeof a.value === 'number') setOptimisticValue('volume', a.value);
+                await sendCommand(a.action, a.value);
+            } else if (a.type === 'play' && a.item) {
+                const episodes = playablesOf(domain, a.item);
+                const i = Math.max(0, episodes.findIndex(e => libraryPath(e.video).endsWith(`/${a.file}`)));
+                const image = a.item.files.find(f => f.type === 'IMAGE');
+                const token = encodeURIComponent(localStorage.getItem('rc_auth_token') || '');
+                await handleRemoteOpen({
+                    video: episodes[i].video, srt: episodes[i].srt, filter: episodes[i].filter,
+                    image: image ? `${domain}/static/${a.item.folder}/${image.name}?token=${token}` : '',
+                });
+            }
+        }
+    };
+    const aiRemote = { getScreen: () => statusRef.current, runActions: runAiActions };
+
+    const showAiNotice = (text) => {
+        setAiNotice(text);
+        clearTimeout(aiNoticeTimer.current);
+        aiNoticeTimer.current = setTimeout(() => setAiNotice(''), 8000);
+    };
+
+    // 🎤 on the main view: say a command, it's carried out; if the answer offers titles to pick
+    // from, the AI chat opens with them.
+    const quickVoice = async () => {
+        if (voice?.phase === 'thinking') return;
+        const ask = async (audio) => {
+            setVoice({ phase: 'thinking' });
+            try {
+                const res = await authFetch(`${domain}/api/v1/ai/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ audio, history: [], mode: 'remote', screen: statusRef.current }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || `Server error (${res.status})`);
+                await runAiActions(data.actions);
+                if (data.items?.length) {
+                    setAiChat({ initialMessages: [
+                        { role: 'user', text: `🎤 ${data.heard || '…'}`, voice: true },
+                        { role: 'model', text: data.reply, items: data.items },
+                    ] });
+                } else {
+                    showAiNotice(`🎤 “${data.heard || '…'}” — ${data.reply}`);
+                }
+            } catch (e) {
+                showAiNotice(e.message);
+            } finally {
+                setVoice(null);
+            }
+        };
+        if (voice?.phase === 'listening') { try { await ask(await voice.rec.stop()); } catch (e) { setVoice(null); showAiNotice(e.message); } return; }
+        try {
+            const rec = await startRecording({ onAutoStop: () => rec.done.then(ask).catch(e => { setVoice(null); showAiNotice(e.message); }) });
+            setVoice({ phase: 'listening', rec });
+        } catch (e) {
+            showAiNotice(micErrorMessage(e));
+        }
+    };
+    useEffect(() => () => clearTimeout(aiNoticeTimer.current), []);
+
+    if (aiChat) {
+        return (
+            <AIChat
+                domain={domain}
+                remote={aiRemote}
+                initialMessages={aiChat.initialMessages}
+                onClose={() => setAiChat(null)}
+            />
+        );
+    }
+
     // Only one of these full-screen overlays is ever shown at a time — while pickerOpen, Remote
     // Control's own overlay is skipped entirely, both because two stacked full-screen overlays
     // looked broken and because nesting the Store inside .remote-control-overlay's
@@ -403,6 +518,8 @@ function RemoteControl({ domain, onClose }) {
                     {!options.length && <div className="remote-control-empty">No subtitle files next to this video</div>}
                 </div>
                 <div className="remote-control-group remote-control-group--column">
+                    {ttsRow()}
+                    {ttsVoiceRow()}
                     {syncRow()}
                     {subtitleStyleControls()}
                 </div>
@@ -432,6 +549,8 @@ function RemoteControl({ domain, onClose }) {
                 {filterConfigControls()}
                 <div className="remote-control-section-title">Subtitles</div>
                 <div className="remote-control-group remote-control-group--column">
+                    {ttsRow()}
+                    {ttsVoiceRow()}
                     {syncRow()}
                     {subtitleStyleControls()}
                 </div>
@@ -488,6 +607,13 @@ function RemoteControl({ domain, onClose }) {
     } else {
         body = (
             <>
+                {voiceSupported() && (
+                    <button className={`remote-control-voice${voice ? ` is-${voice.phase}` : ''}`} onClick={quickVoice} disabled={voice?.phase === 'thinking'}>
+                        <MdMic />
+                        {voice?.phase === 'listening' ? 'Listening… tap to send' : voice?.phase === 'thinking' ? 'Working on it…' : 'Speak a command'}
+                    </button>
+                )}
+                {aiNotice && <div className="remote-control-ai-notice">{aiNotice}</div>}
                 {hasContent ? (
                     <>
                         <div className="remote-control-nowplaying" title={status.videoName}>{displayName(status.videoName)}</div>
@@ -533,6 +659,10 @@ function RemoteControl({ domain, onClose }) {
                         </div>
                         <div className="remote-control-group">
                             {iconBtn('Subtitles', <MdSubtitles />, () => setView('subtitles'), { active: shown('hasSubtitle', false) })}
+                            {shownConfig && iconBtn(shownConfig.ignoreFilters ? 'Filters are OFF — tap to apply them again' : 'Filters on — tap to ignore them (play unfiltered)',
+                                shownConfig.ignoreFilters ? <MdFilterAltOff /> : <MdFilterAlt />,
+                                () => setConfig({ ignoreFilters: !shownConfig.ignoreFilters }),
+                                { active: !!shownConfig.ignoreFilters })}
                             {iconBtn('Black screen', <MdTvOff />, () => toggleEffect('black'), { active: shownBlack })}
                             {iconBtn('Blur (also mutes)', <MdBlurOn />, toggleBlur, { active: shownBlur })}
                             {iconBtn(shown('fullscreen', false) ? 'Exit fullscreen' : 'Fullscreen', <MdFullscreen />, () => toggleEffect('fullscreen'), { active: shown('fullscreen', false) })}
@@ -544,6 +674,7 @@ function RemoteControl({ domain, onClose }) {
                 )}
                 {hasContent && error && <div className="remote-control-error">{error}</div>}
                 <div className="remote-control-group">
+                    {iconBtn('AI remote (type or speak)', <MdAutoAwesome />, () => setAiChat({}))}
                     {iconBtn('Change content', <MdVideoLibrary />, () => setPickerOpen(true))}
                     {iconBtn('History', <MdHistory />, openHistory)}
                     {iconBtn('Screen settings', <MdSettings />, () => setView('settings'))}

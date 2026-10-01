@@ -1,0 +1,30 @@
+.autofilter-panel {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    z-index: 70;
+    width: min(340px, calc(100% - 32px));
+    background: #151526;
+    border: 1px solid #3a3a58;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    color: #c8c8e8;
+    font-size: 13px;
+}
+.autofilter-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.autofilter-header > span { flex: 1; font-weight: 600; color: #d0ccff; }
+.autofilter-header svg { font-size: 18px; color: #8a82ff; }
+.autofilter-header button, .autofilter-cancel {
+    background: none; border: 1px solid #2a2a40; border-radius: 6px; color: #9a9ac0;
+    cursor: pointer; display: flex; align-items: center; padding: 3px; font-size: 16px;
+}
+.autofilter-header button:hover, .autofilter-cancel:hover { color: #fff; border-color: #6c63ff; }
+.autofilter-list { display: flex; flex-direction: column; gap: 8px; padding: 0 12px 12px; max-height: 40vh; overflow-y: auto; }
+.autofilter-job { background: #1e1e30; border: 1px solid #2a2a40; border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.autofilter-job-top { display: flex; align-items: center; gap: 6px; }
+.autofilter-job-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.autofilter-bar { height: 6px; background: #22223a; border-radius: 3px; overflow: hidden; }
+.autofilter-bar-fill { height: 100%; background: #6c63ff; transition: width 0.5s; }
+.autofilter-job-status { font-size: 12px; color: #8a8ab0; }
+.autofilter-job--done .autofilter-job-status { color: #7dd9a0; }
+.autofilter-job--error .autofilter-job-status { color: #ff8080; }

@@ -28,6 +28,7 @@ import { SCREEN_EFFECT_EVENT, screenEffects } from './screenEffects'
 import { getStreamMode, setStreamMode } from '../../common/streamMode'
 import { SUBTITLE_COLORS, clampFontSize, clampOpacity } from '../../common/subtitleStyle'
 import { sanitizeConfigPatch } from '../../common/playerConfig'
+import { getTtsEnabled, setTtsEnabled, getTtsPrefs, setTtsPrefs, ttsState } from '../../common/tts'
 import { playablesOf, libraryPath, findTitleForVideo, retoken } from '../../common/episodes'
 import { toggleRemoteFullscreen, exitPseudoFullscreen, isRemoteFullscreen } from './remoteFullscreen'
 
@@ -558,6 +559,11 @@ function VideoControls({ time,
                             if (patch && Object.keys(patch).length) dispatch(setPlayerConfig(patch));
                             break;
                         }
+                        case 'tts': setTtsEnabled(cmd.value === 'on'); break;
+                        case 'tts-prefs': {
+                            try { setTtsPrefs(JSON.parse(cmd.value)); } catch {}
+                            break;
+                        }
                         case 'stream-mode': if (typeof cmd.value === 'string') setStreamMode(cmd.value); break;
                         case 'reload': {
                             // Pick up exactly where it was: the position is normally only saved
@@ -638,6 +644,7 @@ function VideoControls({ time,
                     blur: screenEffects.blur,
                     fullscreen: isRemoteFullscreen(),
                     streamMode: getStreamMode(),
+                    tts: getTtsEnabled(), ttsStatus: ttsState.status, ttsPrefs: getTtsPrefs(), ttsLanguage: ttsState.language,
                     subtitles: remoteSubsRef.current.map(x => x.name),
                 }),
             }).catch(() => {});

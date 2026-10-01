@@ -25,7 +25,7 @@ export const FILTER_ROWS = [
     { key: 'rightclick',label: 'Right Click', icon: '🖱️' },
 ];
 
-export const FLAG_KEYS = ['filterRect', 'blackOnPause'];
+export const FLAG_KEYS = ['filterRect', 'blackOnPause', 'ignoreFilters', 'uncertainBlur'];
 
 // Keeps only well-formed entries of a config change received from a remote.
 export const sanitizeConfigPatch = (patch) => {

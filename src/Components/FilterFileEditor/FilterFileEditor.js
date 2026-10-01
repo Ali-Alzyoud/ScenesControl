@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { FaSave, FaPlus, FaFastForward, FaFastBackward, FaToggleOn, FaToggleOff, FaCloudUploadAlt } from 'react-icons/fa'
+import { FaSave, FaPlus, FaFastForward, FaFastBackward, FaToggleOn, FaToggleOff, FaCloudUploadAlt, FaEye, FaEyeSlash } from 'react-icons/fa'
 import FilterRecord from './FilterRecord'
 import { SceneGuideRecord, SceneGuideClass, SceneType } from '../../common/SceneGuide'
 
-import { connect } from "react-redux";
-import { selectTime, selectRecords, selectVideoName, selectModalOpen, selectFilterPath, selectVideoSrc } from '../../redux/selectors';
-import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setFilterItems, setDrawingEnabled, setToastText, setSelectedFilterItems } from '../../redux/actions';
+import { connect, useDispatch, useSelector } from "react-redux";
+import { selectTime, selectRecords, selectVideoName, selectModalOpen, selectFilterPath, selectVideoSrc, selectPlayerConfig } from '../../redux/selectors';
+import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setFilterItems, setDrawingEnabled, setToastText, setSelectedFilterItems, setPlayerConfig } from '../../redux/actions';
 import { authFetch, getUser } from '../../common/auth';
 import {FaMinus} from 'react-icons/fa'
 
@@ -321,8 +321,17 @@ function FilterFileEditor(props) {
         }
     }
 
+    // While editing you usually want to see the scenes: this switches the filter off (the same
+    // setting as Settings / the remote's "Ignore filters").
+    const dispatch = useDispatch();
+    const ignoreFilters = !!useSelector(selectPlayerConfig)?.ignoreFilters;
+
     return (
         <div className='editor-container'>
+            <div className={`container${ignoreFilters ? ' red' : ''}`} onClick={() => dispatch(setPlayerConfig({ ignoreFilters: !ignoreFilters }))}
+                title={ignoreFilters ? 'Filters are off — everything plays unfiltered (click to turn them back on)' : 'Ignore the filter while editing (show the scenes)'}>
+                {ignoreFilters ? <FaEye className='middle' /> : <FaEyeSlash className='middle' />}
+            </div>
             <div className='container' onClick={addItem}>
                 <FaPlus className='middle' />
             </div>

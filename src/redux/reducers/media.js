@@ -11,6 +11,8 @@ const savedPlayerConfig = {
   rightclick: [PLAYER_ACTION.BLUR_EXTREME, PLAYER_ACTION.MUTE],
   filterRect: true,
   blackOnPause: false,
+  ignoreFilters: false, // play everything, without applying the scene filter (e.g. while editing it)
+  uncertainBlur: true,  // AI-generated scenes marked "Uncertain" are blurred rather than skipped/blacked out
   ...savedConfig,
 }
 

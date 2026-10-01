@@ -74,6 +74,30 @@ function ConfigEditor({ playerConfig, setPlayerConfig }) {
             </div>
 
             <div className="cfg-row cfg-extra-row">
+                <span className="cfg-extra-label">Ignore Filters (play unfiltered)</span>
+                <select
+                    className="cfg-select"
+                    value={String(!!playerConfig.ignoreFilters)}
+                    onChange={e => setPlayerConfig({ ignoreFilters: e.target.value === 'true' })}
+                >
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+            </div>
+
+            <div className="cfg-row cfg-extra-row">
+                <span className="cfg-extra-label">AI-Uncertain Scenes</span>
+                <select
+                    className="cfg-select"
+                    value={String(playerConfig.uncertainBlur !== false)}
+                    onChange={e => setPlayerConfig({ uncertainBlur: e.target.value === 'true' })}
+                >
+                    <option value="true">Blur only</option>
+                    <option value="false">Same as others</option>
+                </select>
+            </div>
+
+            <div className="cfg-row cfg-extra-row">
                 <span className="cfg-extra-label">Black Screen on Pause</span>
                 <select
                     className="cfg-select"

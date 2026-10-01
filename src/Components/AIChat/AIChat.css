@@ -332,3 +332,21 @@
 .ai-job-bar-fill { height: 100%; background: #6c63ff; transition: width 0.4s; }
 .ai-job--done .ai-job-message { color: #7dd9a0; }
 .ai-job--error .ai-job-message { color: #ff8080; }
+
+.ai-chat-mic {
+    background: #1e1e38;
+    border: 1px solid #3a3a58;
+    border-radius: 8px;
+    font-size: 18px;
+    padding: 0 12px;
+    cursor: pointer;
+    align-self: stretch;
+}
+.ai-chat-mic:hover:not(:disabled) { border-color: #6c63ff; }
+.ai-chat-mic:disabled { opacity: 0.4; cursor: default; }
+.ai-chat-mic.is-recording {
+    background: #6a1e2e;
+    border-color: #ff5c7a;
+    animation: ai-mic-pulse 1s ease-in-out infinite;
+}
+@keyframes ai-mic-pulse { 50% { box-shadow: 0 0 0 6px rgba(255, 92, 122, 0.25); } }

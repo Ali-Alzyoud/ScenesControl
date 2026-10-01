@@ -2,7 +2,7 @@ import React, { useState, useEffect, memo, useCallback } from 'react'
 import { SceneGeometry, SceneIntensity, SceneType } from '../../common/SceneGuide'
 import {FaBuilding, FaMinus, FaMinusSquare, FaPen, FaPlusSquare, FaRegMinusSquare, FaRegPlusSquare, FaSquare} from 'react-icons/fa'
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { setDrawingEnabled, setDrawingRect, setTime } from '../../redux/actions';
+import { setDrawingEnabled, setDrawingRect, setTime, setPlayerConfig } from '../../redux/actions';
 import { selectDrawingRect } from '../../redux/selectors';
 
 function FilterRecord({record, index, isSelected, removeItem, selectItem, updateItem}) {
@@ -72,16 +72,22 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
         }
     }
 
-    const onDoubleClick = useCallback(
-      () => {
-        dispatch(setTime(record.endTime()));
+    // Clicking a record (anywhere but its fields and buttons) shows it: jumps to its start and
+    // selects it. Filters are switched off so the scene is actually shown rather than skipped or
+    // blacked out (the player shows "Filters off"; the editor's eye button turns them back on).
+    const onRowClick = useCallback(
+      (e) => {
+        if (e.target.closest('input, select, textarea, .container')) return;
+        dispatch(setPlayerConfig({ ignoreFilters: true }));
+        dispatch(setTime(record._from));
+        if (!isSelected) selectItem(record);
       },
-      [record],
+      [record, isSelected, selectItem, dispatch],
     )
-    
+
 
     return (
-        <tr onDoubleClick={onDoubleClick}>
+        <tr onClick={onRowClick} className={`filter-record-row${isSelected ? ' is-selected' : ''}`} title="Click to jump to this scene">
             <td>
                 <input onBlurCapture={onBlur} onChange={inputChange} className='bk'     name='fh' value={state.fh} />&nbsp;:&nbsp;
                 <input onBlurCapture={onBlur} onChange={inputChange} className='bk'     name='fm' value={state.fm} />&nbsp;:&nbsp;
@@ -104,6 +110,7 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
                 <select className='selectType' onBlurCapture={onBlur} onChange={inputChange} name='intensity' value={state.intensity}>
                         <option value={SceneIntensity.Low}   selected={record.Intensity === SceneIntensity.Low}>{SceneIntensity.Low}</option>
                         <option value={SceneIntensity.High}  selected={record.Intensity === SceneIntensity.High}>{SceneIntensity.High}</option>
+                        <option value={SceneIntensity.Uncertain} selected={record.Intensity === SceneIntensity.Uncertain}>{SceneIntensity.Uncertain}</option>
                 </select>
             </td >
             <td>

@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useRef } from 'react'
 import StorageHelper from '../../Helpers/StorageHelper'
 import { FaEye, FaFilter, FaPlayCircle, FaPencilAlt, FaDownload, FaTrash, FaClosedCaptioning } from 'react-icons/fa'
-import { MdVideoLibrary, MdFavorite, MdFavoriteBorder, MdAutoAwesome } from 'react-icons/md'
+import { MdVideoLibrary, MdFavorite, MdFavoriteBorder, MdAutoAwesome, MdFilterAlt } from 'react-icons/md'
 
 
-function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy, focused, focusRef, isFavorite, onToggleFavorite, onRename, onDownload, onSearchSubtitle, onDelete, onAskAI, draggable, onDragStart, dropTarget, folderKey }) {
+function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy, focused, focusRef, isFavorite, onToggleFavorite, onRename, onDownload, onSearchSubtitle, onDelete, onAskAI, onGenerateFilter, aiFilterProgress, draggable, onDragStart, dropTarget, folderKey }) {
     const parts = title?.split("/");
     const localTitle = parts?.length > 1 ? parts[parts.length - 1] : title;
     const [editing, setEditing] = useState(false);
@@ -62,6 +62,11 @@ function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasPr
                             <FaEye />
                         </span>
                     )}
+                    {aiFilterProgress !== undefined && aiFilterProgress !== null && (
+                        <span className="badge badge-ai-filter" title="AI is generating the filter">
+                            AI {Math.round(aiFilterProgress * 100)}%
+                        </span>
+                    )}
                     {isMultiEpisode && (
                         <span className="badge badge-episodes" title="Multiple episodes">
                             <MdVideoLibrary />
@@ -84,7 +89,7 @@ function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasPr
                 ) : (
                     <>
                         <span className="file-record2-title">{localTitle}</span>
-                        {(onAskAI || onDownload || onSearchSubtitle || onRename || onDelete) && (
+                        {(onAskAI || onGenerateFilter || onDownload || onSearchSubtitle || onRename || onDelete) && (
                             <div className="file-record2-actions">
                                 {onAskAI && (
                                     <button
@@ -93,6 +98,15 @@ function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasPr
                                         title="Ask AI about this (subtitles, translation…)"
                                     >
                                         <MdAutoAwesome />
+                                    </button>
+                                )}
+                                {onGenerateFilter && (
+                                    <button
+                                        className="file-record2-action-btn"
+                                        onClick={e => { e.stopPropagation(); onGenerateFilter(); }}
+                                        title={isMultiEpisode ? 'Generate filters for all episodes (AI: nudity & sex scenes)' : 'Generate filter (AI: nudity & sex scenes)'}
+                                    >
+                                        <MdFilterAlt />
                                     </button>
                                 )}
                                 {onDownload && (

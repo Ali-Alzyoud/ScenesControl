@@ -86,3 +86,6 @@ input.bkLong {
     height: 25px;
     background-color: white;
 }
+.filter-record-row { cursor: pointer; }
+.filter-record-row:hover td { background: rgba(108, 99, 255, 0.12); }
+.filter-record-row.is-selected td { background: rgba(108, 99, 255, 0.22); }

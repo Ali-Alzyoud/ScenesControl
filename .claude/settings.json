@@ -88,7 +88,8 @@
       "Bash(mkdir -p /media/ubuntu/movies/.fswatch_test___TRACKED_VAR__/sub)",
       "Bash(rm -rf /media/ubuntu/movies/.fswatch_test___TRACKED_VAR__)",
       "Bash(curl -s -o /dev/null -w \"tabs endpoint http status: %{http_code}\\\\n\" \"http://127.0.0.1:4001/api/v1/files/tabs\" -H \"Authorization: Bearer invalid\")",
-      "Bash(node -c src/routes/ai.js)"
+      "Bash(node -c src/routes/ai.js)",
+      "Bash(npm run *)"
     ],
     "additionalDirectories": [
       "/tmp",

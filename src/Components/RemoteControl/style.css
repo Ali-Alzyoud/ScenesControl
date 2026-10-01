@@ -446,3 +446,45 @@
 .remote-control-header-spacer {
     flex: 1;
 }
+
+.remote-control-hint {
+    color: #8a8ab0;
+    font-size: 11px;
+}
+
+/* Quick voice command on the main view. */
+.remote-control-voice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    background: #1e1e38;
+    border: 1px solid #3a3a58;
+    border-radius: 10px;
+    color: #d0ccff;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+}
+.remote-control-voice svg { font-size: 20px; }
+.remote-control-voice:hover:not(:disabled) { border-color: #6c63ff; }
+.remote-control-voice.is-listening {
+    background: #6a1e2e;
+    border-color: #ff5c7a;
+    color: #fff;
+    animation: rc-voice-pulse 1s ease-in-out infinite;
+}
+.remote-control-voice.is-thinking { opacity: 0.7; cursor: default; }
+@keyframes rc-voice-pulse { 50% { box-shadow: 0 0 0 6px rgba(255, 92, 122, 0.25); } }
+
+.remote-control-ai-notice {
+    background: #151526;
+    border: 1px solid #2a2a40;
+    border-radius: 8px;
+    color: #c8c8e8;
+    font-size: 13px;
+    padding: 8px 10px;
+    line-height: 1.4;
+}

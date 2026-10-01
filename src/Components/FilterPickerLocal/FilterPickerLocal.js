@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
-import { MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle, MdFileDownload, MdPlaylistAdd, MdAdd, MdRemove, MdVisibility, MdVisibilityOff } from 'react-icons/md'
+import { MdFilterAlt, MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle, MdFileDownload, MdPlaylistAdd, MdAdd, MdRemove, MdVisibility, MdVisibilityOff } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import { createPortal } from 'react-dom'
 import AIChat from '../AIChat/AIChat'
+import AutoFilterJobs from '../AutoFilter/AutoFilterJobs'
+import { startAutoFilter, useAutoFilterJobs, isActive as isFilterJobActive } from '../AutoFilter/autoFilter'
 import * as API from '../../common/API/API'
 import { authFetch, getUser, isController } from '../../common/auth'
 
@@ -1010,6 +1012,31 @@ function FilterPicker({
 
     const tabKeys = allTabs.map(t => t.name);
 
+    // AI filter generation: jobs and their progress (refreshing the listing when one finishes, so
+    // the new filter shows up), and starting one for a video path in the library.
+    const autoFilterDomain = localStorage.getItem('domain');
+    const filterJobs = useAutoFilterJobs(isAdmin ? autoFilterDomain : null, { onFinished: () => resync() });
+    const [dismissedJobs, setDismissedJobs] = useState(() => new Set());
+    const shownFilterJobs = filterJobs.filter(j => !dismissedJobs.has(j.id));
+    const filterProgressFor = (prefix) => {
+        const active = filterJobs.filter(j => isFilterJobActive(j) && (j.video === prefix || j.video.startsWith(`${prefix}/`)));
+        return active.length ? Math.min(...active.map(j => j.progress)) : null;
+    };
+    const generateFilter = async (videos) => {
+        if (videos.length > 1 && !window.confirm(`Generate AI filters for the episodes that don't have one yet (${videos.length} episodes)? It runs in the background, about 3 minutes per hour of video.`)) return;
+        let skipped = 0;
+        for (const v of videos) {
+            try {
+                // Several at once: episodes that already have a filter are skipped, never replaced.
+                if (!(await startAutoFilter(autoFilterDomain, v, { ifExists: videos.length === 1 ? 'ask' : 'skip' })) && videos.length > 1) skipped++;
+            } catch (e) {
+                alert.error(e.message);
+            }
+        }
+        if (skipped) alert.info(`${skipped} episode${skipped === 1 ? ' already has' : 's already have'} a filter — skipped (use its own button to regenerate)`);
+        setDismissedJobs(new Set());
+    };
+
     // Debounced global search — fires the /search endpoint while typing, replacing the old
     // "filter the already-fully-loaded list client-side" behavior. filterText itself is
     // restored from localStorage on mount, so this also runs once on open if a search was
@@ -1622,6 +1649,8 @@ function FilterPicker({
                                         isMultiEpisode
                                         episodeCount={videos.length}
                                         copy={() => openEpisodePanel({ title: item.folder, image, names: item.files.filter(f => f.type === 'MEDIA').map(v => v.name), videos, srts, filters })}
+                                        onGenerateFilter={isAdmin ? () => generateFilter(item.files.filter(f => f.type === 'MEDIA').map(v => `${item.folder}/${v.name}`)) : undefined}
+                                        aiFilterProgress={isAdmin ? filterProgressFor(item.folder) : null}
                                         onRename={isAdmin ? newName => renameFolder(item, newName) : undefined}
                                         onDownload={isAdmin ? () => { setDownloadUrl(''); setShowDownload(item.folder); } : undefined}
                                         onDelete={isAdmin ? () => deleteFolder(item) : undefined}
@@ -1660,6 +1689,8 @@ function FilterPicker({
                                         onRename={isAdmin ? newName => renameFolder(item, newName) : undefined}
                                         onDownload={isAdmin ? () => { setDownloadUrl(''); setShowDownload(item.folder); } : undefined}
                                         onSearchSubtitle={isAdmin && videoFile ? () => openSubtitleSearch(item.folder, videoFile.name) : undefined}
+                                        onGenerateFilter={isAdmin && videoFile ? () => generateFilter([`${item.folder}/${videoFile.name}`]) : undefined}
+                                        aiFilterProgress={isAdmin ? filterProgressFor(item.folder) : null}
                                         onDelete={isAdmin ? () => deleteFolder(item) : undefined}
                                         draggable={isAdmin}
                                         onDragStart={isAdmin ? e => { e.dataTransfer.setData('text/plain', item.folder); dragItem.current = item.folder;} : undefined}
@@ -1697,6 +1728,12 @@ function FilterPicker({
                                     <img className="episode-panel-thumb" src={episodePanel.image} alt="" />
                                 )}
                                 <span className="episode-panel-title">{episodePanel.title}</span>
+                                {isAdmin && episodePanel.names?.length > 0 && (
+                                    <button className="episode-panel-filter-all" title="Generate AI filters (nudity & sex) for all episodes that don't have one"
+                                        onClick={() => generateFilter(episodePanel.names.map(n => `${episodePanel.title}/${n}`))}>
+                                        <MdFilterAlt /> Filter all
+                                    </button>
+                                )}
                                 <button className="episode-panel-close" onClick={closeEpisodePanel}>
                                     <MdClose />
                                 </button>
@@ -1728,6 +1765,20 @@ function FilterPicker({
                                             {progress > 0 && (
                                                 <FaEye className="episode-watched" title="In progress" />
                                             )}
+                                            {isAdmin && episodePanel.names?.[index] && (() => {
+                                                const epPath = `${episodePanel.title}/${episodePanel.names[index]}`;
+                                                const p = filterProgressFor(epPath);
+                                                const hasFilter = (episodePanel.filters || []).some(f => f && decodeURIComponent(f.split('?')[0]).endsWith(`/${episodePanel.names[index]}.txt`));
+                                                return p !== null
+                                                    ? <span className="episode-ai-progress" title="AI is generating the filter">AI {Math.round(p * 100)}%</span>
+                                                    : (
+                                                        <button className={`episode-filter-btn${hasFilter ? ' has-filter' : ''}`}
+                                                            title={hasFilter ? 'Has a filter — regenerate with AI' : 'Generate filter (AI: nudity & sex scenes)'}
+                                                            onClick={e => { e.stopPropagation(); generateFilter([epPath]); }}>
+                                                            <MdFilterAlt />
+                                                        </button>
+                                                    );
+                                            })()}
                                             {isAdmin && (
                                                 <button
                                                     className="episode-delete-btn"
@@ -1814,6 +1865,13 @@ function FilterPicker({
                 )}
                 {/* Portalled so the Store's own layout can't clip it; React events still bubble
                     to this body, which keeps clicks in the chat from closing the Store. */}
+                {isAdmin && (
+                    <AutoFilterJobs
+                        domain={autoFilterDomain}
+                        jobs={shownFilterJobs}
+                        onDismiss={() => setDismissedJobs(new Set(filterJobs.map(j => j.id)))}
+                    />
+                )}
                 {aiItem && createPortal(
                     <AIChat domain={localStorage.getItem('domain')} item={aiItem} onClose={() => setAiItem(null)} onChanged={resync} />,
                     document.body

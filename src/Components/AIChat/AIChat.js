@@ -3,6 +3,7 @@ import { authFetch, isController } from '../../common/auth';
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal';
 import StorageHelper from '../../Helpers/StorageHelper';
 import { playablesOf } from '../../common/episodes';
+import { startRecording, voiceSupported, micErrorMessage } from '../../common/voiceInput';
 import './AIChat.css';
 
 const withToken = (url) => {
@@ -118,7 +119,9 @@ function MemoryPanel({ domain }) {
 
 // item (optional): a library entry ({ folder, files }) the chat is about — opened from a Store
 // card's AI button. onChanged: called after the AI added files to it (subtitles).
-export default function AIChat({ domain, onClose, item, onChanged }) {
+// remote (optional): the chat is Remote Control's and can operate the screen —
+// { getScreen(): the screen's status, runActions(actions): carries out what the AI decided }.
+export default function AIChat({ domain, onClose, item, onChanged, remote, initialMessages }) {
     // Same as the Store: a phone paired as a remote sends it to the screen; otherwise it plays here.
     const play = async ({ playables, index, image }) => {
         const p = playables[index];
@@ -138,14 +141,19 @@ export default function AIChat({ domain, onClose, item, onChanged }) {
 
     const itemTitle = item ? titleOf(item.folder) : '';
     const hasSubtitles = !!item?.files.some(f => f.type === 'SRT');
-    const [messages, setMessages] = useState([
+    const [messages, setMessages] = useState(() => [
         item
             ? { role: 'model', text: `What would you like to do with "${itemTitle}"? I can find, download or translate its subtitles — or ask me anything about it.` }
-            : { role: 'model', text: 'Hi! Tell me what you feel like watching — a genre, an actor, a mood — and I\'ll show matching titles from your library. Tap one to play it. I remember your tastes between chats (see Memory).' }
+            : remote
+            ? { role: 'model', text: 'Tell me what to do on the screen — "play the next episode", "skip 30 seconds", "Arabic subtitles on", "play something funny"… Type it, or tap 🎤 and say it.' }
+            : { role: 'model', text: 'Hi! Tell me what you feel like watching — a genre, an actor, a mood — and I\'ll show matching titles from your library. Tap one to play it. I remember your tastes between chats (see Memory).' },
+        // A conversation already started elsewhere (Remote Control's quick 🎤 button).
+        ...(initialMessages || []),
     ]);
     const suggestions = item
         ? ['Find English subtitles', 'Download Arabic subtitles', ...(hasSubtitles ? ['Translate the subtitles to Arabic'] : []), 'What is this about?']
-        : [];
+        : remote ? ['Pause', 'Skip 30 seconds', 'Next episode', 'Turn on subtitles', 'Recommend something'] : [];
+    const [recording, setRecording] = useState(null); // the recorder while the mic is on
     const [showMemory, setShowMemory] = useState(false);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -160,35 +168,67 @@ export default function AIChat({ domain, onClose, item, onChanged }) {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const send = async (preset) => {
-        const text = (typeof preset === 'string' ? preset : input).trim();
-        if (!text || loading) return;
+    // preset: text to send instead of the input box; audio: a spoken request instead of text.
+    const send = async (preset, audio) => {
+        const text = audio ? '' : (typeof preset === 'string' ? preset : input).trim();
+        if ((!text && !audio) || loading) return;
 
-        const userMsg = { role: 'user', text };
+        const userMsg = { role: 'user', text: audio ? '🎤 …' : text, voice: !!audio };
         const nextMessages = [...messages, userMsg];
         setMessages(nextMessages);
         setInput('');
         setLoading(true);
 
         // build history excluding the initial greeting and the message just sent
-        const history = nextMessages.slice(1, -1).filter(m => !m.local).map(m => ({ role: m.role, text: m.text }));
+        const history = nextMessages.slice(1, -1).filter(m => !m.local && !(m.voice && m.text === '🎤 …')).map(m => ({ role: m.role, text: m.text.replace(/^🎤 /, '') }));
 
         try {
             const res = await authFetch(`${domain}/api/v1/ai/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, history, ...(item ? { item: item.folder } : {}) }),
+                body: JSON.stringify({
+                    ...(audio ? { audio } : { message: text }),
+                    history,
+                    ...(item ? { item: item.folder } : {}),
+                    ...(remote ? { mode: 'remote', screen: remote.getScreen() } : {}),
+                }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Request failed');
+            // Show what was heard in place of the "🎤 …" placeholder.
+            if (audio) setMessages(prev => prev.map(m => (m === userMsg ? { ...m, text: `🎤 ${data.heard || '(couldn\'t make it out)'}` } : m)));
             setMessages(prev => [...prev, { role: 'model', text: data.reply, items: data.items || [], jobs: data.jobs || [], memoryChanged: !!data.memoryChanged }]);
             if (data.changed) onChanged?.();
+            if (remote && data.actions?.length) await remote.runActions(data.actions);
         } catch (err) {
             setMessages(prev => [...prev, { role: 'model', text: `Error: ${err.message}` }]);
         } finally {
             setLoading(false);
         }
     };
+
+    // 🎤: tap to start speaking, tap again to send (stops by itself after a few seconds).
+    const toggleMic = async () => {
+        if (recording) {
+            setRecording(null);
+            try { await send(null, await recording.stop()); }
+            catch (e) { setMessages(prev => [...prev, { role: 'model', text: e.message, local: true }]); }
+            return;
+        }
+        try {
+            const rec = await startRecording({
+                onAutoStop: async () => {
+                    setRecording(null);
+                    try { await send(null, await rec.done); }
+                    catch (e) { setMessages(prev => [...prev, { role: 'model', text: e.message, local: true }]); }
+                },
+            });
+            setRecording(rec);
+        } catch (e) {
+            setMessages(prev => [...prev, { role: 'model', text: micErrorMessage(e), local: true }]);
+        }
+    };
+    useEffect(() => () => { recording?.stop().catch(() => {}); }, [recording]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
@@ -199,7 +239,7 @@ export default function AIChat({ domain, onClose, item, onChanged }) {
         <div className="ai-chat-overlay" onClick={onClose}>
             <div className="ai-chat-panel" onClick={e => e.stopPropagation()}>
                 <div className="ai-chat-header">
-                    <span className="ai-chat-heading" title={item?.folder}>{item ? `AI · ${itemTitle}` : 'AI Assistant'}</span>
+                    <span className="ai-chat-heading" title={item?.folder}>{item ? `AI · ${itemTitle}` : remote ? 'AI Remote' : 'AI Assistant'}</span>
                     <button className={`ai-chat-memory-btn${showMemory ? ' is-active' : ''}`} onClick={() => setShowMemory(v => !v)} title="What the AI remembers about you">Memory</button>
                     <button className="ai-chat-close" onClick={onClose}>✕</button>
                 </div>
@@ -239,8 +279,14 @@ export default function AIChat({ domain, onClose, item, onChanged }) {
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder={item ? `Ask about ${itemTitle}… (Enter to send)` : 'Ask for something to watch… (Enter to send)'}
+                        placeholder={recording ? 'Listening… tap 🎤 again when you\'re done' : item ? `Ask about ${itemTitle}… (Enter to send)` : remote ? 'Tell the screen what to do… (Enter to send)' : 'Ask for something to watch… (Enter to send)'}
                     />
+                    {voiceSupported() && (
+                        <button className={`ai-chat-mic${recording ? ' is-recording' : ''}`} onClick={toggleMic} disabled={loading && !recording}
+                            title={recording ? 'Stop and send' : 'Speak instead of typing'} aria-label={recording ? 'Stop and send' : 'Speak'}>
+                            🎤
+                        </button>
+                    )}
                     <button className="ai-chat-send" onClick={() => send()} disabled={loading}>Send</button>
                 </div>
             </div>

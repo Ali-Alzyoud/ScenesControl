@@ -2,6 +2,8 @@ import React, { createRef } from "react";
 import VideoControls from "./VideoControls";
 import VideoFilter from "./VideoFilter";
 import VideoSrt from "./VideoSRT";
+import SubtitleVoice from "./SubtitleVoice";
+import { ttsState } from "../../common/tts";
 
 import { connect } from "react-redux";
 import { selectVideoSrc, selectTime, selectVolume, selectMute, selectPlayerState, selectSpeed, selectVideoName, selectVideoIsLoading, selectDrawingEnabled, selectPlayerConfig } from '../../redux/selectors'
@@ -197,12 +199,13 @@ class VideoPlayer extends React.PureComponent {
     if (Math.abs(time - this.player.current.currentTime) > 0.5) {
       this.player.current.currentTime = time;
     }
-    if (mute || Math.abs(volume - this.player.current.volume) > 0.01) {
+    // ttsState.duck: lowered while a subtitle line is being read aloud (SubtitleVoice).
+    if (mute || Math.abs(volume * ttsState.duck - this.player.current.volume) > 0.01) {
       if (mute) {
         this.player.current.volume = 0;
       }
       else {
-        this.player.current.volume = volume;
+        this.player.current.volume = volume * ttsState.duck;
       }
     }
     if ((playerState === 'play') && this.player.current.paused) {
@@ -383,6 +386,10 @@ class VideoPlayer extends React.PureComponent {
           <div className='subtitlecontainer'>
             {<VideoSrt time={time * 1000} />}
           </div>
+          <SubtitleVoice videoRef={this.player} />
+          {this.props.playerConfig?.ignoreFilters && (
+            <div className="filters-off-badge" title="Scene filters are switched off — everything plays unfiltered">Filters off</div>
+          )}
           {this.state.speedMulti != 1 ? <div style={{position:'absolute', zIndex:1, left:'15%', top:'15%', color:'blue', fontWeight:'bold', fontSize:'24px',backgroundColor:"red"}}>{this.state.speedMulti}</div> : null}
           <div className='controlscontainer'>
             <VideoControls

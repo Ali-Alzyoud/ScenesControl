@@ -1,6 +1,9 @@
 const SceneIntensity = {
     High: "High",
-    Low: "Low"
+    Low: "Low",
+    // Written by the AI filter generator for scenes it isn't sure about: the player blurs these
+    // instead of skipping them (playerConfig.uncertainBlur).
+    Uncertain: "Uncertain"
 }
 
 const SceneType = {
@@ -16,6 +19,8 @@ SceneIntensity.FromString = function (value) {
     switch (value) {
         case SceneIntensity.High:
             return SceneIntensity.High;
+        case SceneIntensity.Uncertain:
+            return SceneIntensity.Uncertain;
         case SceneIntensity.Low:
             return SceneIntensity.Low;
         default:
@@ -27,6 +32,8 @@ SceneIntensity.ToString = function (value) {
     switch (value) {
         case SceneIntensity.High:
             return SceneIntensity.High;
+        case SceneIntensity.Uncertain:
+            return SceneIntensity.Uncertain;
         case SceneIntensity.Low:
             return SceneIntensity.Low;
         default:

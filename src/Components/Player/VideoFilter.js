@@ -232,7 +232,8 @@ function VideoFilter({
             setMute(playerConfig.rightclick[1] == PLAYER_ACTION.MUTE);
             return;
         } else {
-            if (!records || !records.length) {
+            // No filter loaded, or it's being ignored (playerConfig.ignoreFilters).
+            if (!records || !records.length || playerConfig.ignoreFilters) {
                 setRecordRects([]);
                 setMute(false);
                 if (filterType !== FILTER_TYPE.NONE)
@@ -258,6 +259,14 @@ function VideoFilter({
         for (var i = 0; i < currentRecords.length; i++) {
             var record = currentRecords[i];
             geometries = [...geometries, ...record.geometries];
+
+            // A scene the AI wasn't sure about: blurred instead of skipped or blacked out (its
+            // audio action still applies), so a false alarm costs nothing but a moment of blur.
+            if (record.Intensity === 'Uncertain' && playerConfig.uncertainBlur !== false && playerConfig[record.Type][0] !== PLAYER_ACTION.NOACTION) {
+                blurExtreme = true;
+                if (playerConfig[record.Type][1] === PLAYER_ACTION.MUTE) mute = true;
+                continue;
+            }
 
             if (playerConfig[record.Type][0] === PLAYER_ACTION.MUTE || playerConfig[record.Type][1] === PLAYER_ACTION.MUTE) {
                 mute = true;
