@@ -72,12 +72,13 @@ function FilterRecord({record, index, isSelected, removeItem, selectItem, update
         }
     }
 
-    // Clicking a record (anywhere but its fields and buttons) shows it: jumps to its start and
-    // selects it. Filters are switched off so the scene is actually shown rather than skipped or
-    // blacked out (the player shows "Filters off"; the editor's eye button turns them back on).
+    // Clicking a record (anywhere but its dropdowns and buttons — the time fields count too, and
+    // stay editable) shows it: jumps to its start and selects it. Filters are switched off so the
+    // scene is actually shown rather than skipped or blacked out (the player shows "Filters off";
+    // the editor's eye button turns them back on).
     const onRowClick = useCallback(
       (e) => {
-        if (e.target.closest('input, select, textarea, .container')) return;
+        if (e.target.closest('select, .container')) return;
         dispatch(setPlayerConfig({ ignoreFilters: true }));
         dispatch(setTime(record._from));
         if (!isSelected) selectItem(record);

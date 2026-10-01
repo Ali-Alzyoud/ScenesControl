@@ -26,7 +26,9 @@
    .player.no-source's own min-height, not stretch to fill whatever room is left. */
 .App-player-active {
   flex: 1;
-  min-height: 0;
+  /* Never squeezed below half the screen (e.g. by the Editor/Config panels opening below it);
+     the content area scrolls instead. */
+  min-height: 50vh;
 }
 
 /* Video name display */

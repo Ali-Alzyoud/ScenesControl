@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback, useLayoutEffect, useMe
 
 import { connect, useSelector } from "react-redux";
 import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, selectDrawingEnabled, selectSelectedFilterdItems } from '../../redux/selectors';
-import { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled } from "../../redux/actions";
+import { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled, updateFilterItem, setSelectedFilterItems } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
 import { SCENETYPE_ARRAY } from "../../common/SceneGuide";
 
@@ -31,6 +31,71 @@ function getFilterClass(filterType) {
     return "";
 }
 
+// A filter rectangle being edited on the video (the selected record's): drag an edge or corner
+// handle to resize, the middle to move. Edges snap to the video frame's edges and stay inside it.
+// Positions are pixels within the filter layer; `bounds` is the video frame's box in it.
+const HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+const SNAP_PX = 10;
+const MIN_PX = 12;
+
+function EditableRect({ rect, bounds, onCommit, onRemove }) {
+    const [live, setLive] = useState(null); // the rectangle while dragging
+    const drag = useRef(null);
+    const shown = live || rect;
+
+    const begin = (mode) => (e) => {
+        if (e.button !== undefined && e.button !== 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        drag.current = { mode, x: e.clientX, y: e.clientY, start: { ...rect } };
+        const move = (ev) => {
+            const d = drag.current;
+            if (!d) return;
+            const dx = ev.clientX - d.x, dy = ev.clientY - d.y;
+            let { left, top, width, height } = d.start;
+            let right = left + width, bottom = top + height;
+            if (d.mode === 'move') {
+                left = Math.min(Math.max(left + dx, bounds.left), bounds.left + bounds.width - width);
+                top = Math.min(Math.max(top + dy, bounds.top), bounds.top + bounds.height - height);
+                right = left + width; bottom = top + height;
+                // Snap whichever edge is near the frame's.
+                if (Math.abs(left - bounds.left) < SNAP_PX) { left = bounds.left; right = left + width; }
+                if (Math.abs(bounds.left + bounds.width - right) < SNAP_PX) { right = bounds.left + bounds.width; left = right - width; }
+                if (Math.abs(top - bounds.top) < SNAP_PX) { top = bounds.top; bottom = top + height; }
+                if (Math.abs(bounds.top + bounds.height - bottom) < SNAP_PX) { bottom = bounds.top + bounds.height; top = bottom - height; }
+            } else {
+                const snapTo = (v, edge) => (Math.abs(v - edge) < SNAP_PX ? edge : v);
+                if (d.mode.includes('w')) left = snapTo(Math.min(Math.max(left + dx, bounds.left), right - MIN_PX), bounds.left);
+                if (d.mode.includes('e')) right = snapTo(Math.max(Math.min(right + dx, bounds.left + bounds.width), left + MIN_PX), bounds.left + bounds.width);
+                if (d.mode.includes('n')) top = snapTo(Math.min(Math.max(top + dy, bounds.top), bottom - MIN_PX), bounds.top);
+                if (d.mode.includes('s')) bottom = snapTo(Math.max(Math.min(bottom + dy, bounds.top + bounds.height), top + MIN_PX), bounds.top + bounds.height);
+            }
+            d.current = { left, top, width: right - left, height: bottom - top };
+            setLive(d.current);
+        };
+        const up = () => {
+            window.removeEventListener('pointermove', move);
+            window.removeEventListener('pointerup', up);
+            const result = drag.current?.current;
+            drag.current = null;
+            setLive(null);
+            if (result) onCommit(result);
+        };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
+    };
+
+    const stop = (e) => e.stopPropagation(); // keep clicks off the player (play/pause, drawing)
+    return (
+        <div className="filter-rect-edit" onPointerDown={begin('move')} onMouseDown={stop} onClick={stop}
+            style={{ left: shown.left + 'px', top: shown.top + 'px', width: shown.width + 'px', height: shown.height + 'px' }}>
+            {HANDLES.map(h => <div key={h} className={`filter-rect-handle filter-rect-handle--${h}`} onPointerDown={begin(h)} onMouseDown={stop} onClick={stop} />)}
+            <button className="filter-rect-remove" title="Remove this rectangle" onPointerDown={stop} onMouseDown={stop}
+                onClick={e => { e.stopPropagation(); onRemove(); }}>✕</button>
+        </div>
+    );
+}
+
 function VideoFilter({
     records,
     time,
@@ -44,7 +109,9 @@ function VideoFilter({
     setDrawingRect,
     setDrawingEnabled,
     selectedRecords,
-    videoAspectRatio
+    videoAspectRatio,
+    updateFilterItem,
+    setSelectedFilterItems,
 }) {
 
     const [filterType, setFilterType] = useState(FILTER_TYPE.NONE);
@@ -324,15 +391,27 @@ function VideoFilter({
 
     const class2 = `${blackScreen ? "video-filter-black" : getFilterClass(filterType)}`;
 
-    let selectedRects = null;
-    if (selectedRecords.length > 0 && selectedRecords[0].geometries.length > 0) {
-        selectedRects = [];
-        for (let i = 0; i < selectedRecords[0].geometries.length; i++) {
-            selectedRects.push(convertFromVideo(selectedRecords[0].geometries[i]));
-        }
-    }
+    // The selected record's rectangles, editable on the video (see EditableRect).
+    const selected = selectedRecords.length > 0 ? selectedRecords[0] : null;
+    const frameBox = selected && divFilter.current && selected.geometries.length > 0
+        ? convertFromVideo({ left: 0, top: 0, width: 100, height: 100 })
+        : null;
+    const saveGeometries = (geometries) => {
+        selected.geometries = geometries;
+        const index = (records || []).indexOf(selected);
+        updateFilterItem(selected, index);
+        setSelectedFilterItems([selected]);
+    };
+    const commitRect = (i, px) => {
+        const v = convertToVideo(px);
+        const g = selected.geometries[i];
+        g.left = Number(v.left); g.top = Number(v.top); g.width = Number(v.width); g.height = Number(v.height);
+        saveGeometries([...selected.geometries]);
+    };
 
-    return <div ref={divFilter} className={`video-filter ${(!playerConfig.filterRect || recordRects.length == 0 || blackScreen) ? class2 : ''}`}>
+    // While a selected record's rectangles are being edited, this layer goes above the player's
+    // controls (the layer itself lets clicks through; only the rectangles take them).
+    return <div ref={divFilter} className={`video-filter ${(!playerConfig.filterRect || recordRects.length == 0 || blackScreen) ? class2 : ''}${frameBox ? ' video-filter--editing' : ''}`}>
         {enableEditMode && rect.current && <div style={{
             position: 'absolute',
             background: 'rgba(0,0,0,0.5)',
@@ -354,17 +433,15 @@ function VideoFilter({
             }
         </div>}
 
-        {selectedRects && selectedRects.map((selectedRect) => {
-            return <div style={{
-                position: 'absolute',
-                zIndex: 10,
-                background: 'rgba(200,50,50,0.5)',
-                left: selectedRect.left + 'px',
-                top: selectedRect.top + 'px',
-                width: selectedRect.width + 'px',
-                height: selectedRect.height + 'px',
-            }}></div>
-        })}
+        {frameBox && selected.geometries.map((g, i) => (
+            <EditableRect
+                key={`${selected.id}-${i}-${g.left}-${g.top}-${g.width}-${g.height}`}
+                rect={convertFromVideo(g)}
+                bounds={frameBox}
+                onCommit={px => commitRect(i, px)}
+                onRemove={() => saveGeometries(selected.geometries.filter((_, k) => k !== i))}
+            />
+        ))}
 
         {playerConfig.filterRect && recordRects && recordRects.length > 0 && recordRects.map((record) => {
             record = convertFromVideo(record);
@@ -393,4 +470,4 @@ const mapStateToProps = state => {
     return { records, time, playerConfig, enableEditMode, selectedRecords };
 };
 
-export default connect(mapStateToProps, { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled })(VideoFilter);
+export default connect(mapStateToProps, { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled, updateFilterItem, setSelectedFilterItems })(VideoFilter);

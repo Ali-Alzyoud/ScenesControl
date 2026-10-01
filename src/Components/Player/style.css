@@ -290,3 +290,47 @@ button.subtitle-voice-status { cursor: pointer; }
     padding: 4px 10px;
     pointer-events: none;
 }
+
+/* A filter rectangle being edited (filter editor, selected record). */
+.filter-rect-edit {
+    position: absolute;
+    z-index: 12;
+    background: rgba(200, 50, 50, 0.35);
+    outline: 2px solid #ff6b6b;
+    cursor: move;
+    touch-action: none;
+    box-sizing: border-box;
+}
+.filter-rect-handle {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border: 2px solid #ff6b6b;
+    border-radius: 3px;
+    box-sizing: border-box;
+    touch-action: none;
+}
+.filter-rect-handle--nw { left: -7px; top: -7px; cursor: nwse-resize; }
+.filter-rect-handle--n  { left: calc(50% - 7px); top: -7px; cursor: ns-resize; }
+.filter-rect-handle--ne { right: -7px; top: -7px; cursor: nesw-resize; }
+.filter-rect-handle--e  { right: -7px; top: calc(50% - 7px); cursor: ew-resize; }
+.filter-rect-handle--se { right: -7px; bottom: -7px; cursor: nwse-resize; }
+.filter-rect-handle--s  { left: calc(50% - 7px); bottom: -7px; cursor: ns-resize; }
+.filter-rect-handle--sw { left: -7px; bottom: -7px; cursor: nesw-resize; }
+.filter-rect-handle--w  { left: -7px; top: calc(50% - 7px); cursor: ew-resize; }
+.filter-rect-remove {
+    position: absolute;
+    right: 10px;
+    top: 6px;
+    background: rgba(20, 20, 30, 0.8);
+    border: 1px solid #ff6b6b;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+    padding: 3px 5px;
+    cursor: pointer;
+}
+.video-filter.video-filter--editing { z-index: 100; pointer-events: none; }
+.video-filter--editing .filter-rect-edit { pointer-events: auto; }

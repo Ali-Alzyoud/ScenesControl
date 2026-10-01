@@ -359,7 +359,10 @@ function FilterFileEditor(props) {
                 } else {
                     // Leaving it — parse whatever was typed back into structured records so the
                     // table (and any edits made there afterward) reflect the raw-text changes.
+                    // Those are new record objects, so the old selection would point at a stale one.
                     setFilterItems(SceneGuideClass.FromString(rawText));
+                    setSelectedRecord(null);
+                    setSelectedFilterItems(null);
                 }
                 setToggleRow(!toggleRow);
             }}>
