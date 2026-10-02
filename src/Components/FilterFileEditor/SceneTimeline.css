@@ -1,0 +1,98 @@
+.scene-timeline {
+    width: min(900px, 96%);
+    margin: 0 auto 12px;
+    padding: 10px 12px;
+    background: #151526;
+    border: 1px solid #2a2a40;
+    border-radius: 10px;
+    color: #c8c8e8;
+    font-size: 13px;
+    user-select: none;
+}
+.scene-timeline-info { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.scene-timeline-ends { display: flex; align-items: center; gap: 6px; }
+.scene-timeline-ends b { font-variant-numeric: tabular-nums; color: #fff; min-width: 64px; text-align: center; }
+.scene-timeline-ends button {
+    width: 26px; height: 24px; background: #1e1e30; border: 1px solid #3a3a58; border-radius: 5px;
+    color: #d0ccff; cursor: pointer; font-size: 14px; line-height: 1;
+}
+.scene-timeline-ends button:hover { border-color: #6c63ff; color: #fff; }
+.scene-timeline-len { color: #8a8ab0; font-variant-numeric: tabular-nums; }
+.scene-timeline-strip {
+    position: relative;
+    display: flex;
+    background: #0a0a14;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    touch-action: none;
+}
+.scene-timeline-thumb {
+    height: 100%;
+    background: #1a1a2a center / cover no-repeat;
+    border-right: 1px solid #0a0a14;
+    flex-shrink: 0;
+}
+.scene-timeline-shade { position: absolute; top: 0; bottom: 0; background: rgba(5, 5, 15, 0.65); pointer-events: none; }
+.scene-timeline-range {
+    position: absolute; top: 0; bottom: 0;
+    border-top: 3px solid #ffcc33; border-bottom: 3px solid #ffcc33;
+    box-sizing: border-box;
+    cursor: grab;
+}
+.scene-timeline-handle {
+    position: absolute; top: -3px; bottom: -3px; width: 14px;
+    background: #ffcc33;
+    cursor: ew-resize;
+    touch-action: none;
+}
+.scene-timeline-handle::after {
+    content: ''; position: absolute; left: 5px; top: 35%; bottom: 35%; width: 4px;
+    border-left: 2px solid #5a4500; border-right: 2px solid #5a4500; box-sizing: border-box;
+}
+.scene-timeline-handle--from { left: -7px; border-radius: 5px 0 0 5px; }
+.scene-timeline-handle--to { right: -7px; border-radius: 0 5px 5px 0; }
+.scene-timeline-shade { pointer-events: auto; }
+/* The red playhead: a 2px line inside a wider grab area, with a knob on top; drag to scrub. */
+.scene-timeline-playhead {
+    position: absolute; top: -8px; bottom: -2px; width: 16px; margin-left: -8px;
+    cursor: ew-resize; z-index: 4; touch-action: none;
+}
+.scene-timeline-playhead::before {
+    content: ''; position: absolute; left: 7px; top: 6px; bottom: 0; width: 2px; background: #ff4d6d;
+}
+.scene-timeline-playhead-knob {
+    position: absolute; left: 2px; top: 0; width: 12px; height: 12px; border-radius: 50%;
+    background: #ff4d6d; border: 2px solid #fff; box-sizing: border-box;
+}
+.scene-timeline-playhead.is-dragging .scene-timeline-playhead-knob,
+.scene-timeline-playhead:hover .scene-timeline-playhead-knob { transform: scale(1.25); }
+.scene-timeline-playhead-time {
+    position: absolute; bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%);
+    background: #ff4d6d; color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.scene-timeline-scale { display: flex; justify-content: space-between; margin-top: 4px; color: #6c6c90; font-size: 11px; font-variant-numeric: tabular-nums; }
+.scene-timeline-len { display: flex; align-items: center; gap: 10px; }
+.scene-timeline-delete {
+    background: #2a1620; border: 1px solid #6a3040; border-radius: 6px; color: #ff9aa8;
+    font-size: 12px; padding: 3px 10px; cursor: pointer; font-family: inherit;
+}
+.scene-timeline-delete:hover { background: #4a1a28; border-color: #ff6b81; color: #fff; }
+.scene-timeline-rect {
+    background: #1e1e30; border: 1px solid #3a3a58; border-radius: 6px; color: #d0ccff;
+    font-size: 12px; padding: 3px 10px; cursor: pointer; font-family: inherit;
+}
+.scene-timeline-rect:hover:not(:disabled) { border-color: #6c63ff; color: #fff; }
+.scene-timeline-rect.is-off { background: #3a3060; border-color: #8a82ff; color: #fff; }
+.scene-timeline-rect:disabled { opacity: 0.35; cursor: default; }
+.scene-timeline-nav {
+    background: #1e1e30; border: 1px solid #3a3a58; border-radius: 6px; color: #d0ccff;
+    font-size: 12px; padding: 3px 10px; cursor: pointer; font-family: inherit;
+}
+.scene-timeline-nav:hover:not(:disabled) { border-color: #6c63ff; color: #fff; }
+.scene-timeline-nav:disabled { opacity: 0.35; cursor: default; }
+/* The playhead's knob and time label sit outside the strip: don't clip them. */
+.scene-timeline-strip { overflow: visible; margin-top: 18px; }
+.scene-timeline-thumb:first-child { border-radius: 6px 0 0 6px; }
+.scene-timeline-thumb:last-of-type { border-radius: 0 6px 6px 0; }

@@ -1,3 +1,4 @@
+import { setEditorOpen } from './common/editorState';
 import './App.css';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
@@ -211,6 +212,7 @@ function App(props) {
 
   const { addFilterItems, setVideoSrc, setVideoName, setSubtitle, isLoading, videoName, setSubtitleName, setFilterPath } = props;
   const [showEditor, setShowEditor] = useState(false);
+  useEffect(() => { setEditorOpen(showEditor); }, [showEditor]);
   const [showConfig, setShowConfig] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [showHistory, setShowHistory] = useState(false);

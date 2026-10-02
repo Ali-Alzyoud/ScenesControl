@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaSave, FaPlus, FaFastForward, FaFastBackward, FaToggleOn, FaToggleOff, FaCloudUploadAlt, FaEye, FaEyeSlash } from 'react-icons/fa'
 import FilterRecord from './FilterRecord'
+import SceneTimeline from './SceneTimeline'
 import { SceneGuideRecord, SceneGuideClass, SceneType } from '../../common/SceneGuide'
 
 import { connect, useDispatch, useSelector } from "react-redux";
-import { selectTime, selectRecords, selectVideoName, selectModalOpen, selectFilterPath, selectVideoSrc, selectPlayerConfig } from '../../redux/selectors';
-import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setFilterItems, setDrawingEnabled, setToastText, setSelectedFilterItems, setPlayerConfig } from '../../redux/actions';
+import { selectTime, selectRecords, selectVideoName, selectModalOpen, selectFilterPath, selectVideoSrc, selectPlayerConfig, selectSelectedFilterdItems } from '../../redux/selectors';
+import { addFilterItems, removeFilterIndex, removeAllFilters, updateFilterItem, setFilterItems, setDrawingEnabled, setToastText, setSelectedFilterItems, setPlayerConfig, setTime } from '../../redux/actions';
 import { authFetch, getUser } from '../../common/auth';
 import {FaMinus} from 'react-icons/fa'
 
@@ -194,12 +195,10 @@ function FilterFileEditor(props) {
         removeAllFilters();
     }
 
+    // A row's remove button: same as deleting it with the Delete key (the next one gets selected).
     const removeItem = (record) => {
-        const index = records.indexOf(record);
-        if (index === -1) return;
-
-        removeFilterIndex(index);
-        setKey(key + 1);
+        if (records.indexOf(record) === -1) return;
+        actions.current.deleteSelected(record);
     }
 
     const selectItem = (record) => {
@@ -326,8 +325,96 @@ function FilterFileEditor(props) {
     const dispatch = useDispatch();
     const ignoreFilters = !!useSelector(selectPlayerConfig)?.ignoreFilters;
 
+    // Keyboard: Delete / Backspace removes the selected record (and selects the next one), Ctrl+Z
+    // brings back the last one removed. Not while typing in a field.
+    const lastDeleted = useRef(null);
+    const keyState = useRef({});
+    keyState.current = { records, selectedRecord };
+    // Removes the selected record (the Delete key, or the timeline's delete button) and selects
+    // the next one; restoreDeleted() brings it back (Ctrl+Z).
+    // The next record is selected and shown (like clicking it), so you can keep reviewing.
+    const showRecord = (record) => {
+        setSelectedRecord(record);
+        setSelectedFilterItems(record ? [record] : null);
+        if (record) {
+            dispatch(setPlayerConfig({ ignoreFilters: true }));
+            dispatch(setTime(record._from));
+        }
+    };
+    const deleteSelected = (target) => {
+        const { records: list, selectedRecord: sel } = keyState.current;
+        const victim = target || sel;
+        const index = victim ? list.indexOf(victim) : -1;
+        if (index === -1) return false;
+        lastDeleted.current = { record: victim, index };
+        const next = list[index + 1] || list[index - 1] || null;
+        setFilterItems(list.filter(r => r !== victim));
+        showRecord(next);
+        setKey(k => k + 1);
+        setToastText('Scene removed — Ctrl+Z to undo');
+        return true;
+    };
+    const restoreDeleted = () => {
+        if (!lastDeleted.current) return false;
+        const { records: list } = keyState.current;
+        const { record, index } = lastDeleted.current;
+        lastDeleted.current = null;
+        const restored = [...list];
+        restored.splice(Math.min(index, restored.length), 0, record);
+        setFilterItems(restored);
+        showRecord(record);
+        setKey(k => k + 1);
+        setToastText('Scene restored');
+        return true;
+    };
+    const actions = useRef({});
+    actions.current = { deleteSelected, restoreDeleted };
+    useEffect(() => {
+        const onKey = (e) => {
+            const el = document.activeElement;
+            if (el && (/^(input|textarea|select)$/i.test(el.tagName) || el.isContentEditable)) return;
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (actions.current.deleteSelected()) { e.preventDefault(); e.stopPropagation(); }
+            } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                if (actions.current.restoreDeleted()) e.preventDefault();
+            }
+        };
+        window.addEventListener('keydown', onKey, true);
+        return () => window.removeEventListener('keydown', onKey, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // A record selected somewhere else (a bubble on the seekbar): select it here too.
+    const externallySelected = useSelector(selectSelectedFilterdItems)?.[0] || null;
+    useEffect(() => {
+        if (externallySelected && externallySelected !== selectedRecord && records.includes(externallySelected)) setSelectedRecord(externallySelected);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [externallySelected]);
+
+    // The scene before/after the selected one, in time order (the list itself isn't sorted).
+    const neighbour = (dir) => {
+        if (!selectedRecord) return null;
+        const sorted = [...records].sort((a, b) => a._from - b._from || a._to - b._to);
+        return sorted[sorted.indexOf(selectedRecord) + dir] || null;
+    };
+
+    // The scene timeline changed the selected record's start/end.
+    const commitTimes = (from, to) => {
+        const record = selectedRecord;
+        if (!record) return;
+        record.setFromTime(from, records);
+        record.setToTime(to, records);
+        updateItem(record, records.indexOf(record));
+        setSelectedFilterItems([record]);
+    };
+
     return (
         <div className='editor-container'>
+            {selectedRecord && !toggleRow && (
+                <SceneTimeline record={selectedRecord} onCommit={commitTimes} onDelete={() => deleteSelected()}
+                    onPrev={neighbour(-1) ? () => showRecord(neighbour(-1)) : null}
+                    onNext={neighbour(1) ? () => showRecord(neighbour(1)) : null} />
+            )}
             <div className={`container${ignoreFilters ? ' red' : ''}`} onClick={() => dispatch(setPlayerConfig({ ignoreFilters: !ignoreFilters }))}
                 title={ignoreFilters ? 'Filters are off — everything plays unfiltered (click to turn them back on)' : 'Ignore the filter while editing (show the scenes)'}>
                 {ignoreFilters ? <FaEye className='middle' /> : <FaEyeSlash className='middle' />}

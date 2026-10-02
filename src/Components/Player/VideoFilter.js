@@ -5,6 +5,7 @@ import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, select
 import { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled, updateFilterItem, setSelectedFilterItems } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
 import { SCENETYPE_ARRAY } from "../../common/SceneGuide";
+import { useRectsHidden } from "../../common/editorState";
 
 const FILTER_TYPE = {
     NONE: 0,
@@ -122,6 +123,7 @@ function VideoFilter({
     const [recordRects, setRecordRects] = useState([]);
     const originalPoint = useRef({ x: 0, y: 0 });
     const [forceUpdate, setForceUpdate] = useState(0);
+    const rectsHidden = useRectsHidden();
 
 
     useEffect(() => {
@@ -391,9 +393,10 @@ function VideoFilter({
 
     const class2 = `${blackScreen ? "video-filter-black" : getFilterClass(filterType)}`;
 
-    // The selected record's rectangles, editable on the video (see EditableRect).
+    // The selected record's rectangles, editable on the video (see EditableRect) — unless hidden
+    // from the timeline to see the frame underneath.
     const selected = selectedRecords.length > 0 ? selectedRecords[0] : null;
-    const frameBox = selected && divFilter.current && selected.geometries.length > 0
+    const frameBox = selected && !rectsHidden && divFilter.current && selected.geometries.length > 0
         ? convertFromVideo({ left: 0, top: 0, width: 100, height: 100 })
         : null;
     const saveGeometries = (geometries) => {

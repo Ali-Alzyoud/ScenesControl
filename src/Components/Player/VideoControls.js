@@ -16,8 +16,9 @@ import { MdPlayArrow, MdPause, MdSubtitles } from 'react-icons/md'
 import './style.css'
 
 import { connect, useDispatch, useSelector } from "react-redux";
-import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName, selectVideoSrc, selectSubtitleName, getSyncConfig, getFontConfig, selectPlayerConfig } from '../../redux/selectors';
-import { setTime, setPlayerState, setVolume, setSettings_syncConfig, setSettings_fontConfig, setSubtitle, setSubtitleName, setPlayerConfig } from '../../redux/actions';
+import { selectTime, selectDuration, selectPlayerState, selectVolume, selectMute, selectModalOpen, selectVideoName, selectVideoSrc, selectSubtitleName, getSyncConfig, getFontConfig, selectPlayerConfig, selectRecords, selectSelectedFilterdItems } from '../../redux/selectors';
+import { setTime, setPlayerState, setVolume, setSettings_syncConfig, setSettings_fontConfig, setSubtitle, setSubtitleName, setPlayerConfig, setSelectedFilterItems } from '../../redux/actions';
+import { useEditorOpen } from '../../common/editorState';
 import Slider from '../Slider';
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
 import Utils from '../../utils/utils'
@@ -171,6 +172,15 @@ function VideoControls({ time,
     const syncConfig = useSelector(getSyncConfig)
     const fontConfig = useSelector(getFontConfig)
     const playerConfig = useSelector(selectPlayerConfig)
+    // While the filter editor is open, its scenes are marked on the seekbar.
+    const editorOpen = useEditorOpen();
+    const filterRecords = useSelector(selectRecords);
+    const selectedFilter = useSelector(selectSelectedFilterdItems)?.[0];
+    const pickFilterRecord = (record) => {
+        dispatch(setPlayerConfig({ ignoreFilters: true })); // show the scene rather than skip it
+        dispatch(setSelectedFilterItems([record]));
+        dispatch(setTime(record._from));
+    };
     const videoSrc = useSelector(selectVideoSrc);
     const subtitleName = useSelector(selectSubtitleName);
     const [showSubtitlePicker, setShowSubtitlePicker] = useState(false);
@@ -702,6 +712,15 @@ function VideoControls({ time,
                     </div>
                 )}
                 <div className='seekbar' style={seekbarStyle} ref={seekbar} onPointerDown={mousedown} onPointerUp={cleanDocEvents} onClick={e => e.stopPropagation()}>
+                    {editorOpen && duration > 0 && (filterRecords || []).map((r, i) => (
+                        <div key={i}
+                            className={`seekbar-scene seekbar-scene--${r.Type}${r.Intensity === 'Uncertain' ? ' seekbar-scene--uncertain' : ''}${selectedFilter === r ? ' is-selected' : ''}`}
+                            style={{ left: `${(r._from / duration) * 100}%`, width: `${Math.max(0, ((r._to - r._from) / duration) * 100)}%` }}
+                            title={`${r.Type}${r.Intensity === 'Uncertain' ? ' (uncertain)' : ''}${Math.floor(r._from / 60)}:${String(Math.floor(r._from % 60)).padStart(2, '0')}–${Math.floor(r._to / 60)}:${String(Math.floor(r._to % 60)).padStart(2, '0')} — click to edit`}
+                            onPointerDown={e => { e.stopPropagation(); pickFilterRecord(r); }}
+                            onClick={e => e.stopPropagation()}
+                        />
+                    ))}
                     <div style={{ ...styleProgress, width: (progress * 100) + '%' }}>
                         <div style={styleHandle}
                             ref={seekbutton}

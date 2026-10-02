@@ -334,3 +334,26 @@ button.subtitle-voice-status { cursor: pointer; }
 }
 .video-filter.video-filter--editing { z-index: 100; pointer-events: none; }
 .video-filter--editing .filter-rect-edit { pointer-events: auto; }
+
+/* Filter scenes on the seekbar while the editor is open: bubbles above the bar. */
+.seekbar-scene {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    min-width: 8px;
+    height: 12px;
+    border-radius: 6px;
+    background: #ff6fa8;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-sizing: border-box;
+    cursor: pointer;
+    z-index: 2;
+    transform: translateX(0);
+    transition: height 0.1s, bottom 0.1s;
+}
+.seekbar-scene:hover { height: 16px; }
+.seekbar-scene--sex { background: #ff4d4d; }
+.seekbar-scene--nudity { background: #ff6fa8; }
+.seekbar-scene--violence { background: #ff9f43; }
+.seekbar-scene--profanity { background: #ffd43b; }
+.seekbar-scene--uncertain { opacity: 0.5; border-style: dashed; }
+.seekbar-scene.is-selected { height: 16px; border: 2px solid #fff; box-shadow: 0 0 0 2px #6c63ff; z-index: 3; }
