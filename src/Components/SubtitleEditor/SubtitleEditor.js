@@ -7,6 +7,7 @@ import { getSyncConfig, selectSubtitle, selectSubtitleName, selectSubtitleSync, 
 import { authFetch, getUser } from '../../common/auth';
 import store from '../../redux/store';
 import Utils from '../../utils/utils';
+import { libraryPath } from '../../common/episodes';
 
 import './style.css'
 import SubtitleRecord from './SubtitleRecord';
@@ -41,46 +42,58 @@ function SubtitleEditor(props) {
             .catch(() => {});
     }, []);
 
+    // The delay/slope live only in syncConfig and are applied at render time, so the in-memory
+    // records are still the original timings — bake the shift in (same mapping the editor rows
+    // show: from * slope + delay) before writing, or a saved file comes out unshifted.
+    const applySync = (records) => {
+        const { subtitleDelay = 0, subtitleSlope = 1 } = syncConfig;
+        const map = (t) => Math.max(0, Math.round(t * subtitleSlope + subtitleDelay * 1000));
+        return records.map(r => ({ ...r, from: map(r.from), to: map(r.to) }));
+    };
+
     const saveRemote = async () => {
         const domain = localStorage.getItem('domain');
         if (!domain) return;
         let filePath = null;
-        if (videoSrc) {
-            const bases = [domain + '/static', domain + '/video', domain];
-            let rel = videoSrc;
-            for (const b of bases) { if (videoSrc.startsWith(b)) { rel = videoSrc.slice(b.length); break; } }
-            // videoSrc carries a ?token=... query string for playback auth — strip it before
-            // swapping the extension, or the token ends up embedded in the saved server path.
-            filePath = rel.split('?')[0].replace(/\.[^/.]+$/, '.srt');
+        // Overwrite the subtitle that's actually loaded — saving next to the video under its name
+        // left the original untouched, so reopening the video loaded the old, unshifted file.
+        // libraryPath accepts any address of the backend (LAN or Tailscale), not just this
+        // device's domain, and drops the ?token=... query.
+        if (subtitleName?.toLowerCase().startsWith('http')) {
+            const rel = libraryPath(subtitleName, domain);
+            if (rel) filePath = '/' + rel;
+        }
+        if (!filePath && videoSrc) {
+            const rel = libraryPath(videoSrc, domain);
+            if (rel) filePath = '/' + rel.replace(/\.[^/.]+$/, '.srt');
         }
         if (!filePath) {
             const input = window.prompt('Enter server path to save subtitle:', `/${videoName}.srt`);
             if (!input) return;
             filePath = input.startsWith('/') ? input : '/' + input;
         }
-        const content = SrtClass.ToString(subtitle);
+        const shifted = applySync(subtitle);
+        const content = SrtClass.ToString(shifted);
         try {
             const res = await authFetch(`${domain}/api/v1/files/save`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ filePath, content }),
             });
+            if (res.ok) {
+                // The shift now lives in the records themselves; keep it in syncConfig too and
+                // it gets applied twice.
+                setSubtitle(shifted);
+                dispatch(setSettings_syncConfig({ ...syncConfig, subtitleDelay: 0, subtitleSlope: 1 }));
+                if (inputSlopRef.current) inputSlopRef.current.value = (1).toFixed(5);
+            }
             alert(res.ok ? 'Saved to server' : 'Save failed');
         } catch { alert('Save failed'); }
     };
 
     const saveItems = () => {
-        const subtitleToSave = [];
-        const time = syncConfig.subtitleDelay;
-        const slope = syncConfig.subtitleSlope;
-
-        subtitle.map((record, index) => {
-            record.from = record.from * slope + time * 1000;
-            record.to = record.to * slope + time * 1000;
-            subtitleToSave.push(record);
-        })
         const element = document.createElement("a");
-        const file = new Blob([SrtClass.ToString(subtitle)], { type: 'text/plain' });
+        const file = new Blob([SrtClass.ToString(applySync(subtitle))], { type: 'text/plain' });
         element.href = URL.createObjectURL(file);
 
         const filename = videoName ? videoName.split('.').slice(0, -1).join('.') : "untitled";

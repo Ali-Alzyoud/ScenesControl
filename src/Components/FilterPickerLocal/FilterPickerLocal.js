@@ -1,9 +1,13 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { MdHistory } from 'react-icons/md'
 import { MdFilterAlt, MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle, MdFileDownload, MdPlaylistAdd, MdAdd, MdRemove, MdVisibility, MdVisibilityOff } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import { createPortal } from 'react-dom'
 import AIChat from '../AIChat/AIChat'
 import AutoFilterJobs from '../AutoFilter/AutoFilterJobs'
+import { openImdb } from '../../common/imdb'
+import { titleImage } from '../../common/posters'
+import { pairEpisodeFiles } from '../../common/episodes'
 import { startAutoFilter, useAutoFilterJobs, isActive as isFilterJobActive } from '../AutoFilter/autoFilter'
 import * as API from '../../common/API/API'
 import { authFetch, getUser, isController } from '../../common/auth'
@@ -26,6 +30,19 @@ const withToken = (url) => {
 // The Favourites tab: the user's pinned titles from every folder (served by the backend under
 // this name, like a real top-level folder).
 const FAVORITES_TAB = '__favorites__';
+
+// How many titles the Random button picks.
+const RANDOM_COUNT = 10;
+
+// Recent searches (this device), shown in the dropdown while the search box is empty.
+const RECENT_SEARCHES_KEY = 'recentSearches';
+const RECENT_SEARCHES_MAX = 5;
+const loadRecentSearches = () => {
+    try {
+        const list = JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || '[]');
+        return Array.isArray(list) ? list.filter(s => typeof s === 'string').slice(0, RECENT_SEARCHES_MAX) : [];
+    } catch { return []; }
+};
 
 const CARD_SIZE_MIN = 80;
 const CARD_SIZE_MAX = 320;
@@ -94,7 +111,42 @@ function FilterPicker({
     const [sortBy, setSortBy] = useState(localStorage.getItem("sortBy") || "alphabet");
     const [filterText, setFilterText] = useState(localStorage.getItem("filterText") || "");
     const [sortAsc, setSortAsc] = useState(localStorage.getItem("sortAsc") !== "false");
-    const [randomPicks, setRandomPicks] = useState(null);
+    // Random picks outlive the picker closing (e.g. opening one of them), so they're stored and
+    // restored until re-rolled or cleared — every setRandomPicks(null) below drops them for good.
+    const [randomPicks, setRandomPicks] = useState(() => {
+        try {
+            const saved = JSON.parse(localStorage.getItem('randomPicks'));
+            return Array.isArray(saved) && saved.length ? saved : null;
+        } catch { return null; }
+    });
+    useEffect(() => {
+        try {
+            if (randomPicks) localStorage.setItem('randomPicks', JSON.stringify(randomPicks));
+            else localStorage.removeItem('randomPicks');
+        } catch {}
+    }, [randomPicks]);
+    // Genre bubbles above the cards: the selected tab's IMDb genres ({ [folder]: [{ name, count }] })
+    // and the one filtering the list (applied server-side, so it covers the whole tab).
+    const [genre, setGenre] = useState(null);
+    const genreRef = useRef(null);
+    genreRef.current = genre;
+    const [genreLists, setGenreLists] = useState({});
+    // Same for original language (Japanese, English, …), its own row of bubbles below the genres.
+    const [language, setLanguage] = useState(null);
+    const languageRef = useRef(null);
+    languageRef.current = language;
+    const [languageLists, setLanguageLists] = useState({});
+    // The genre/language bubble rows only show when this toolbar toggle is on (remembered).
+    const [showTagFilters, setShowTagFilters] = useState(() => {
+        try { return localStorage.getItem('showTagFilters') === 'true'; } catch { return false; }
+    });
+    const toggleTagFilters = () => {
+        const next = !showTagFilters;
+        setShowTagFilters(next);
+        try { localStorage.setItem('showTagFilters', String(next)); } catch {}
+        // Hidden filters shouldn't keep narrowing the list out of sight.
+        if (!next) { setGenre(null); setLanguage(null); }
+    };
     // Whether to hide items already picked up by the yt-dlp download history/job matching below.
     // That matching is a folder+filename string match against download records — if a download's
     // recorded destination ever drifts from where the file actually landed (renamed, re-organized,
@@ -670,9 +722,15 @@ function FilterPicker({
         tabItemsRef.current = { ...tabItemsRef.current, [folder]: loadingEntry };
         setTabItems(prev => ({ ...prev, [folder]: loadingEntry }));
         const offset = loadingEntry.offset;
+        const requestedGenre = genreRef.current;
+        const requestedLanguage = languageRef.current;
         try {
             const params = new URLSearchParams({ folder, offset: String(offset), limit: String(PAGE_SIZE), folderSort: sortBy, folderOrder: sortAsc ? 'asc' : 'desc' });
+            if (requestedGenre) params.set('genre', requestedGenre);
+            if (requestedLanguage) params.set('language', requestedLanguage);
             const res = await authFetch(`${apiUrl}?${params.toString()}`);
+            // The genre/language changed while this was in flight — its reset fetch owns the list now.
+            if (genreRef.current !== requestedGenre || languageRef.current !== requestedLanguage) return tabItemsRef.current[folder];
             if (!res.ok) {
                 const failedEntry = { ...tabItemsRef.current[folder], loading: false };
                 tabItemsRef.current = { ...tabItemsRef.current, [folder]: failedEntry };
@@ -738,7 +796,10 @@ function FilterPicker({
                 await authFetch(refreshUrl, { method: 'POST' }).catch(() => {});
             }
             await fetchTabs();
-            if (selectedFolder) await fetchTabPage(selectedFolder, { reset: true });
+            if (selectedFolder) {
+                fetchGenres(selectedFolder);
+                await fetchTabPage(selectedFolder, { reset: true });
+            }
         } catch (e) {
             console.error(e);
         } finally {
@@ -844,6 +905,37 @@ function FilterPicker({
         fetchTabPage(selectedFolder, { reset: true });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedFolder]);
+
+    const fetchGenres = async (folder) => {
+        if (!folder || folder === FAVORITES_TAB) return;
+        try {
+            const res = await authFetch(`${apiUrl}/genres?folder=${encodeURIComponent(folder)}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            setGenreLists(prev => ({ ...prev, [folder]: data.genres || [] }));
+            setLanguageLists(prev => ({ ...prev, [folder]: data.languages || [] }));
+        } catch {}
+    };
+
+    // A genre/language belongs to one tab: switching tabs drops it.
+    useEffect(() => {
+        setGenre(null);
+        setLanguage(null);
+        if (selectedFolder && !genreLists[selectedFolder]) fetchGenres(selectedFolder);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedFolder]);
+
+    // Genre or language picked/cleared — reload from page 1 with it. Other tabs' loaded pages were fetched
+    // under the old genre, so they're dropped too rather than shown unfiltered/mis-filtered later.
+    const isFirstGenre = useRef(true);
+    useEffect(() => {
+        if (isFirstGenre.current) { isFirstGenre.current = false; return; }
+        setRandomPicks(null);
+        tabItemsRef.current = {};
+        setTabItems({});
+        if (selectedFolder) fetchTabPage(selectedFolder, { reset: true });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [genre, language]);
 
     // Sort changed — the ordering is applied server-side, so reload the current tab from
     // page 1 rather than trying to re-sort whatever partial set happens to be loaded.
@@ -962,13 +1054,43 @@ function FilterPicker({
         return searchResults.items.slice(0, 8).map(item => item.folder);
     }, [filterText, searchResults.items]);
 
+    // Search runs as you type, so there's no submit: a search counts once it's been picked from
+    // the dropdown, Entered, or left alone for a moment. Typing "nig" → "night" keeps only
+    // "night" (a newer search replaces the ones it extends).
+    const [recentSearches, setRecentSearches] = useState(loadRecentSearches);
+    const rememberSearch = useCallback((text) => {
+        const s = (text || '').trim().toLowerCase();
+        if (s.length < 2) return;
+        setRecentSearches(prev => {
+            const next = [s, ...prev.filter(p => p !== s && !s.startsWith(p))].slice(0, RECENT_SEARCHES_MAX);
+            try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next)); } catch {}
+            return next;
+        });
+    }, []);
+    const forgetSearch = (s) => {
+        setRecentSearches(prev => {
+            const next = prev.filter(p => p !== s);
+            try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next)); } catch {}
+            return next;
+        });
+    };
+    useEffect(() => {
+        if (!filterText) return;
+        const t = setTimeout(() => rememberSearch(filterText), 1500);
+        return () => clearTimeout(t);
+    }, [filterText, rememberSearch]);
+
+    // What the dropdown lists: matches while typing, recent searches while the box is empty.
+    const dropdownItems = filterText ? suggestions : recentSearches;
+
     const applySuggestion = useCallback((value) => {
+        rememberSearch(value);
         setFilterText(value.toLowerCase());
         localStorage.setItem("filterText", value.toLowerCase());
         setShowSuggestions(false);
         setSuggestionIndex(-1);
         setRandomPicks(null);
-    }, []);
+    }, [rememberSearch]);
 
     const textChanged = (e) => {
         const val = e.target.value.toLowerCase();
@@ -979,12 +1101,22 @@ function FilterPicker({
         setRandomPicks(null);
     };
 
+    const clearSearch = () => {
+        setFilterText('');
+        localStorage.setItem("filterText", '');
+        setShowSuggestions(false);
+        setSuggestionIndex(-1);
+        setRandomPicks(null);
+        searchRef.current?.querySelector('input')?.focus();
+    };
+
     const onSearchKeyDown = (e) => {
-        if (!showSuggestions || suggestions.length === 0) return;
+        if (e.key === 'Enter' && suggestionIndex < 0 && filterText) rememberSearch(filterText);
+        if (!showSuggestions || dropdownItems.length === 0) return;
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             e.stopPropagation();
-            setSuggestionIndex(i => Math.min(i + 1, suggestions.length - 1));
+            setSuggestionIndex(i => Math.min(i + 1, dropdownItems.length - 1));
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             e.stopPropagation();
@@ -992,7 +1124,7 @@ function FilterPicker({
         } else if (e.key === 'Enter') {
             if (suggestionIndex >= 0) {
                 e.preventDefault();
-                applySuggestion(suggestions[suggestionIndex]);
+                applySuggestion(dropdownItems[suggestionIndex]);
             }
         } else if (e.key === 'Escape') {
             setShowSuggestions(false);
@@ -1122,6 +1254,23 @@ function FilterPicker({
         setEpisodePanel({ title, image, videos, srts, filters, names });
     };
 
+    // A multi-episode title as parallel arrays (index i = episode i) for the episode panel and
+    // currentList. Subtitles/filters are paired to their episode by name, not list position.
+    const episodeListOf = (item) => {
+        const pairs = pairEpisodeFiles(
+            item.files.filter(f => f.type === 'MEDIA'),
+            item.files.filter(f => f.type === 'SRT'),
+            item.files.filter(f => f.type === 'FILTER'),
+        );
+        const staticUrl = (f) => f ? withToken(`${path}/${item.folder}/${f.name}`) : undefined;
+        return {
+            names: pairs.map(p => p.video.name),
+            videos: pairs.map(p => withToken(`${videoPath}/${item.folder}/${p.video.name}`)),
+            srts: pairs.map(p => staticUrl(p.srt)),
+            filters: pairs.map(p => staticUrl(p.filter)),
+        };
+    };
+
     const closeEpisodePanel = (e) => {
         e?.stopPropagation();
         setEpisodePanel(null);
@@ -1171,18 +1320,14 @@ function FilterPicker({
     const openItem = (item) => {
         const isMulti = item.files.filter(f => f.type === 'MEDIA').length > 1;
         if (isMulti) {
-            let imageFiles = item.files.filter(f => f.type === 'IMAGE');
-            let videos = item.files.filter(f => f.type === 'MEDIA');
-            let srts = item.files.filter(f => f.type === 'SRT');
-            let filters = item.files.filter(f => f.type === 'FILTER');
-            const image = imageFiles.length ? withToken(`${path}/${item.folder}/${imageFiles[0].name}`) : '';
-            openEpisodePanel({ title: item.folder, image, names: videos.map(v => v.name), videos: videos.map(v => withToken(`${videoPath}/${item.folder}/${v.name}`)), srts: srts.map(s => withToken(`${path}/${item.folder}/${s.name}`)), filters: filters.map(f => withToken(`${path}/${item.folder}/${f.name}`)) });
+            const image = titleImage(localStorage.getItem('domain'), item);
+            openEpisodePanel({ title: item.folder, image, ...episodeListOf(item) });
         } else {
             const imageFiles = item.files.filter(f => f.type === 'IMAGE');
             const videoFile = item.files.find(f => f.type === 'MEDIA');
             const srtFile = item.files.find(f => f.type === 'SRT');
             const filterFile = item.files.find(f => f.type === 'FILTER');
-            const image = imageFiles.length ? withToken(`${path}/${item.folder}/${imageFiles[0].name}`) : '';
+            const image = titleImage(localStorage.getItem('domain'), item);
             const video = videoFile ? withToken(`${videoPath}/${item.folder}/${videoFile.name}`) : undefined;
             const srt = srtFile ? withToken(`${path}/${item.folder}/${srtFile.name}`) : undefined;
             const filter = filterFile ? withToken(`${path}/${item.folder}/${filterFile.name}`) : undefined;
@@ -1303,8 +1448,7 @@ function FilterPicker({
     // Current tab's loaded pages, or global search results while a search is active — both
     // already come back favorites-first and sorted server-side, so there's nothing left to do
     // here beyond hiding downloaded-only items (see downloadedFileKeys above).
-    const filteredItems = useMemo(() => {
-        const rawItems = isSearching ? searchResults.items : (tabItems[selectedFolder]?.items || []);
+    const withoutDownloaded = (rawItems) => {
         if (!hideDownloaded || !downloadedFileKeys.size) return rawItems;
         return rawItems
             .map(item => {
@@ -1315,7 +1459,11 @@ function FilterPicker({
                 return visibleFiles.length === originalFiles.length ? item : { ...item, files: visibleFiles };
             })
             .filter(Boolean);
-    }, [isSearching, searchResults.items, tabItems, selectedFolder, downloadedFileKeys, hideDownloaded]);
+    };
+    const filteredItems = useMemo(
+        () => withoutDownloaded(isSearching ? searchResults.items : (tabItems[selectedFolder]?.items || [])),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [isSearching, searchResults.items, tabItems, selectedFolder, downloadedFileKeys, hideDownloaded]);
 
     const toggleFavorite = (folder) => {
         setFavorites(prev => {
@@ -1335,14 +1483,23 @@ function FilterPicker({
     const displayItems = randomPicks || filteredItems;
 
     const pickRandom = async () => {
-        if (randomPicks) { setRandomPicks(null); return; }
-        if (!selectedFolder) return;
+        // Clicking again while picks are shown re-rolls them; the ✕ beside the button clears.
+        if (!selectedFolder && !isSearching) return;
         try {
-            const params = new URLSearchParams({ folder: selectedFolder, count: '5' });
+            // Picks come from what the list is filtered to right now: the search results while
+            // searching, else the tab narrowed to the selected genre/language. Extra candidates are asked
+            // for so hiding already-downloaded ones (as the list does) still leaves RANDOM_COUNT.
+            const params = new URLSearchParams({ count: String(RANDOM_COUNT * 3) });
+            if (isSearching) params.set('q', filterText);
+            else {
+                params.set('folder', selectedFolder);
+                if (genre) params.set('genre', genre);
+                if (language) params.set('language', language);
+            }
             const res = await authFetch(`${apiUrl}/random?${params.toString()}`);
             if (!res.ok) return;
             const data = await res.json();
-            setRandomPicks(data.items || []);
+            setRandomPicks(withoutDownloaded(data.items || []).slice(0, RANDOM_COUNT));
         } catch (e) { console.error(e); }
     };
 
@@ -1357,11 +1514,47 @@ function FilterPicker({
                             placeholder="Search..."
                             onChange={textChanged}
                             onKeyDown={onSearchKeyDown}
-                            onFocus={() => filterText && setShowSuggestions(true)}
+                            onFocus={() => setShowSuggestions(true)}
                             onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                             value={filterText}
                         />
-                        {showSuggestions && suggestions.length > 0 && (
+                        {filterText && (
+                            <button
+                                type="button"
+                                className="filters-search-clear"
+                                onMouseDown={e => e.preventDefault()}
+                                onClick={clearSearch}
+                                title="Clear search"
+                                aria-label="Clear search"
+                            >
+                                <MdClose />
+                            </button>
+                        )}
+                        {showSuggestions && !filterText && recentSearches.length > 0 && (
+                            <ul className="filters-suggestions">
+                                <li className="filters-suggestions-heading">Recent searches</li>
+                                {recentSearches.map((s, i) => (
+                                    <li
+                                        key={s}
+                                        className={`filters-suggestion-item filters-recent-item${i === suggestionIndex ? ' filters-suggestion-item--active' : ''}`}
+                                        onMouseDown={() => applySuggestion(s)}
+                                    >
+                                        <MdHistory className="filters-recent-icon" />
+                                        <span className="filters-recent-text">{s}</span>
+                                        <button
+                                            type="button"
+                                            className="filters-recent-remove"
+                                            title="Remove from recent searches"
+                                            aria-label={`Remove ${s} from recent searches`}
+                                            onMouseDown={e => { e.preventDefault(); e.stopPropagation(); forgetSearch(s); }}
+                                        >
+                                            <MdClose />
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        {showSuggestions && filterText && suggestions.length > 0 && (
                             <ul className="filters-suggestions">
                                 {suggestions.map((s, i) => (
                                     <li
@@ -1380,10 +1573,24 @@ function FilterPicker({
                         {sortAsc ? <MdArrowUpward /> : <MdArrowDownward />}
                         {sortAsc ? 'Ascending' : 'Descending'}
                     </button>
-                    <button className={`filters-toolbar-btn ${randomPicks ? 'filters-toolbar-btn--active' : ''}`} onClick={pickRandom} title={randomPicks ? 'Clear random picks' : 'Random 5 picks'}>
+                    <button className={`filters-toolbar-btn ${randomPicks ? 'filters-toolbar-btn--active' : ''}`} onClick={pickRandom} title={randomPicks ? `Another ${RANDOM_COUNT} random picks` : `${RANDOM_COUNT} random picks`}>
                         <MdShuffle />
-                        {randomPicks ? 'Clear picks' : 'Random 5'}
+                        {randomPicks ? 'Shuffle again' : `Random ${RANDOM_COUNT}`}
                     </button>
+                    <button
+                        className={`filters-toolbar-btn ${showTagFilters ? 'filters-toolbar-btn--active' : ''}`}
+                        onClick={toggleTagFilters}
+                        aria-pressed={showTagFilters}
+                        title={showTagFilters ? 'Hide genre & language filters' : 'Show genre & language filters'}
+                    >
+                        <MdFilterAlt />
+                        Filters
+                    </button>
+                    {randomPicks && (
+                        <button className="filters-toolbar-btn filters-random-clear" onClick={() => setRandomPicks(null)} title="Clear random picks" aria-label="Clear random picks">
+                            <MdClose />
+                        </button>
+                    )}
                     {downloadedFileKeys.size > 0 && (
                         <button
                             className={`filters-toolbar-btn ${!hideDownloaded ? 'filters-toolbar-btn--active' : ''}`}
@@ -1481,6 +1688,49 @@ function FilterPicker({
                         </>
                     )}
                 </div>
+                {showTagFilters && !isSearching && (genreLists[selectedFolder] || []).length > 0 && (
+                    <div className="genre-chips" role="toolbar" aria-label="Filter by genre">
+                        <button
+                            className={`genre-chip${!genre ? ' genre-chip--active' : ''}`}
+                            aria-pressed={!genre}
+                            onClick={() => setGenre(null)}
+                        >
+                            All
+                        </button>
+                        {genreLists[selectedFolder].map(g => (
+                            <button
+                                key={g.name}
+                                className={`genre-chip${genre === g.name ? ' genre-chip--active' : ''}`}
+                                aria-pressed={genre === g.name}
+                                onClick={() => setGenre(cur => (cur === g.name ? null : g.name))}
+                            >
+                                {g.name}<span className="genre-chip-count">{g.count}</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
+                {/* One language alone isn't worth filtering by. */}
+                {showTagFilters && !isSearching && (languageLists[selectedFolder] || []).length > 1 && (
+                    <div className="genre-chips language-chips" role="toolbar" aria-label="Filter by language">
+                        <button
+                            className={`genre-chip${!language ? ' genre-chip--active' : ''}`}
+                            aria-pressed={!language}
+                            onClick={() => setLanguage(null)}
+                        >
+                            All languages
+                        </button>
+                        {languageLists[selectedFolder].map(l => (
+                            <button
+                                key={l.name}
+                                className={`genre-chip${language === l.name ? ' genre-chip--active' : ''}`}
+                                aria-pressed={language === l.name}
+                                onClick={() => setLanguage(cur => (cur === l.name ? null : l.name))}
+                            >
+                                {l.name}<span className="genre-chip-count">{l.count}</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
                 {showNewFolder && (
                     <div className="folder-new-input-row">
                         <input
@@ -1622,20 +1872,16 @@ function FilterPicker({
                                         onDragStart={isAdmin ? e => { e.dataTransfer.setData('text/plain', item.folder); dragItem.current = item.folder;} : undefined}
                                         dropTarget={isAdmin && cardDragOver === item.folder}
                                         folderKey={item.folder}
+                                        imdbFile={item.files.find(f => f.type === 'MEDIA')?.name}
                                         onAskAI={() => setAiItem(item)}
+                                        onImdb={() => openImdb(item.folder, item.files.find(f => f.type === 'MEDIA')?.name)}
                                     />
                                 );
                             }
 
                             if (isMultiEpisode) {
-                                let imageFiles = item.files.filter(f => f.type === 'IMAGE');
-                                let videos = item.files.filter(f => f.type === 'MEDIA');
-                                let srts = item.files.filter(f => f.type === 'SRT');
-                                let filters = item.files.filter(f => f.type === 'FILTER');
-                                const image = imageFiles.length ? withToken(`${path}/${item.folder}/${imageFiles[0].name}`) : '';
-                                videos = videos.map(v => withToken(`${videoPath}/${item.folder}/${v.name}`));
-                                srts = srts.map(s => withToken(`${path}/${item.folder}/${s.name}`));
-                                filters = filters.map(f => withToken(`${path}/${item.folder}/${f.name}`));
+                                const image = titleImage(localStorage.getItem('domain'), item);
+                                const episodeCount = item.files.filter(f => f.type === 'MEDIA').length;
 
                                 return (
                                     <FileRecord
@@ -1647,8 +1893,8 @@ function FilterPicker({
                                         imgSrc={image}
                                         title={item.folder}
                                         isMultiEpisode
-                                        episodeCount={videos.length}
-                                        copy={() => openEpisodePanel({ title: item.folder, image, names: item.files.filter(f => f.type === 'MEDIA').map(v => v.name), videos, srts, filters })}
+                                        episodeCount={episodeCount}
+                                        copy={() => openEpisodePanel({ title: item.folder, image, ...episodeListOf(item) })}
                                         onGenerateFilter={isAdmin ? () => generateFilter(item.files.filter(f => f.type === 'MEDIA').map(v => `${item.folder}/${v.name}`)) : undefined}
                                         aiFilterProgress={isAdmin ? filterProgressFor(item.folder) : null}
                                         onRename={isAdmin ? newName => renameFolder(item, newName) : undefined}
@@ -1658,7 +1904,9 @@ function FilterPicker({
                                         onDragStart={isAdmin ? e => { e.dataTransfer.setData('text/plain', item.folder); dragItem.current = item.folder;} : undefined}
                                         dropTarget={isAdmin && cardDragOver === item.folder}
                                         folderKey={item.folder}
+                                        imdbFile={item.files.find(f => f.type === 'MEDIA')?.name}
                                         onAskAI={() => setAiItem(item)}
+                                        onImdb={() => openImdb(item.folder, item.files.find(f => f.type === 'MEDIA')?.name)}
                                     />
                                 );
                             } else {
@@ -1666,7 +1914,7 @@ function FilterPicker({
                                 let videoFile = item.files.find(f => f.type === 'MEDIA');
                                 let srtFile = item.files.find(f => f.type === 'SRT');
                                 let filterFile = item.files.find(f => f.type === 'FILTER');
-                                const image = imageFiles.length ? withToken(`${path}/${item.folder}/${imageFiles[0].name}`) : "";
+                                const image = titleImage(localStorage.getItem('domain'), item);
                                 const video = videoFile ? withToken(`${videoPath}/${item.folder}/${videoFile.name}`) : undefined;
                                 const srt = srtFile ? withToken(`${path}/${item.folder}/${srtFile.name}`) : undefined;
                                 const filter = filterFile ? withToken(`${path}/${item.folder}/${filterFile.name}`) : undefined;
@@ -1696,7 +1944,9 @@ function FilterPicker({
                                         onDragStart={isAdmin ? e => { e.dataTransfer.setData('text/plain', item.folder); dragItem.current = item.folder;} : undefined}
                                         dropTarget={isAdmin && cardDragOver === item.folder}
                                         folderKey={item.folder}
+                                        imdbFile={item.files.find(f => f.type === 'MEDIA')?.name}
                                         onAskAI={() => setAiItem(item)}
+                                        onImdb={() => openImdb(item.folder, item.files.find(f => f.type === 'MEDIA')?.name)}
                                     />
                                 );
                             }

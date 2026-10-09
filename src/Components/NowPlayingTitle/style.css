@@ -1,0 +1,20 @@
+.App > div > p.now-playing-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: visible;
+    white-space: normal;
+    flex-wrap: wrap;
+}
+.now-playing-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.now-playing-imdb {
+    background: #f5c518; color: #000; border: none; border-radius: 4px;
+    font-weight: 800; font-size: 11px; padding: 2px 6px; cursor: pointer; font-family: inherit; letter-spacing: -0.02em;
+}
+.now-playing-imdb:hover { filter: brightness(1.1); }
+.now-playing-link {
+    background: none; border: 1px solid #3a3a58; border-radius: 4px; color: #b0aadd;
+    font-size: 11px; padding: 2px 6px; cursor: pointer; font-family: inherit;
+}
+.now-playing-link:hover { border-color: #6c63ff; color: #fff; }

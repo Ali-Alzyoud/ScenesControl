@@ -12,6 +12,7 @@ import {FaMinus} from 'react-icons/fa'
 
 import './style.css'
 import Utils from '../../utils/utils';
+import { libraryPath } from '../../common/episodes';
 
 const KEY = {
     N: 78,
@@ -278,32 +279,24 @@ function FilterFileEditor(props) {
     const saveRemote = async () => {
         const domain = localStorage.getItem('domain');
         if (!domain) { setToastText('No domain set'); return; }
-        let resolvedPath = filterPath ? filterPath.split('?')[0] : filterPath;
-        if (!resolvedPath && videoSrc) {
-            // Derive from video src: strip domain+/static or domain+/video prefix, append .txt
-            const staticBase = domain + '/static';
-            const videoBase = domain + '/video';
-            let relPath = videoSrc.startsWith(staticBase) ? videoSrc.slice(staticBase.length)
-                : videoSrc.startsWith(videoBase) ? videoSrc.slice(videoBase.length)
-                : videoSrc.startsWith(domain) ? videoSrc.slice(domain.length)
-                : videoSrc;
-            // videoSrc carries a ?token=... query string for playback auth — strip it before
-            // appending the extension, or it ends up embedded in the saved server path.
-            resolvedPath = relPath.split('?')[0] + '.txt';
+        // The filter's own library path, else the video's + ".txt". libraryPath decodes the URL
+        // ("%20" → " ") and accepts any address of the backend — saving the raw URL path wrote
+        // to a new "Title%20(1984)" folder beside the real one, and a URL on the other address
+        // (LAN vs Tailscale) wasn't recognised at all.
+        let filePath = filterPath ? libraryPath(filterPath, domain) : '';
+        if (!filePath && videoSrc) {
+            const rel = libraryPath(videoSrc, domain);
+            if (rel) filePath = rel + '.txt';
         }
-        if (!resolvedPath) {
+        if (filePath) {
+            filePath = '/' + filePath;
+        } else {
             const input = window.prompt('Enter server path to save filter:', `/${videoName}.txt`);
             if (!input) return;
-            resolvedPath = input.startsWith('/') ? input : '/' + input;
+            filePath = input.startsWith('/') ? input : '/' + input;
         }
 
         const content = SceneGuideClass.ToString(applyRawTextIfEditing());
-        const staticBase = domain + '/static';
-        const filePath = resolvedPath.startsWith(staticBase)
-            ? resolvedPath.slice(staticBase.length)
-            : resolvedPath.startsWith(domain)
-                ? resolvedPath.slice(domain.length)
-                : resolvedPath;
         try {
             const res = await authFetch(`${domain}/api/v1/files/save`, {
                 method: 'PUT',

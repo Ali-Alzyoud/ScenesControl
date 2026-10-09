@@ -1,281 +1,73 @@
-/* ── Navbar ─────────────────────────────────────────────────── */
+/* ── Top bar ─────────────────────────────────────────────────── */
 .navbar {
-    overflow: visible;
-    background: #12121e;
-    border-bottom: 1px solid #2a2a40;
-    display: flex;
-    align-items: stretch;
-    flex-wrap: wrap;
-}
+    --nav-bg: #12121e;
+    --nav-line: #26263c;
+    --nav-text: #c8c8e8;
+    --nav-muted: #8a8ab0;
+    --nav-accent: #6c63ff;
+    --nav-accent-soft: #a89fff;
 
-.navbar a {
-    float: left;
-    font-size: 14px;
-    color: #c8c8e8;
-    text-align: center;
-    padding: 12px 16px;
-    text-decoration: none;
+    /* No sticky / z-index / backdrop-filter here: the app's modals (Settings, Library, Login…)
+       render inside this bar, and any of those makes the bar their containing block or stacking
+       context — position:fixed modals then lay out within the 52px bar instead of the viewport.
+       The page itself doesn't scroll, so the bar stays on top without them. */
     display: flex;
     align-items: center;
-    transition: background 0.15s, color 0.15s;
-}
-
-/* ── Dropdown trigger area ──────────────────────────────────── */
-.dropdown {
-    float: left;
-    overflow: visible;
-    position: relative;
-}
-
-.dropdown .dropbtn {
-    font-size: 14px;
-    border: none;
-    outline: none;
-    color: #c8c8e8;
-    padding: 12px 16px;
-    background: transparent;
-    font-family: inherit;
-    margin: 0;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    white-space: nowrap;
-}
-
-.dropbtn.blue {
-    color: #a89fff;
-    font-weight: 600;
-}
-
-.navbar a:hover,
-.dropdown:hover .dropbtn {
-    background: #1e1e30;
-    color: #ffffff;
-}
-
-/* ── Dropdown panel ─────────────────────────────────────────── */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background: #1a1a2e;
-    border: 1px solid #2a2a40;
-    min-width: 180px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-    z-index: 100;
-    border-radius: 0 0 8px 8px;
-}
-
-.dropdown-content a {
-    float: none;
-    color: #c8c8e8;
-    padding: 11px 16px;
-    text-decoration: none;
-    display: block;
-    text-align: left;
-    font-size: 13px;
-    transition: background 0.15s;
-}
-
-.dropdown-content a:hover {
-    background: #2a2a44;
-    color: #ffffff;
-}
-
-.dropdown-content div:hover {
-    background: #2a2a44;
-}
-
-/* Direct child only — a submenu-panel is also .dropdown-content, but nested several levels
-   deeper inside .menu-root, so a descendant selector here would reveal every submenu at once
-   as soon as the Menu button is hovered. Each submenu-panel's own visibility is governed
-   separately below by .dropdown-submenu:hover. */
-.dropdown:hover > .dropdown-content {
-    display: block;
-}
-
-.dropdown-content a.blue {
-    color: #a89fff;
-    font-weight: 600;
-}
-
-/* ── Nested submenus (File / Load from URL / Connection / Account) ── */
-.dropdown-submenu {
-    position: relative;
-}
-
-.dropdown-submenu > .submenu-label {
-    display: block;
-    padding: 11px 16px;
-    font-size: 13px;
-    color: #c8c8e8;
-    cursor: default;
-    user-select: none;
-    transition: background 0.15s, color 0.15s;
-}
-
-.dropdown-submenu > .submenu-label::after {
-    content: '\203A';
-    float: right;
-    margin-left: 10px;
-    color: #6a6a90;
-}
-
-.dropdown-submenu:hover > .submenu-label {
-    background: #2a2a44;
-    color: #ffffff;
-}
-
-.dropdown-submenu > .submenu-panel {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 100%;
-}
-
-.dropdown-submenu:hover > .submenu-panel {
-    display: block;
-}
-
-/* Buttons that live inside a dropdown panel (Connection submenu) render as flat
-   list rows, matching the <a> items around them, instead of the old standalone pill style. */
-.dropdown-content button {
-    display: block;
-    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 52px;
+    padding: 0 10px;
+    padding-top: env(safe-area-inset-top, 0px);
     box-sizing: border-box;
-    background: transparent;
-    border: none;
-    outline: none;
-    margin: 0;
-    font-family: inherit;
-    color: #c8c8e8;
-    padding: 11px 16px;
-    text-align: left;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background 0.15s;
+    background: var(--nav-bg);
+    border-bottom: 1px solid var(--nav-line);
 }
 
-.dropdown-content button:hover {
-    background: #2a2a44;
-    color: #ffffff;
-}
-
-.connection-panel {
-    min-width: 220px;
-    padding: 10px 0;
-}
-
-.connection-panel > input {
-    display: block;
-    margin: 4px 16px 10px;
-    width: calc(100% - 32px);
-}
-
-/* ── URL dropdown (files variant) ───────────────────────────── */
-.dropdown-content.files {
-    min-width: 280px;
-    padding: 12px 0 4px;
-}
-
-.dropdown-content.files > span {
-    display: inline-block;
-    margin-left: 12px;
-    margin-top: 6px;
-    width: 80px;
-    text-align: left;
-    font-size: 12px;
-    color: #9090bb;
-}
-
-.dropdown-content.files > input {
-    margin: 4px 12px;
-    background: #0e0e1a;
-    border: 1px solid #333355;
-    border-radius: 5px;
-    color: #e0e0f0;
-    padding: 5px 8px;
-    font-size: 12px;
-    width: calc(100% - 28px);
-    box-sizing: border-box;
-    outline: none;
-}
-
-.dropdown-content.files > input:focus {
-    border-color: #6c63ff;
-}
-
-.dropdown-content.files > a {
-    background: #6c63ff22;
-    color: #a89fff;
-    margin: 8px 12px 4px;
-    text-align: center;
-    border-radius: 6px;
-    border: 1px solid #6c63ff44;
-    width: calc(100% - 24px);
-    box-sizing: border-box;
-    font-weight: 600;
-    font-size: 13px;
-    transition: background 0.15s;
-}
-
-.dropdown-content.files > a:hover {
-    background: #6c63ff44;
-    color: #ffffff;
-}
-
-/* Domain / meta input */
-.navbar input[type="text"],
-.navbar input:not([type]) {
-    background: #0e0e1a;
-    border: 1px solid #333355;
-    border-radius: 6px;
-    color: #e0e0f0;
-    padding: 6px 10px;
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.18s;
-    width: 100%;
-}
-
-.navbar input[type="text"]:focus,
-.navbar input:not([type]):focus {
-    border-color: #6c63ff;
-}
-
-.navbar input::placeholder {
-    color: #555577;
-}
-
-/* ── Quick actions (Show Store, Login/Logout) — kept out of the Menu dropdown since
-   they're the most frequently used actions ─────────────────────────────────────── */
-.navbar-quick-actions {
-    margin-left: auto;
+.navbar-left {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
     align-items: center;
     gap: 6px;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 6px 10px;
+    min-width: 0;
 }
 
-.navbar-quick-actions button {
-    background: #1e1e30;
-    border: 1px solid #2a2a40;
-    border-radius: 6px;
-    color: #c8c8e8;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-family: inherit;
+.navbar-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--nav-text);
+    font-size: 24px;
     cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.navbar-menu-btn:hover,
+.navbar-menu-btn:focus-visible { background: #1e1e32; color: #fff; outline: none; }
+
+.navbar-brand {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #ececff;
     white-space: nowrap;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.navbar-quick-actions button:hover {
-    background: #2a2a44;
-    border-color: #6c63ff66;
-    color: #ffffff;
+.navbar-quick-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0;
+    /* Never let a button be pushed off-screen or under the Android app's overlay button: if they
+       truly can't fit on one line (narrow phone, zoomed WebView), they wrap instead. */
+    flex-wrap: wrap;
+    padding: 6px 0;
 }
 
 /* The Android app overlays a 48px settings button 8px from the top-right corner; App.js sizes
@@ -284,15 +76,392 @@ html.in-app .navbar-quick-actions {
     padding-right: var(--app-overlay-inset, 64px);
 }
 
-.navbar-quick-actions .navbar-icon-btn {
-    padding: 5px;
-    font-size: 18px;
-    line-height: 0;
+.navbar-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px;
+    min-width: 38px;
+    padding: 0 10px;
+    border: 1px solid var(--nav-line);
+    border-radius: 10px;
+    background: #1a1a2b;
+    color: var(--nav-text);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.navbar-btn svg { font-size: 19px; flex-shrink: 0; }
+.navbar-btn:hover,
+.navbar-btn:focus-visible { background: #24243a; border-color: #6c63ff66; color: #fff; outline: none; }
+
+.navbar-btn--primary {
+    background: var(--nav-accent);
+    border-color: var(--nav-accent);
+    color: #fff;
+}
+.navbar-btn--primary:hover,
+.navbar-btn--primary:focus-visible { background: #7d75ff; border-color: #7d75ff; }
+
+.navbar-btn--signin {
+    border-color: #6c63ff88;
+    color: var(--nav-accent-soft);
+}
+
+/* Labels only where there's room; icons alone on phones. */
+.navbar-btn-label { display: none; }
+.navbar-btn-label--always { display: inline; }
+@media (min-width: 720px) {
+    .navbar-btn { padding: 0 14px; }
+    .navbar-btn-label { display: inline; }
+}
+/* On phones the title gives its room to the buttons. */
+@media (max-width: 560px) {
+    .navbar-brand { display: none; }
+    .navbar-quick-actions { gap: 4px; }
+    .navbar-btn { min-width: 36px; height: 36px; padding: 0 8px; }
 }
 
 /* Hidden file inputs */
 input.hidden {
     display: none;
+}
+
+/* ── Drawer ─────────────────────────────────────────────────── */
+.menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(4, 4, 12, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+}
+.menu-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.menu-drawer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1001;
+    width: min(360px, 88vw);
+    display: flex;
+    flex-direction: column;
+    background: #151524;
+    border-right: 1px solid #26263c;
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.55);
+    color: #c8c8e8;
+    text-align: left;
+    transform: translateX(-104%);
+    visibility: hidden;
+    transition: transform 0.26s cubic-bezier(.2,.8,.2,1), visibility 0s linear 0.26s;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    box-sizing: border-box;
+}
+.menu-drawer.is-open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.26s cubic-bezier(.2,.8,.2,1), visibility 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+    .menu-drawer, .menu-backdrop { transition: none; }
+}
+
+.menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 12px 14px 16px;
+    border-bottom: 1px solid #22223a;
+}
+
+.menu-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.menu-avatar {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c63ff, #9b59ff);
+    color: #fff;
+    font-weight: 800;
+    font-size: 18px;
+}
+.menu-user-text { display: flex; flex-direction: column; min-width: 0; }
+.menu-user-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f0f0ff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.menu-user-role { font-size: 12px; color: #8a8ab0; }
+
+.menu-close {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #a0a0c8;
+    font-size: 22px;
+    cursor: pointer;
+}
+.menu-close:hover,
+.menu-close:focus-visible { background: #22223a; color: #fff; outline: none; }
+
+.menu-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 0 12px;
+}
+
+.menu-signin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: calc(100% - 32px);
+    margin: 10px 16px 4px;
+    height: 46px;
+    border: none;
+    border-radius: 12px;
+    background: #6c63ff;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.menu-signin svg { font-size: 20px; }
+.menu-signin:hover,
+.menu-signin:focus-visible { background: #7d75ff; outline: 2px solid #fff3; outline-offset: 2px; }
+
+.menu-section { padding: 8px 0 4px; }
+.menu-section + .menu-section { border-top: 1px solid #1f1f34; }
+
+.menu-section-title {
+    margin: 6px 0 4px;
+    padding: 0 18px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6e6e98;
+}
+
+/* A row: icon · label (+ hint) · chevron. 52px tall — comfortable for a thumb. */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 52px;
+    padding: 6px 14px 6px 18px;
+    box-sizing: border-box;
+    border: none;
+    background: transparent;
+    color: #d6d6f0;
+    font-family: inherit;
+    font-size: 15px;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.12s;
+    -webkit-tap-highlight-color: transparent;
+}
+.menu-item:hover { background: #1e1e33; }
+.menu-item:active { background: #25253d; }
+.menu-item:focus-visible { background: #25253d; outline: 2px solid #6c63ff; outline-offset: -2px; }
+
+.menu-item-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #1f1f35;
+    color: #a89fff;
+    font-size: 20px;
+}
+.menu-item-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.menu-item-label { font-weight: 600; }
+.menu-item-hint {
+    font-size: 12px;
+    color: #8282a8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.menu-item-chevron { flex-shrink: 0; color: #4c4c70; font-size: 20px; transition: transform 0.2s; }
+
+.menu-item--accent .menu-item-icon { background: #6c63ff; color: #fff; }
+.menu-item--danger { color: #ff8a8a; }
+.menu-item--danger .menu-item-icon { background: #3a1820; color: #ff8a8a; }
+
+.menu-expander.is-open .menu-item-chevron { transform: rotate(180deg); }
+
+/* Open-from-device: a 2×2 grid of big tiles. */
+.menu-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 4px 16px 8px;
+}
+.menu-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 74px;
+    padding: 10px 6px;
+    border: 1px solid #26263e;
+    border-radius: 14px;
+    background: #1a1a2c;
+    color: #d6d6f0;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+    -webkit-tap-highlight-color: transparent;
+}
+.menu-tile:hover { background: #20203a; border-color: #6c63ff55; }
+.menu-tile:active { background: #26264a; }
+.menu-tile:focus-visible { border-color: #6c63ff; outline: 2px solid #6c63ff; outline-offset: 1px; }
+.menu-tile-icon { font-size: 24px; color: #a89fff; line-height: 0; }
+.menu-tile-label { font-size: 13px; font-weight: 600; }
+
+/* URL form / server address field */
+.menu-url-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 16px 12px;
+}
+.menu-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0 16px;
+}
+.menu-url-form .menu-field { padding: 0; }
+.menu-field > span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #8a8ab0;
+}
+.menu-field > input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #333355;
+    border-radius: 10px;
+    background: #0e0e1a;
+    color: #e8e8f8;
+    font-family: inherit;
+    font-size: 16px; /* 16px keeps iOS from zooming the page on focus */
+    outline: none;
+    transition: border-color 0.15s;
+}
+.menu-field > input:focus { border-color: #6c63ff; }
+.menu-field > input::placeholder { color: #50507a; }
+
+.menu-primary-btn {
+    height: 46px;
+    border: none;
+    border-radius: 12px;
+    background: #6c63ff;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.menu-primary-btn:hover:not(:disabled),
+.menu-primary-btn:focus-visible { background: #7d75ff; outline: none; }
+.menu-primary-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* Server: Home / Remote / Custom */
+.menu-segmented {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin: 4px 16px 10px;
+    padding: 4px;
+    border-radius: 12px;
+    background: #0e0e1a;
+    border: 1px solid #26263e;
+}
+.menu-segmented button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 38px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: #9a9ac0;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.menu-segmented button svg { font-size: 16px; }
+.menu-segmented button:hover { color: #fff; }
+.menu-segmented button.is-active { background: #6c63ff; color: #fff; }
+.menu-segmented button:focus-visible { outline: 2px solid #a89fff; outline-offset: -2px; }
+
+.menu-server-address {
+    margin: 0 18px 6px;
+    font-size: 12px;
+    color: #6e6e98;
+    word-break: break-all;
+}
+
+.menu-footer {
+    margin-top: 6px;
+    border-top: 1px solid #22223a;
+    padding: 4px 0 0;
+}
+.menu-footer .menu-item { min-height: 46px; font-size: 14px; }
+.menu-footer .menu-item-icon { width: 30px; height: 30px; font-size: 18px; background: transparent; color: #8a8ab0; }
+.menu-footer .menu-item--danger .menu-item-icon { color: #ff8a8a; }
+.menu-footer .menu-item-chevron { display: none; }
+
+/* A global rule strokes every svg faintly, which outlines the icons' invisible 24×24 frame path
+   as a box. Not wanted on any of the menu's icons. */
+.navbar svg,
+.menu-drawer svg {
+    stroke: none;
 }

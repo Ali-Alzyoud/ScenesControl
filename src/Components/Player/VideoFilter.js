@@ -5,7 +5,7 @@ import { selectTime, selectRecords, getRecordsAtTime, selectPlayerConfig, select
 import { setMute, setTime, setSpeed, setDrawingRect, setDrawingEnabled, updateFilterItem, setSelectedFilterItems } from "../../redux/actions";
 import { PLAYER_ACTION } from '../../redux/actionTypes';
 import { SCENETYPE_ARRAY } from "../../common/SceneGuide";
-import { useRectsHidden } from "../../common/editorState";
+import { useRectsHidden, useEditorOpen } from "../../common/editorState";
 
 const FILTER_TYPE = {
     NONE: 0,
@@ -124,6 +124,9 @@ function VideoFilter({
     const originalPoint = useRef({ x: 0, y: 0 });
     const [forceUpdate, setForceUpdate] = useState(0);
     const rectsHidden = useRectsHidden();
+    // While the filter editor is open nothing is filtered (no blur/black/skip/mute/2x) — the
+    // scenes are being looked at, not watched — but their rectangles are still outlined.
+    const editorOpen = useEditorOpen();
 
 
     useEffect(() => {
@@ -301,10 +304,12 @@ function VideoFilter({
             setMute(playerConfig.rightclick[1] == PLAYER_ACTION.MUTE);
             return;
         } else {
-            // No filter loaded, or it's being ignored (playerConfig.ignoreFilters).
-            if (!records || !records.length || playerConfig.ignoreFilters) {
-                setRecordRects([]);
+            // No filter loaded, it's being ignored (playerConfig.ignoreFilters), or it's being
+            // edited: play unfiltered. In the editor the current scenes' rectangles stay outlined.
+            if (!records || !records.length || playerConfig.ignoreFilters || editorOpen) {
+                setRecordRects(editorOpen && records?.length ? getRecordsAtTime(time).flatMap(r => r.geometries || []) : []);
                 setMute(false);
+                setSpeed(1.0); // a "2x" scene may have been playing when filtering stopped
                 if (filterType !== FILTER_TYPE.NONE)
                     setFilterType(FILTER_TYPE.NONE);
                 return;
@@ -389,7 +394,7 @@ function VideoFilter({
             setSpeed(1.0);
         }
 
-    }, [time, records, playerConfig, blurScreen]);
+    }, [time, records, playerConfig, blurScreen, editorOpen]);
 
     const class2 = `${blackScreen ? "video-filter-black" : getFilterClass(filterType)}`;
 
@@ -446,8 +451,14 @@ function VideoFilter({
             />
         ))}
 
-        {playerConfig.filterRect && recordRects && recordRects.length > 0 && recordRects.map((record) => {
+        {(playerConfig.filterRect || editorOpen) && recordRects && recordRects.length > 0 && recordRects.map((record) => {
             record = convertFromVideo(record);
+            if (editorOpen) return <div className="filter-rect-outline" style={{
+                left: record.left + 'px',
+                top: record.top + 'px',
+                width: record.width + 'px',
+                height: record.height + 'px',
+            }} />;
             return <div style={{
                 position: 'absolute',
                 background: filterType == FILTER_TYPE.BLACK ? 'black' : 'rgba(128,128,128,0.1)',

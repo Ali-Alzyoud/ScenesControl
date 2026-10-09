@@ -1007,3 +1007,157 @@
 .episode-filter-btn.has-filter { color: #7dd9a0; }
 .episode-filter-btn:hover { border-color: #6c63ff; color: #fff; }
 .episode-ai-progress { font-size: 11px; color: #c0b8ff; background: rgba(108, 99, 255, 0.25); border-radius: 8px; padding: 2px 6px; white-space: nowrap; }
+.file-record2-imdb-btn {
+    font-size: 11px !important;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #000 !important;
+    background: #f5c518 !important;
+    border-color: #f5c518 !important;
+}
+.file-record2-imdb-btn:hover { filter: brightness(1.1); }
+
+/* IMDb rating, bottom-left over the poster */
+.file-record2-rating {
+    position: absolute;
+    left: 7px;
+    bottom: 7px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px 2px 3px;
+    border-radius: 6px;
+    background: rgba(12,12,24,0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+    pointer-events: none;
+}
+.file-record2-rating-logo {
+    background: #f5c518;
+    color: #000;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+/* Genre bubbles above the cards (IMDb genres of the current tab) */
+.genre-chips {
+    display: flex;
+    gap: 6px;
+    padding: 4px 12px 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.genre-chips::-webkit-scrollbar { display: none; }
+@media (min-width: 720px) {
+    .genre-chips { flex-wrap: wrap; overflow-x: visible; }
+}
+/* The language row sits right under the genre row */
+.genre-chips + .language-chips { padding-top: 0; }
+.genre-chip {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid #2c2c48;
+    border-radius: 999px;
+    background: #1a1a2c;
+    color: #c8c8e8;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.genre-chip:hover { background: #23233a; border-color: #6c63ff66; color: #fff; }
+.genre-chip:focus-visible { outline: 2px solid #a89fff; outline-offset: 1px; }
+.genre-chip-count {
+    font-size: 11px;
+    font-weight: 700;
+    color: #7a7aa6;
+}
+.genre-chip--active,
+.genre-chip--active:hover {
+    background: #6c63ff;
+    border-color: #6c63ff;
+    color: #fff;
+}
+.genre-chip--active .genre-chip-count { color: #e2dfff; }
+
+/* ✕ beside the Random button while picks are shown */
+.filters-random-clear {
+    padding: 0 8px;
+    margin-left: -2px;
+}
+.filters-random-clear svg { font-size: 16px; }
+
+/* ✕ inside the search box */
+.filters-search-wrap .filters-container-input { padding-right: 36px; }
+.filters-search-clear {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #23233a;
+    color: #b0b0d0;
+    font-size: 16px;
+    cursor: pointer;
+}
+.filters-search-clear:hover,
+.filters-search-clear:focus-visible { background: #6c63ff; color: #fff; outline: none; }
+.filters-search-clear svg { stroke: none; }
+
+/* Recent searches (dropdown while the search box is empty) */
+.filters-suggestions-heading {
+    padding: 8px 14px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6e6e98;
+    cursor: default;
+}
+.filters-recent-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.filters-recent-icon { flex-shrink: 0; font-size: 16px; color: #7a7aa6; stroke: none; }
+.filters-recent-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.filters-recent-remove {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #7a7aa6;
+    font-size: 15px;
+    cursor: pointer;
+}
+.filters-recent-remove svg { stroke: none; }
+.filters-recent-remove:hover { background: #3a3a5c; color: #fff; }

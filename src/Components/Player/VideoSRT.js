@@ -31,7 +31,7 @@ function VideoSRT({ subtitle, subtitleDelay, subtitleSlope, time, fontSize, font
     return (
         <Fragment>
             <div style={style1}>
-                {parser(getSubtitleAtTime(time / subtitleSlope - subtitleDelay).join('\n'))}
+                {parser(getSubtitleAtTime((time - subtitleDelay) / subtitleSlope).join('\n'))}
             </div>
             <div style={style2}>
                 {parser(getSubtitleSyncAtTime(time).join('\n'))}

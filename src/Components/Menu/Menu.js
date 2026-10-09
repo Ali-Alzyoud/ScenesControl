@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import SrtClass from '../../common/SrtClass'
 import { SceneGuideClass } from '../../common/SceneGuide'
 import About from '../About'
@@ -12,9 +13,15 @@ import QRScanner from '../QRScanner/QRScanner'
 import RemoteControl from '../RemoteControl/RemoteControl'
 
 import { REMOTE_DOMAIN, apkDownloadUrl } from '../../common/domain';
-import { MdQrCodeScanner, MdSettingsRemote, MdVideoLibrary, MdLogin, MdLogout, MdClearAll } from 'react-icons/md';
+import {
+    MdMenu, MdClose, MdQrCodeScanner, MdSettingsRemote, MdVideoLibrary, MdLogin, MdLogout,
+    MdPlayCircleOutline, MdMovie, MdSubtitles, MdSync, MdFilterAlt, MdLink, MdStorefront,
+    MdSettings, MdInfoOutline, MdAndroid, MdDevices, MdAutoAwesome, MdHome, MdCloud, MdDns,
+    MdExpandMore, MdChevronRight,
+} from 'react-icons/md';
 import { connect } from "react-redux";
-import { setFilterItems, setVideoSrc, setSubtitle, setSubtitleSync, setVideoName, setTime, setDuration } from '../../redux/actions'
+import { setFilterItems, setVideoSrc, setSubtitle, setSubtitleSync, setVideoName, setTime, setDuration, setModalOpen } from '../../redux/actions'
+import { selectVideoName } from '../../redux/selectors'
 
 import './menu.css'
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal'
@@ -25,20 +32,77 @@ const API = "/api/v1/files";
 const API_FILES = "/static";
 const API_VIDEO = "/video";
 
+const homeDomain = () => `https://${window.location.hostname}:4443`;
 
-function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubtitleSync, setTime, setDuration }) {
+// The list being played through (series episodes etc.) and where in it — for "Resume".
+const resumeTarget = () => {
+    try {
+        const index = Number(localStorage.currentListIndex);
+        const { videos, srts, filters } = JSON.parse(localStorage.currentList);
+        if (!(index >= 0 && index < videos?.length) || !videos[index]) return null;
+        const name = decodeURIComponent(videos[index].split('?')[0].split('/').pop() || '');
+        return { video: videos[index], srt: srts?.[index], filter: filters?.[index], name };
+    } catch {
+        return null;
+    }
+};
+
+// Same as the old Clear content / Log out buttons: also cancels anything cast to this screen.
+const cancelRemotePlay = (keepalive = false) => {
+    const d = localStorage.getItem('domain');
+    const t = getToken();
+    if (d && t) fetch(`${d}/api/v1/remote/play`, { method: 'DELETE', headers: { Authorization: `Bearer ${t}` }, keepalive }).catch(() => {});
+};
+
+// A navigation differing from the current URL only by its hash (which this is, whenever a video's
+// open — the hash carries the video path) never reloads by itself, leaving Redux's videoSrc in
+// place. Writing the hash-free URL via replaceState first, then reloading, actually clears it.
+const reloadWithoutContent = () => {
+    window.history.replaceState({}, '', window.location.origin + window.location.pathname);
+    window.location.reload();
+};
+
+// A drawer row. A link (href) closes the drawer itself via onNavigate.
+const Item = ({ icon, label, hint, onClick, href, download, accent, danger, onNavigate }) => {
+    const cls = `menu-item${accent ? ' menu-item--accent' : ''}${danger ? ' menu-item--danger' : ''}`;
+    const body = (
+        <>
+            <span className="menu-item-icon">{icon}</span>
+            <span className="menu-item-text">
+                <span className="menu-item-label">{label}</span>
+                {hint && <span className="menu-item-hint">{hint}</span>}
+            </span>
+            <MdChevronRight className="menu-item-chevron" />
+        </>
+    );
+    return href
+        ? <a className={cls} href={href} download={download} data-menu-item onClick={onNavigate}>{body}</a>
+        : <button type="button" className={cls} data-menu-item onClick={onClick}>{body}</button>;
+};
+
+const Tile = ({ icon, label, onClick }) => (
+    <button type="button" className="menu-tile" data-menu-item onClick={onClick}>
+        <span className="menu-tile-icon">{icon}</span>
+        <span className="menu-tile-label">{label}</span>
+    </button>
+);
+
+function Menu({ videoName, setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubtitleSync, setTime, setDuration, setModalOpen }) {
     const videoInput = useRef(null);
     const subtitleInput = useRef(null);
     const subtitleSyncInput = useRef(null);
     const filterInput = useRef(null);
-    const videoInputURL = useRef(null);
-    const subtitleInputURL = useRef(null);
-    const filterInputURL = useRef(null);
     const [key, setkey] = useState(0);
     const [about, setabout] = useState(false);
     const [settings, setSettings] = useState(false);
     const [filterPicker, setfilterPicker] = useState(false);
     const [filterPicker2, setfilterPicker2] = useState(false);
+
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [urlFormOpen, setUrlFormOpen] = useState(false);
+    const [urls, setUrls] = useState({ video: '', subtitle: '', subtitleSync: '', filter: '' });
+    const drawerRef = useRef(null);
+    const menuBtnRef = useRef(null);
 
     const openVideoFile = (e) => {
         if (e.target.files.length < 1) return;
@@ -75,37 +139,32 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
         });
         setkey(key + 1);
     }
-    useEffect(() => {
-        fetch('videos.json').then(res => { res.json().then(() => {}); });
-    }, [])
     const loadURLS = () => {
-        const vidURL = videoInputURL.current.value;
-        const subURL = subtitleInputURL.current.value;
-        const subSyncURL = subtitleSyncInput.current.value;
-        const filURL = filterInputURL.current.value;
-
-        if (vidURL) {
-            setVideoSrc(vidURL);
+        const { video, subtitle, subtitleSync, filter } = urls;
+        if (video) {
+            setVideoSrc(video);
             setVideoName("URL");
         }
-        if (filURL) {
-            SceneGuideClass.ReadFile(filURL).then((records) => {
+        if (filter) {
+            SceneGuideClass.ReadFile(filter).then((records) => {
                 setFilterItems(records);
             });
         }
-        if (subURL) {
-            SrtClass.ReadFile(subURL).then((records) => {
+        if (subtitle) {
+            SrtClass.ReadFile(subtitle).then((records) => {
                 setSubtitle(records);
             });
         }
-        if (subSyncURL) {
-            SrtClass.ReadFile(subSyncURL).then((records) => {
+        if (subtitleSync) {
+            SrtClass.ReadFile(subtitleSync).then((records) => {
                 setSubtitleSync(records);
             });
         }
+        setDrawerOpen(false);
     }
 
     const [domain, setDomain] = useState(localStorage.getItem("domain"));
+    const [customDomainOpen, setCustomDomainOpen] = useState(false);
     const [loginOpen, setLoginOpen] = useState(false);
     const [sessionsOpen, setSessionsOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(getUser);
@@ -170,141 +229,195 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
         };
     }, []);
 
+    // While the drawer is open the player's own key handlers (seek/volume on arrows, space…) stand
+    // down, and focus moves into the drawer so a TV remote's D-pad can walk it.
+    useEffect(() => {
+        if (!drawerOpen) return;
+        setModalOpen(true);
+        const t = setTimeout(() => drawerRef.current?.querySelector('[data-menu-item]')?.focus(), 60);
+        return () => { clearTimeout(t); setModalOpen(false); };
+    }, [drawerOpen, setModalOpen]);
+
+    const closeDrawer = () => {
+        setDrawerOpen(false);
+        menuBtnRef.current?.focus();
+    };
+
+    // Runs a drawer action and closes the drawer.
+    const pick = (fn) => () => { setDrawerOpen(false); fn(); };
+
+    const onDrawerKeyDown = (e) => {
+        e.stopPropagation();
+        if (e.key === 'Escape' || e.key === 'GoBack' || e.keyCode === 4) { e.preventDefault(); closeDrawer(); return; }
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        // Text fields keep their own arrows only for the caret — up/down still move between items.
+        const items = [...drawerRef.current.querySelectorAll('[data-menu-item]')].filter(el => el.offsetParent !== null);
+        const i = items.indexOf(document.activeElement);
+        const next = items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length];
+        if (next) { e.preventDefault(); next.focus(); }
+    };
+
+    const logOut = () => {
+        cancelRemotePlay(true);
+        clearAuth();
+        setCurrentUser(null);
+        reloadWithoutContent();
+    };
+
+    const clearContent = () => {
+        debugLog('Clear content clicked', { hasDomain: !!localStorage.getItem('domain'), hasToken: !!getToken() });
+        cancelRemotePlay();
+        reloadWithoutContent();
+    };
+
+    const resume = drawerOpen ? resumeTarget() : null;
+    const serverMode = domain === REMOTE_DOMAIN ? 'remote' : domain === homeDomain() ? 'home' : 'custom';
+    const isAdmin = currentUser?.role === 'admin';
+
     return (
-        <div className="navbar" style={{ display: 'flex' }}>
-            <div className="dropdown">
-                <button className="dropbtn">Menu
+        <div className="navbar">
+            <input className='hidden' key={key + "_video"} ref={videoInput} type='file' onChange={openVideoFile} />
+            <input className='hidden' key={key + "_sub"} ref={subtitleInput} type='file' accept=".srt,.ass,.ssa,.vtt" onChange={openSubtitleFile} />
+            <input className='hidden' key={key + "_subsync"} ref={subtitleSyncInput} type='file' accept=".srt,.ass,.ssa,.vtt" onChange={openSubtitleFileSync} />
+            <input className='hidden' key={key + "_filter"} ref={filterInput} type='file' onChange={openFilterFile} />
+
+            <div className="navbar-left">
+                <button ref={menuBtnRef} className="navbar-menu-btn" aria-label="Open menu" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}>
+                    <MdMenu />
                 </button>
-                <div className="dropdown-content menu-root">
-                    <input className='hidden' key={key + "_1"} ref={videoInput} type='file' onChange={openVideoFile} />
-                    <input className='hidden' key={key + "_2"} ref={subtitleInput} type='file' accept=".srt,.ass,.ssa" onChange={openSubtitleFile} />
-                    <input className='hidden' key={key + "_2"} ref={subtitleSyncInput} type='file' accept=".srt,.ass,.ssa" onChange={openSubtitleFileSync} />
-                    <input className='hidden' key={key + "_3"} ref={filterInput} type='file' onChange={openFilterFile} />
-
-                    <div className="dropdown-submenu">
-                        <span className="submenu-label">File</span>
-                        <div className="dropdown-content submenu-panel">
-                            <a href="#" onClick={e => { e.preventDefault(); videoInput.current.click(); }}>Open video</a>
-                            <a href="#" onClick={e => { e.preventDefault(); subtitleInput.current.click(); }}>Open subtitle</a>
-                            <a href="#" onClick={e => { e.preventDefault(); subtitleSyncInput.current.click(); }}>Open subtitle Sync</a>
-                            <a href="#" onClick={e => { e.preventDefault(); filterInput.current.click(); }}>Open filter</a>
-                        </div>
-                    </div>
-
-                    <div className="dropdown-submenu">
-                        <span className="submenu-label">Load from URL</span>
-                        <div className="dropdown-content submenu-panel files">
-                            <span>{'Video :'}</span>
-                            <input ref={videoInputURL} type='text' />
-                            <br />
-                            <span>{'Subtitle :'}</span>
-                            <input ref={subtitleInputURL} type='text' />
-                            <br />
-                            <span>{'Filter :'}</span>
-                            <input ref={filterInputURL} type='text' />
-                            <br />
-                            <a href="#" onClick={e => { e.preventDefault(); loadURLS(); }}>LOAD</a>
-                        </div>
-                    </div>
-
-                    <a href="#" className="blue" onClick={e => { e.preventDefault(); setfilterPicker(true); }}>Store</a>
-                    <a href="#" onClick={e => { e.preventDefault(); setSettings(true); }}>Settings</a>
-                    <a href="#" onClick={e => { e.preventDefault(); setabout(true); }}>About</a>
-                    <a href={apkDownloadUrl()} download>Download App</a>
-                    {currentUser?.role === 'admin' && (
-                        <a href="#" onClick={e => { e.preventDefault(); setSessionsOpen(true); }}>Sessions</a>
-                    )}
-
-                    <div className="dropdown-submenu">
-                        <span className="submenu-label">Connection</span>
-                        <div className="dropdown-content submenu-panel connection-panel">
-                            <input value={domain} onChange={(e) => {
-                                setDomain(e.target.value);
-                            }} placeholder='Meta' />
-                            <button onClick={async () => {
-                                try {
-                                    const index = Number(localStorage.currentListIndex);
-                                    const { videos,
-                                        srts,
-                                        filters, } = JSON.parse(localStorage.currentList);
-                                    if (index < 0 || index >= videos?.length) return;
-                                    openContent({ video: videos[index], srt: srts[index], filter: filters[index] })
-                                } catch (error) {
-
-                                }
-
-                            }}>Resume</button>
-                            <button onClick={async () => {
-                                setDomain(REMOTE_DOMAIN);
-                            }}>Remote</button>
-                            <button onClick={async () => {
-                                setDomain(`https://${window.location.hostname}:4443`);
-                            }}>Local</button>
-                        </div>
-                    </div>
-
-                    <div className="dropdown-submenu">
-                        <span className="submenu-label">Account</span>
-                        <div className="dropdown-content submenu-panel">
-                            {currentUser && (
-                                <a href="#" onClick={e => { e.preventDefault(); setAiOpen(true); }}>AI</a>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <span className="navbar-brand">Scene Control</span>
             </div>
+
             <div className="navbar-quick-actions">
-                <button className="navbar-icon-btn" title="Show Store" aria-label="Show Store" onClick={showStore}>
-                    <MdVideoLibrary />
-                </button>
-                {currentUser ? (
-                    <button className="navbar-icon-btn" title={`Log out (${currentUser.username})`} aria-label="Log out" onClick={() => {
-                        // Logging out also clears what's on this screen (and any pending cast),
-                        // like the Clear content button.
-                        const d = localStorage.getItem('domain');
-                        const t = getToken();
-                        if (d && t) fetch(`${d}/api/v1/remote/play`, { method: 'DELETE', headers: { Authorization: `Bearer ${t}` }, keepalive: true }).catch(() => {});
-                        clearAuth();
-                        setCurrentUser(null);
-                        window.history.replaceState({}, '', window.location.origin + window.location.pathname);
-                        window.location.reload();
-                    }}>
-                        <MdLogout />
-                    </button>
-                ) : (
-                    <button className="navbar-icon-btn" title="Log in" aria-label="Log in" onClick={() => setLoginOpen(true)}>
-                        <MdLogin />
-                    </button>
-                )}
-                <button className="navbar-icon-btn" title="Clear content" aria-label="Clear content" onClick={() => {
-                    const d = localStorage.getItem('domain');
-                    const t = getToken();
-                    debugLog('Clear content clicked', { hasDomain: !!d, hasToken: !!t });
-                    if (d && t) {
-                        fetch(`${d}/api/v1/remote/play`, {
-                            method: 'DELETE',
-                            headers: { Authorization: `Bearer ${t}` },
-                        }).catch(() => {});
-                    }
-                    // A navigation differing from the current URL only by its hash (which this
-                    // is, whenever a video's open — the hash carries the video path) is a
-                    // same-document fragment navigation and never actually reloads the page by
-                    // itself, silently leaving Redux's videoSrc/videoName untouched. Writing the
-                    // hash-free URL via replaceState first, then reloading, actually clears it.
-                    window.history.replaceState({}, '', window.location.origin + window.location.pathname);
-                    window.location.reload();
-                }}>
-                    <MdClearAll />
-                </button>
-                <button className="navbar-icon-btn" title="Scan QR" aria-label="Scan QR" onClick={() => setQrScanOpen(true)}>
-                    <MdQrCodeScanner />
+                <button className="navbar-btn navbar-btn--primary" title="Library" aria-label="Library" onClick={showStore}>
+                    <MdVideoLibrary /><span className="navbar-btn-label">Library</span>
                 </button>
                 {currentUser && (
-                    <button className="navbar-icon-btn" title="Remote Control" aria-label="Remote Control" onClick={() => setRemoteControlOpen(true)}>
-                        <MdSettingsRemote />
+                    <button className="navbar-btn" title="Remote control" aria-label="Remote control" onClick={() => setRemoteControlOpen(true)}>
+                        <MdSettingsRemote /><span className="navbar-btn-label">Remote</span>
+                    </button>
+                )}
+                <button className="navbar-btn" title="Scan QR" aria-label="Scan QR" onClick={() => setQrScanOpen(true)}>
+                    <MdQrCodeScanner /><span className="navbar-btn-label">Scan</span>
+                </button>
+                {videoName && (
+                    <button className="navbar-btn" title="Close video" aria-label="Close video" onClick={clearContent}>
+                        <MdClose /><span className="navbar-btn-label">Close</span>
+                    </button>
+                )}
+                {!currentUser && (
+                    <button className="navbar-btn navbar-btn--signin" title="Sign in" aria-label="Sign in" onClick={() => setLoginOpen(true)}>
+                        <MdLogin /><span className="navbar-btn-label navbar-btn-label--always">Sign in</span>
                     </button>
                 )}
             </div>
+
+            {/* Portaled to <body>: the bar's backdrop-filter would otherwise make it the containing
+                block for these position:fixed layers, squashing the drawer into the bar. */}
+            {createPortal(<>
+            <div className={`menu-backdrop${drawerOpen ? ' is-open' : ''}`} onClick={closeDrawer} aria-hidden="true" />
+            <aside
+                ref={drawerRef}
+                className={`menu-drawer${drawerOpen ? ' is-open' : ''}`}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Menu"
+                aria-hidden={!drawerOpen}
+                inert={drawerOpen ? undefined : ''}
+                onKeyDown={onDrawerKeyDown}
+            >
+                <header className="menu-header">
+                    <div className="menu-user">
+                        <span className="menu-avatar">{currentUser ? (currentUser.username || '?').slice(0, 1).toUpperCase() : <MdLogin />}</span>
+                        <span className="menu-user-text">
+                            <span className="menu-user-name">{currentUser ? currentUser.username : 'Not signed in'}</span>
+                            <span className="menu-user-role">{currentUser ? (isAdmin ? 'Administrator' : currentUser.role || 'User') : 'Sign in to use your library'}</span>
+                        </span>
+                    </div>
+                    <button className="menu-close" aria-label="Close menu" data-menu-item onClick={closeDrawer}><MdClose /></button>
+                </header>
+
+                <div className="menu-scroll">
+                    {!currentUser && (
+                        <button className="menu-signin" data-menu-item onClick={pick(() => setLoginOpen(true))}>
+                            <MdLogin /> Sign in
+                        </button>
+                    )}
+
+                    <section className="menu-section">
+                        <h3 className="menu-section-title">Watch</h3>
+                        <Item icon={<MdVideoLibrary />} label="Library" hint="Movies, series & YouTube" accent onClick={pick(showStore)} />
+                        {resume && <Item icon={<MdPlayCircleOutline />} label="Resume" hint={resume.name} onClick={pick(() => openContent(resume))} />}
+                        {currentUser && <Item icon={<MdSettingsRemote />} label="Remote control" hint="Control another screen" onClick={pick(() => setRemoteControlOpen(true))} />}
+                        <Item icon={<MdQrCodeScanner />} label="Scan QR code" hint="Pair with a TV or sign in" onClick={pick(() => setQrScanOpen(true))} />
+                    </section>
+
+                    <section className="menu-section">
+                        <h3 className="menu-section-title">Open from this device</h3>
+                        <div className="menu-tiles">
+                            <Tile icon={<MdMovie />} label="Video" onClick={pick(() => videoInput.current.click())} />
+                            <Tile icon={<MdSubtitles />} label="Subtitle" onClick={pick(() => subtitleInput.current.click())} />
+                            <Tile icon={<MdSync />} label="Sync subtitle" onClick={pick(() => subtitleSyncInput.current.click())} />
+                            <Tile icon={<MdFilterAlt />} label="Scene filter" onClick={pick(() => filterInput.current.click())} />
+                        </div>
+                        <button type="button" className={`menu-item menu-expander${urlFormOpen ? ' is-open' : ''}`} data-menu-item aria-expanded={urlFormOpen} onClick={() => setUrlFormOpen(o => !o)}>
+                            <span className="menu-item-icon"><MdLink /></span>
+                            <span className="menu-item-text"><span className="menu-item-label">Open from URL</span></span>
+                            <MdExpandMore className="menu-item-chevron" />
+                        </button>
+                        {urlFormOpen && (
+                            <form className="menu-url-form" onSubmit={e => { e.preventDefault(); loadURLS(); }}>
+                                {[['video', 'Video URL'], ['subtitle', 'Subtitle URL'], ['subtitleSync', 'Sync subtitle URL'], ['filter', 'Filter URL']].map(([k, label]) => (
+                                    <label key={k} className="menu-field">
+                                        <span>{label}</span>
+                                        <input type="url" inputMode="url" data-menu-item value={urls[k]} placeholder="https://…" onChange={e => setUrls(u => ({ ...u, [k]: e.target.value }))} />
+                                    </label>
+                                ))}
+                                <button type="submit" className="menu-primary-btn" data-menu-item disabled={!Object.values(urls).some(Boolean)}>Load</button>
+                            </form>
+                        )}
+                    </section>
+
+                    <section className="menu-section">
+                        <h3 className="menu-section-title">Tools</h3>
+                        {currentUser && <Item icon={<MdAutoAwesome />} label="AI assistant" onClick={pick(() => setAiOpen(true))} />}
+                        <Item icon={<MdStorefront />} label="Online store" hint="Curated titles with scene filters" onClick={pick(() => setfilterPicker(true))} />
+                        {isAdmin && <Item icon={<MdDevices />} label="Sessions" hint="Signed-in devices" onClick={pick(() => setSessionsOpen(true))} />}
+                        <Item icon={<MdSettings />} label="Settings" onClick={pick(() => setSettings(true))} />
+                    </section>
+
+                    <section className="menu-section">
+                        <h3 className="menu-section-title">Server</h3>
+                        <div className="menu-segmented" role="radiogroup" aria-label="Server">
+                            <button type="button" role="radio" aria-checked={serverMode === 'home'} data-menu-item className={serverMode === 'home' ? 'is-active' : ''} onClick={() => { setDomain(homeDomain()); setCustomDomainOpen(false); }}>
+                                <MdHome /> Home
+                            </button>
+                            <button type="button" role="radio" aria-checked={serverMode === 'remote'} data-menu-item className={serverMode === 'remote' ? 'is-active' : ''} onClick={() => { setDomain(REMOTE_DOMAIN); setCustomDomainOpen(false); }}>
+                                <MdCloud /> Remote
+                            </button>
+                            <button type="button" role="radio" aria-checked={serverMode === 'custom'} data-menu-item className={serverMode === 'custom' || customDomainOpen ? 'is-active' : ''} onClick={() => setCustomDomainOpen(true)}>
+                                <MdDns /> Custom
+                            </button>
+                        </div>
+                        {(customDomainOpen || serverMode === 'custom') ? (
+                            <label className="menu-field">
+                                <span>Server address</span>
+                                <input type="url" inputMode="url" data-menu-item value={domain || ''} placeholder="https://host:4443" onChange={e => setDomain(e.target.value)} />
+                            </label>
+                        ) : (
+                            <p className="menu-server-address">{domain}</p>
+                        )}
+                    </section>
+
+                <footer className="menu-footer">
+                    <Item icon={<MdAndroid />} label="Get the Android app" href={apkDownloadUrl()} download onNavigate={() => setDrawerOpen(false)} />
+                    <Item icon={<MdInfoOutline />} label="About" onClick={pick(() => setabout(true))} />
+                    {currentUser && <Item icon={<MdLogout />} label="Log out" hint={currentUser.username} danger onClick={pick(logOut)} />}
+                </footer>
+                </div>
+            </aside>
+            </>, document.body)}
+
             {about && <About close={() => { setabout(false) }} />}
             {settings && <Settings close={() => { setSettings(false) }} />}
             {filterPicker && <FilterPicker close={() => { setfilterPicker(false) }} />}
@@ -319,6 +432,6 @@ function Menu({ setFilterItems, setVideoSrc, setVideoName, setSubtitle, setSubti
 }
 
 export default connect(
-    null,
-    { setVideoSrc, setVideoName, setSubtitle, setSubtitleSync, setFilterItems, setTime, setDuration }
+    state => ({ videoName: selectVideoName(state) }),
+    { setVideoSrc, setVideoName, setSubtitle, setSubtitleSync, setFilterItems, setTime, setDuration, setModalOpen }
 )(Menu);

@@ -24,17 +24,30 @@ export const setStreamMode = (value) => {
     window.dispatchEvent(new CustomEvent(STREAM_MODE_EVENT, { detail: value }));
 };
 
+// A library video's URL (…/video/<path>?token=…) moved onto this screen's own server address. A
+// cast from the phone carries the phone's address for the server (e.g. its Tailscale one), and a
+// TV set to the LAN address would otherwise stream the whole file the long way round. Anything
+// that isn't a library video URL is returned unchanged.
+export const onOwnServer = (videoSrc) => {
+    const domain = localStorage.getItem('domain');
+    if (!domain || !videoSrc) return videoSrc;
+    const m = /^[a-z]+:\/\/[^/]+(\/video\/.*)$/i.exec(videoSrc);
+    return m ? `${domain.replace(/\/+$/, '')}${m[1]}` : videoSrc;
+};
+
 // The HLS playlist URL for a server video URL (…/video/<path>?token=…) in the given mode, or null
-// when it should play directly (Direct mode, or not one of this server's files).
+// when it should play directly (Direct mode, or not a library video). The URL may name the server
+// by another address than this screen's (see onOwnServer) — the playlist always comes from ours.
 export const hlsUrlFor = (videoSrc, mode) => {
     const m = /^hls-(\d+)$/.exec(mode || '');
     if (!m || !videoSrc) return null;
     const domain = localStorage.getItem('domain');
-    if (!domain || !videoSrc.startsWith(`${domain}/video/`)) return null;
-    let rel = videoSrc.slice(`${domain}/video/`.length).split('?')[0];
+    const own = onOwnServer(videoSrc);
+    if (!domain || !own.startsWith(`${domain.replace(/\/+$/, '')}/video/`)) return null;
+    let rel = own.slice(`${domain.replace(/\/+$/, '')}/video/`.length).split('?')[0];
     try { rel = decodeURIComponent(rel); } catch {}
     let token = '';
     try { token = new URL(videoSrc).searchParams.get('token') || ''; } catch {}
     if (!token) token = localStorage.getItem('rc_auth_token') || '';
-    return `${domain}/hls/index.m3u8?${new URLSearchParams({ path: rel, q: m[1], token })}`;
+    return `${domain.replace(/\/+$/, '')}/hls/index.m3u8?${new URLSearchParams({ path: rel, q: m[1], token })}`;
 };

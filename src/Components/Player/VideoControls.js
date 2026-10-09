@@ -116,10 +116,10 @@ export const findSubtitlesForVideo = async (videoSrc) => {
     const domain = localStorage.getItem('domain');
     const token = getToken();
     if (!domain || !videoSrc || !token) return [];
-    let rel = Utils.serverRelativePath(videoSrc, domain);
+    // The video URL can name the same backend by another address than this device's domain (the
+    // remote sends Tailscale URLs to a TV set to the LAN one) — take its library path regardless.
+    const rel = libraryPath(videoSrc, domain);
     if (!rel) return [];
-    try { rel = decodeURIComponent(rel); } catch {}
-    rel = rel.replace(/^\//, '');
     const videoDir = rel.includes('/') ? rel.slice(0, rel.lastIndexOf('/')) : '';
     if (!videoDir) return [];
     try {
@@ -226,8 +226,9 @@ function VideoControls({ time,
         if (duration > 0) {
             setProgress(Math.floor(time / duration * 100) / 100);
         }
-        timeLabel.current.innerHTML = timeToString(time) + ' / ' + timeToString(duration);
-    }, [time, duration]);
+        // The label isn't rendered while nothing is loaded.
+        if (timeLabel.current) timeLabel.current.innerHTML = timeToString(time) + ' / ' + timeToString(duration);
+    }, [time, duration, videoSrc]);
 
     useEffect(() => {
         if(Utils.hasActiveInput()) return;
@@ -664,7 +665,22 @@ function VideoControls({ time,
         return () => clearInterval(id);
     }, [videoSrc]);
 
-    const player_controls = (
+    // Nothing loaded: just the play button (it opens the current list's first item) — a seekbar,
+    // skip buttons and volume for no content are only noise.
+    const hasContent = !!videoSrc;
+
+    const player_controls = !hasContent ? (
+        <div className='main-controls'>
+            <PlayIcon
+                id="btn_play"
+                alt='error'
+                style={{ ...styleButton, color: 'white' }}
+                onClick={onPlayClick}
+                onPointerEnter={(e) => { mousein("Button"); e.stopPropagation(); }}
+                onPointerLeave={(e) => { mouseout("Button"); e.stopPropagation(); }}
+            />
+        </div>
+    ) : (
         <div className='main-controls'>
             {/* <MdReplay30 className='controls left' onClick={()=>{setTime(time-30)}} /> */}
             <MdSkipPrevious  className='controls left' onClick={(event) => { openItemFromList(-1); event.stopPropagation(); }} />
@@ -711,6 +727,7 @@ function VideoControls({ time,
                         ))}
                     </div>
                 )}
+                {hasContent && <>
                 <div className='seekbar' style={seekbarStyle} ref={seekbar} onPointerDown={mousedown} onPointerUp={cleanDocEvents} onClick={e => e.stopPropagation()}>
                     {editorOpen && duration > 0 && (filterRecords || []).map((r, i) => (
                         <div key={i}
@@ -739,7 +756,9 @@ function VideoControls({ time,
                     </div>
                 </div>
                 <p ref={timeLabel} className='controltime' />
+                </>}
                 {player_controls}
+                {hasContent && <>
                 <MdSubtitles
                     id="subtitle-picker-toggle"
                     alt='error'
@@ -803,8 +822,9 @@ function VideoControls({ time,
                     onPointerEnter={() => { mousein("Button") }}
                     onPointerLeave={() => { mouseout("Button") }}
                 />
+                </>}
             </div>
-            <div className='controls-volume' style={styleAudio}>
+            {hasContent && <div className='controls-volume' style={styleAudio}>
                 <Slider
                     value={volume * 100}
                     mute={isMute}
@@ -813,7 +833,7 @@ function VideoControls({ time,
                             setVolume(v);
                         }
                     } />
-            </div>
+            </div>}
         </div>
     );
 }

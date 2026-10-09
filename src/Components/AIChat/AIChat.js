@@ -3,6 +3,7 @@ import { authFetch, isController } from '../../common/auth';
 import { openContent } from '../FilterPickerLocal/FilterPickerLocal';
 import StorageHelper from '../../Helpers/StorageHelper';
 import { playablesOf } from '../../common/episodes';
+import { titleImage } from '../../common/posters';
 import { startRecording, voiceSupported, micErrorMessage } from '../../common/voiceInput';
 import './AIChat.css';
 
@@ -15,8 +16,7 @@ const titleOf = (folder) => folder.split('/').pop();
 
 function ResultCard({ domain, item, onPlay }) {
     const [open, setOpen] = useState(false);
-    const image = item.files.find(f => f.type === 'IMAGE');
-    const imageUrl = image ? fileUrl(domain, 'static', item.folder, image.name) : '';
+    const imageUrl = titleImage(domain, item);
     const playables = playablesOf(domain, item);
     const isSeries = playables.length > 1;
     const play = (index) => onPlay({ playables, index, image: imageUrl });

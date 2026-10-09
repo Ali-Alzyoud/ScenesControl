@@ -10,15 +10,64 @@ const withToken = (url) => {
 const fileUrl = (domain, kind, folder, name) => withToken(`${domain}/${kind}/${folder}/${name}`);
 const baseName = (name) => name.split('/').pop().replace(/\.[^.]+$/, '');
 
+// Season/episode numbers from a file name — subtitles for the same episode are named every which
+// way ("S01E01", "S1 E2", "1x03", "Season 01 Episode 03", "Ep4"), so names alone can't pair them.
+// season is null when the name only carries an episode number.
+export function episodeNumber(name) {
+    const n = name.split('/').pop();
+    const m = /s(\d{1,2})[\s._-]*e(\d{1,3})/i.exec(n)
+        || /season[\s._-]*(\d{1,2}).*?episode[\s._-]*(\d{1,3})/i.exec(n)
+        || /\b(\d{1,2})x(\d{1,3})\b/i.exec(n);
+    if (m) return { season: +m[1], episode: +m[2] };
+    const e = /\b(?:ep|episode)[\s._-]*(\d{1,3})\b/i.exec(n);
+    return e ? { season: null, episode: +e[1] } : null;
+}
+
+// For each video (in the given order), the subtitle and filter that belong to it. Filters are named
+// "<video file>.txt"; a subtitle is matched by the video's base name, then by season/episode number.
+// A folder's only subtitle/filter goes to its only video. Pairing by list position instead handed
+// episodes someone else's subtitle (or none) whenever a season had fewer subtitles than episodes.
+// The subtitle (of `srts`, each { name }) that belongs to the video named `videoName`: same base
+// name first, then same season/episode number. null if none clearly does.
+export function matchSubtitle(videoName, srts) {
+    const base = baseName(videoName);
+    let hit = srts.find(s => baseName(s.name) === base) || srts.find(s => baseName(s.name).startsWith(base));
+    const ve = !hit && episodeNumber(videoName);
+    if (ve) {
+        hit = srts.find(s => { const se = episodeNumber(s.name); return se && se.season !== null && se.season === ve.season && se.episode === ve.episode; })
+            || srts.find(s => { const se = episodeNumber(s.name); return se && se.season === null && se.episode === ve.episode; });
+    }
+    return hit || null;
+}
+
+// True when a subtitle's name says it's for a different episode than the video's — e.g. a stale
+// pairing saved in watch history or an old episode list.
+export function isOtherEpisodeSubtitle(videoName, srtName) {
+    const ve = episodeNumber(videoName), se = episodeNumber(srtName);
+    if (!ve || !se) return false;
+    return se.episode !== ve.episode || (se.season !== null && se.season !== ve.season);
+}
+
+export function pairEpisodeFiles(videos, srts, filters) {
+    const used = new Set();
+    const pickSrt = (v) => {
+        let hit = matchSubtitle(v.name, srts.filter(s => !used.has(s)));
+        if (!hit && videos.length === 1) hit = srts[0];
+        if (hit) used.add(hit);
+        return hit || null;
+    };
+    return videos.map(v => ({
+        video: v,
+        srt: pickSrt(v),
+        filter: filters.find(f => f.name === `${v.name}.txt`) || (videos.length === 1 ? filters[0] || null : null),
+    }));
+}
+
 export function playablesOf(domain, item) {
     const videos = item.files.filter(f => f.type === 'MEDIA').sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
     const srts = item.files.filter(f => f.type === 'SRT');
     const filters = item.files.filter(f => f.type === 'FILTER');
-    return videos.map(v => {
-        // Filters are named "<video file>.txt"; subtitles start with the video's base name
-        // (falling back to the folder's only subtitle for a single film).
-        const filter = filters.find(f => f.name === `${v.name}.txt`) || (videos.length === 1 ? filters[0] : null);
-        const srt = srts.find(f => baseName(f.name).startsWith(baseName(v.name))) || (videos.length === 1 ? srts[0] : null);
+    return pairEpisodeFiles(videos, srts, filters).map(({ video: v, srt, filter }) => {
         return {
             name: baseName(v.name),
             video: fileUrl(domain, 'video', item.folder, v.name),

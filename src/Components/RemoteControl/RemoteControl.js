@@ -8,6 +8,7 @@ import { authFetch, debugLog } from '../../common/auth'
 import StorePicker from '../FilterPickerLocal'
 import AIChat from '../AIChat/AIChat'
 import { playablesOf, libraryPath } from '../../common/episodes'
+import { titleImage } from '../../common/posters'
 import { startRecording, voiceSupported, micErrorMessage } from '../../common/voiceInput'
 
 import './style.css'
@@ -401,11 +402,9 @@ function RemoteControl({ domain, onClose }) {
             } else if (a.type === 'play' && a.item) {
                 const episodes = playablesOf(domain, a.item);
                 const i = Math.max(0, episodes.findIndex(e => libraryPath(e.video).endsWith(`/${a.file}`)));
-                const image = a.item.files.find(f => f.type === 'IMAGE');
-                const token = encodeURIComponent(localStorage.getItem('rc_auth_token') || '');
                 await handleRemoteOpen({
                     video: episodes[i].video, srt: episodes[i].srt, filter: episodes[i].filter,
-                    image: image ? `${domain}/static/${a.item.folder}/${image.name}?token=${token}` : '',
+                    image: titleImage(domain, a.item),
                 });
             }
         }

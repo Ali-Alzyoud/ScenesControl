@@ -14,7 +14,7 @@ import StorageHelper from "../../Helpers/StorageHelper";
 import { SCREEN_EFFECT_EVENT, screenEffects } from "./screenEffects";
 import { exitPseudoFullscreen } from "./remoteFullscreen";
 import Hls from "hls.js";
-import { getStreamMode, hlsUrlFor, STREAM_MODE_EVENT } from "../../common/streamMode";
+import { getStreamMode, hlsUrlFor, onOwnServer, STREAM_MODE_EVENT } from "../../common/streamMode";
 
 const debounce = (func1, func, delay) => {
   let inDebounce;
@@ -114,7 +114,8 @@ class VideoPlayer extends React.PureComponent {
     const { videoSrc, videoName } = this.props;
     const url = this.hlsUrl();
     if (!url) {
-      if (videoSrc) { if (video.getAttribute('src') !== videoSrc) video.src = videoSrc; }
+      const src = onOwnServer(videoSrc);
+      if (src) { if (video.getAttribute('src') !== src) video.src = src; }
       else { video.removeAttribute('src'); video.load(); }
       return;
     }
@@ -134,7 +135,7 @@ class VideoPlayer extends React.PureComponent {
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url; // Safari plays HLS natively
     } else {
-      video.src = videoSrc;
+      video.src = onOwnServer(videoSrc);
     }
   }
 

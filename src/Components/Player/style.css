@@ -357,3 +357,12 @@ button.subtitle-voice-status { cursor: pointer; }
 .seekbar-scene--profanity { background: #ffd43b; }
 .seekbar-scene--uncertain { opacity: 0.5; border-style: dashed; }
 .seekbar-scene.is-selected { height: 16px; border: 2px solid #fff; box-shadow: 0 0 0 2px #6c63ff; z-index: 3; }
+
+/* While the filter editor is open: the current scenes' rectangles, outlined only (unfiltered). */
+.filter-rect-outline {
+    position: absolute;
+    z-index: 10;
+    box-sizing: border-box;
+    border: 2px dashed rgba(255, 107, 107, 0.9);
+    pointer-events: none;
+}

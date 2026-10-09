@@ -1,3 +1,4 @@
+import NowPlayingTitle from './Components/NowPlayingTitle/NowPlayingTitle';
 import { setEditorOpen } from './common/editorState';
 import './App.css';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
@@ -6,11 +7,13 @@ import { Player } from './Components/Player';
  
 
 import Menu from './Components/Menu'
-import { getToken, getUser, debugLog, isController, setDeviceKind } from './common/auth'
+import { getToken, getUser, debugLog, isController, setDeviceKind, clearAuth } from './common/auth'
 import { QrScanHandler } from './Components/Login/Login'
 import { defaultDomain } from './common/domain'
 import StorageHelper from './Helpers/StorageHelper'
 import SrtClass from './common/SrtClass'
+import { matchSubtitle, isOtherEpisodeSubtitle } from './common/episodes'
+import { findSubtitlesForVideo } from './Components/Player/VideoControls'
 import FilterEditor from './Components/FilterFileEditor'
 import ConfigEditor from './Components/ConfigEditor'
 import { SceneGuideClass } from './common/SceneGuide'
@@ -171,7 +174,18 @@ function HomeQR({ domain }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ id: qrId }),
-    }).then(res => { if (!cancelled && res.ok) setOffered(true); }).catch(() => {});
+    }).then(res => {
+      if (cancelled) return;
+      if (res.ok) { setOffered(true); return; }
+      // The stored session is gone on the server (expired after 7 days, or revoked). Holding on
+      // to it hid every QR — no offer to show, and "signed in" so no sign-in QR either — leaving
+      // the screen stuck with no way to pair. Drop it and fall back to the sign-in QR.
+      if (res.status === 401) {
+        debugLog('HomeQR: qr-offer 401, clearing stale session');
+        clearAuth();
+        setToken(null);
+      }
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, [token, domain, qrId]);
 
@@ -468,11 +482,29 @@ function App(props) {
         setVideoName(fileName);
       }
 
-      if (subtitleURL.toLowerCase().startsWith('http')) {
-        SrtClass.ReadFile(subtitleURL).then((records) => {
-          setSubtitle(records)
-          setSubtitleName(subtitleURL);
+      const loadSubtitle = (url) => SrtClass.ReadFile(url).then((records) => {
+        setSubtitle(records)
+        setSubtitleName(url);
+      });
+      const hasSubtitleURL = subtitleURL.toLowerCase().startsWith('http');
+      const fileNameOf = (url) => {
+        const name = url.split('?')[0].split('/').pop();
+        try { return decodeURIComponent(name); } catch { return name; }
+      };
+      // Watch history / remote / old episode lists can hand over another episode's subtitle (or
+      // none) — episodes used to be paired with subtitles by list position. Look in the video's
+      // folder for the one that actually belongs to this episode.
+      const videoFile = videoURL ? fileNameOf(videoURL) : '';
+      if (videoFile && (!hasSubtitleURL || isOtherEpisodeSubtitle(videoFile, fileNameOf(subtitleURL)))) {
+        findSubtitlesForVideo(videoURL).then((subs) => {
+          const match = matchSubtitle(videoFile, subs);
+          if (match) return loadSubtitle(match.url);
+          if (hasSubtitleURL) return loadSubtitle(subtitleURL);
+          setSubtitle([]);
+          setSubtitleName("");
         });
+      } else if (hasSubtitleURL) {
+        loadSubtitle(subtitleURL);
       } else {
         setSubtitle([]);
         setSubtitleName("")
@@ -550,7 +582,7 @@ function App(props) {
         <div className={videoName ? 'App-player-active' : undefined} style={{ width: '100%', margin: '0 auto', marginTop: '32px' }}>
           <Player />
         </div>
-        <p style={{ marginTop: '15px', marginBottom: '15px' }} >{videoName}</p>
+        {videoName && <NowPlayingTitle videoName={videoName} />}
         <ToggleButton on={showEditor} onClick={() => { setShowEditor(!showEditor) }}>Editor</ToggleButton>
         <ToggleButton on={showConfig} onClick={() => { setShowConfig(!showConfig) }}>Config</ToggleButton>
         <ToggleButton on={showSubtitle} onClick={() => { setShowSubtitle(!showSubtitle) }}>{"Subtitle " + (syncConfig.subtitleDelay ? syncConfig.subtitleDelay : "")}</ToggleButton>
