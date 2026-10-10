@@ -12,6 +12,7 @@ import { titleImage } from '../../common/posters'
 import { startRecording, voiceSupported, micErrorMessage } from '../../common/voiceInput'
 
 import './style.css'
+import { SpeedResult } from '../SpeedTest/SpeedTest'
 
 const API_FILES = '/static';
 const API_VIDEO = '/video';
@@ -543,6 +544,16 @@ function RemoteControl({ domain, onClose }) {
                             {current === m.value && <MdCheck />} {m.label}
                         </button>
                     ))}
+                </div>
+                <div className="remote-control-section-title">Connection</div>
+                <div className="remote-control-group remote-control-group--column">
+                    <button className="remote-control-list-item" disabled={status?.speedTest?.state === 'running'}
+                        onClick={() => sendCommand('speed-test')}>
+                        {status?.speedTest?.state === 'running' ? 'Testing the screen\'s connection…' : 'Test the screen\'s connection'}
+                    </button>
+                    {/* Results come back with the screen's status; the suggested mode applies to the screen. */}
+                    <SpeedResult result={status?.speedTest} currentMode={current}
+                        onUseMode={(m) => { setOptimisticValue('streamMode', m); sendCommand('stream-mode', m); }} />
                 </div>
                 <div className="remote-control-section-title">Scene filters</div>
                 {filterConfigControls()}

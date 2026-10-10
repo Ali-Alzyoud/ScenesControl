@@ -12,7 +12,7 @@ import { QrScanHandler } from './Components/Login/Login'
 import { defaultDomain } from './common/domain'
 import StorageHelper from './Helpers/StorageHelper'
 import SrtClass from './common/SrtClass'
-import { matchSubtitle, isOtherEpisodeSubtitle } from './common/episodes'
+import { matchSubtitle, isOtherEpisodeSubtitle, subtitlesForVideo, arabicSubtitle } from './common/episodes'
 import { findSubtitlesForVideo } from './Components/Player/VideoControls'
 import FilterEditor from './Components/FilterFileEditor'
 import ConfigEditor from './Components/ConfigEditor'
@@ -491,12 +491,16 @@ function App(props) {
         const name = url.split('?')[0].split('/').pop();
         try { return decodeURIComponent(name); } catch { return name; }
       };
-      // Watch history / remote / old episode lists can hand over another episode's subtitle (or
-      // none) — episodes used to be paired with subtitles by list position. Look in the video's
-      // folder for the one that actually belongs to this episode.
+      // The subtitles in the video's folder decide what's shown: an Arabic one is the default
+      // whenever the video has one. Otherwise the subtitle handed over is kept — unless it's
+      // another episode's (watch history / remote / old episode lists paired them by list
+      // position), when the one that actually belongs to this episode is used.
       const videoFile = videoURL ? fileNameOf(videoURL) : '';
-      if (videoFile && (!hasSubtitleURL || isOtherEpisodeSubtitle(videoFile, fileNameOf(subtitleURL)))) {
-        findSubtitlesForVideo(videoURL).then((subs) => {
+      if (videoFile) {
+        findSubtitlesForVideo(videoURL).then(async (subs) => {
+          const arabic = await arabicSubtitle(subtitlesForVideo(videoFile, subs));
+          if (arabic) return loadSubtitle(arabic.url);
+          if (hasSubtitleURL && !isOtherEpisodeSubtitle(videoFile, fileNameOf(subtitleURL))) return loadSubtitle(subtitleURL);
           const match = matchSubtitle(videoFile, subs);
           if (match) return loadSubtitle(match.url);
           if (hasSubtitleURL) return loadSubtitle(subtitleURL);

@@ -6,6 +6,7 @@ import { playablesOf } from '../../common/episodes';
 import { titleImage } from '../../common/posters';
 import { startRecording, voiceSupported, micErrorMessage } from '../../common/voiceInput';
 import './AIChat.css';
+import { TRANSLATE_EVENT } from '../AutoFilter/translateJobs';
 
 const withToken = (url) => {
     const token = localStorage.getItem('rc_auth_token');
@@ -198,6 +199,7 @@ export default function AIChat({ domain, onClose, item, onChanged, remote, initi
             // Show what was heard in place of the "🎤 …" placeholder.
             if (audio) setMessages(prev => prev.map(m => (m === userMsg ? { ...m, text: `🎤 ${data.heard || '(couldn\'t make it out)'}` } : m)));
             setMessages(prev => [...prev, { role: 'model', text: data.reply, items: data.items || [], jobs: data.jobs || [], memoryChanged: !!data.memoryChanged }]);
+            if (data.jobs?.length) window.dispatchEvent(new Event(TRANSLATE_EVENT)); // the Store's AI jobs panel lists it
             if (data.changed) onChanged?.();
             if (remote && data.actions?.length) await remote.runActions(data.actions);
         } catch (err) {

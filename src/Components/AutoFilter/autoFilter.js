@@ -29,7 +29,12 @@ export const cancelAutoFilter = (domain, id) => authFetch(`${domain}/api/v1/file
 
 // Polls the job list while anything is queued/running (and after a job is started here).
 // onFinished(job) is called once for each job that completes while watched.
-export function useAutoFilterJobs(domain, { onFinished } = {}) {
+export const useAutoFilterJobs = (domain, options) => useJobList(domain, 'autofilter', AUTOFILTER_EVENT, options);
+
+// The same for any of the server's job lists (-> { jobs }), re-polled whenever `eventName` fires.
+// endpoint: a name under /api/v1/files ("autofilter"), or a path under /api/v1 ("/ai/jobs").
+const jobListUrl = (domain, endpoint) => endpoint.startsWith('/') ? `${domain}/api/v1${endpoint}` : `${domain}/api/v1/files/${endpoint}`;
+export function useJobList(domain, endpoint, eventName, { onFinished } = {}) {
     const [jobs, setJobs] = useState([]);
     const seen = useRef(new Map()); // id -> last status
     const finishedRef = useRef(onFinished);
@@ -42,7 +47,7 @@ export function useAutoFilterJobs(domain, { onFinished } = {}) {
         const poll = async () => {
             clearTimeout(timer);
             try {
-                const res = await authFetch(`${domain}/api/v1/files/autofilter`);
+                const res = await authFetch(jobListUrl(domain, endpoint));
                 if (res.ok && !stopped) {
                     const list = (await res.json()).jobs || [];
                     for (const j of list) {
@@ -58,9 +63,9 @@ export function useAutoFilterJobs(domain, { onFinished } = {}) {
             }
         };
         poll();
-        window.addEventListener(AUTOFILTER_EVENT, poll);
-        return () => { stopped = true; clearTimeout(timer); window.removeEventListener(AUTOFILTER_EVENT, poll); };
-    }, [domain]);
+        window.addEventListener(eventName, poll);
+        return () => { stopped = true; clearTimeout(timer); window.removeEventListener(eventName, poll); };
+    }, [domain, endpoint, eventName]);
 
     return jobs;
 }

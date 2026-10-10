@@ -8,9 +8,12 @@ import { authFetch, getUser } from '../../common/auth';
 import store from '../../redux/store';
 import Utils from '../../utils/utils';
 import { libraryPath } from '../../common/episodes';
+import { TRANSLATE_EVENT } from '../AutoFilter/translateJobs';
 
 import './style.css'
 import SubtitleRecord from './SubtitleRecord';
+
+const TRANSLATE_JOB_KEY = 'subtitleTranslateJob';
 
 function SubtitleEditor(props) {
     const {
@@ -293,44 +296,113 @@ function SubtitleEditor(props) {
         return newSubtitle;
     }
 
+    // Translate + "Save" runs as a server job (RemoteConnection routes/translate.js): it carries on
+    // and saves the file even if this browser is closed. The job is remembered here so a reopened
+    // editor picks its progress back up, and loads the result if it's still on the same video.
+    const [translateJob, setTranslateJob] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(TRANSLATE_JOB_KEY)) || null; } catch { return null; }
+    });
+    const rememberJob = (job) => {
+        setTranslateJob(job);
+        try {
+            if (job) localStorage.setItem(TRANSLATE_JOB_KEY, JSON.stringify(job));
+            else localStorage.removeItem(TRANSLATE_JOB_KEY);
+        } catch {}
+    };
+    const videoSrcRef = useRef(videoSrc);
+    videoSrcRef.current = videoSrc;
+
+    useEffect(() => {
+        if (!translateJob?.id) return;
+        const domain = localStorage.getItem('domain');
+        if (!domain) return;
+        let stopped = false;
+        let timer;
+        setSavingTranslation(true);
+        const poll = async () => {
+            try {
+                const res = await authFetch(`${domain}/api/v1/translate/jobs/${translateJob.id}`);
+                if (stopped) return;
+                if (res.status === 404) {
+                    // Gone from the server (restarted, or finished long ago).
+                    rememberJob(null);
+                    setSavingTranslation(false);
+                    return;
+                }
+                const job = res.ok ? await res.json() : null;
+                if (job?.status === 'running') {
+                    setReRender(job.progress);
+                    timer = setTimeout(poll, 2000);
+                    return;
+                }
+                if (job?.status === 'done') {
+                    // Only shown here if this editor is still on the video it was started for.
+                    if (job.records && libraryPath(videoSrcRef.current || '') === translateJob.video) {
+                        store.dispatch(setSubtitle(job.records));
+                        setSubtitleName(domain + '/static' + job.filePath);
+                    }
+                } else if (job) {
+                    alert(job.message || 'Translate failed');
+                }
+                rememberJob(null);
+                setSavingTranslation(false);
+            } catch {
+                if (!stopped) timer = setTimeout(poll, 5000);
+            }
+        };
+        poll();
+        return () => { stopped = true; clearTimeout(timer); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [translateJob?.id]);
+
     const translate = async () => {
         const domain = localStorage.getItem('domain');
         if (saveToServer && !domain) { alert('Set a domain in the menu before translating'); return; }
+        if (translateJob) return; // one at a time; its progress is on the button
 
-        setSavingTranslation(saveToServer);
-        try {
-            const translated = await runTranslate((newSubtitle, progress) => {
+        if (!saveToServer) {
+            // Just for watching now: translated in place here, nothing saved.
+            await runTranslate((newSubtitle, progress) => {
                 store.dispatch(setSubtitle(newSubtitle));
                 setReRender(progress);
             });
-            if (!translated || !saveToServer) return;
+            return;
+        }
 
-            // Prefer the loaded subtitle's own server path; fall back to the video's path (matching saveRemote).
-            let filePath = subtitleName?.toLowerCase().startsWith('http')
-                ? Utils.serverRelativePath(subtitleName, domain)
-                : null;
-            if (!filePath && videoSrc) {
-                const rel = Utils.serverRelativePath(videoSrc, domain);
-                if (rel) filePath = rel.replace(/\.[^/.]+$/, '.srt');
-            }
-            if (!filePath) {
-                const input = window.prompt('Enter server path to save subtitle:', `/${videoName}.srt`);
-                if (!input) return;
-                filePath = input.startsWith('/') ? input : '/' + input;
-            }
+        // Prefer the loaded subtitle's own server path; fall back to the video's path (matching saveRemote).
+        let filePath = subtitleName?.toLowerCase().startsWith('http')
+            ? Utils.serverRelativePath(subtitleName, domain)
+            : null;
+        if (!filePath && videoSrc) {
+            const rel = Utils.serverRelativePath(videoSrc, domain);
+            if (rel) filePath = rel.replace(/\.[^/.]+$/, '.srt');
+        }
+        if (!filePath) {
+            const input = window.prompt('Enter server path to save subtitle:', `/${videoName}.srt`);
+            if (!input) return;
+            filePath = input.startsWith('/') ? input : '/' + input;
+        }
 
-            const content = SrtClass.ToString(translated);
-            const res = await authFetch(`${domain}/api/v1/files/save`, {
-                method: 'PUT',
+        setSavingTranslation(true);
+        setReRender(0);
+        try {
+            const res = await authFetch(`${domain}/api/v1/translate/jobs`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filePath, content }),
+                body: JSON.stringify({
+                    records: subtitle.map(r => ({ from: r.from, to: r.to, content: r.content })),
+                    source: sourceLang,
+                    target: targetLang,
+                    keepOriginal: !!checkBox.current?.checked,
+                    filePath,
+                }),
             });
-            if (res.ok) {
-                setSubtitleName(domain + '/static' + filePath);
-            } else {
-                alert('Save failed');
-            }
-        } finally {
+            const job = await res.json().catch(() => null);
+            if (!res.ok || !job?.id) throw new Error(job?.error || `Request failed (${res.status})`);
+            rememberJob({ id: job.id, filePath, video: libraryPath(videoSrc || '') });
+            window.dispatchEvent(new Event(TRANSLATE_EVENT)); // the Store's AI jobs panel lists it
+        } catch (error) {
+            alert('Translate failed: ' + error.message);
             setSavingTranslation(false);
         }
     }
@@ -470,7 +542,7 @@ function SubtitleEditor(props) {
                 </>
             )}
             <div className='container rect' onClick={translate}>
-                <span className='middle'>{savingTranslation ? `Translating…${(reRender * 100).toFixed(0)}%` : 'Translate'}</span>
+                <span className='middle'>{savingTranslation ? `Translating…${(reRender * 100).toFixed(0)}%${translateJob ? ' (on the server)' : ''}` : 'Translate'}</span>
             </div>
             <br/>
             <br/>

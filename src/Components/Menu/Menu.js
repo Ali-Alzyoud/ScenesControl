@@ -9,6 +9,7 @@ import FilterPicker2 from '../FilterPickerLocal'
 import Login from '../Login/Login'
 import AIChat from '../AIChat/AIChat'
 import Sessions from '../Sessions/Sessions'
+import SpeedTest from '../SpeedTest/SpeedTest'
 import QRScanner from '../QRScanner/QRScanner'
 import RemoteControl from '../RemoteControl/RemoteControl'
 
@@ -16,7 +17,7 @@ import { REMOTE_DOMAIN, apkDownloadUrl } from '../../common/domain';
 import {
     MdMenu, MdClose, MdQrCodeScanner, MdSettingsRemote, MdVideoLibrary, MdLogin, MdLogout,
     MdPlayCircleOutline, MdMovie, MdSubtitles, MdSync, MdFilterAlt, MdLink, MdStorefront,
-    MdSettings, MdInfoOutline, MdAndroid, MdDevices, MdAutoAwesome, MdHome, MdCloud, MdDns,
+    MdSettings, MdSpeed, MdInfoOutline, MdAndroid, MdDevices, MdAutoAwesome, MdHome, MdCloud, MdDns,
     MdExpandMore, MdChevronRight,
 } from 'react-icons/md';
 import { connect } from "react-redux";
@@ -167,6 +168,7 @@ function Menu({ videoName, setFilterItems, setVideoSrc, setVideoName, setSubtitl
     const [customDomainOpen, setCustomDomainOpen] = useState(false);
     const [loginOpen, setLoginOpen] = useState(false);
     const [sessionsOpen, setSessionsOpen] = useState(false);
+    const [speedTestOpen, setSpeedTestOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(getUser);
     const [qrScanOpen, setQrScanOpen] = useState(false);
     // Opens straight away after a QR scan just paired this device as a remote (see QrScanHandler).
@@ -383,6 +385,7 @@ function Menu({ videoName, setFilterItems, setVideoSrc, setVideoName, setSubtitl
                         {currentUser && <Item icon={<MdAutoAwesome />} label="AI assistant" onClick={pick(() => setAiOpen(true))} />}
                         <Item icon={<MdStorefront />} label="Online store" hint="Curated titles with scene filters" onClick={pick(() => setfilterPicker(true))} />
                         {isAdmin && <Item icon={<MdDevices />} label="Sessions" hint="Signed-in devices" onClick={pick(() => setSessionsOpen(true))} />}
+                        {currentUser && <Item icon={<MdSpeed />} label="Speed test" hint="This device's connection to the server" onClick={pick(() => setSpeedTestOpen(true))} />}
                         <Item icon={<MdSettings />} label="Settings" onClick={pick(() => setSettings(true))} />
                     </section>
 
@@ -424,6 +427,7 @@ function Menu({ videoName, setFilterItems, setVideoSrc, setVideoName, setSubtitl
             {filterPicker2 && <FilterPicker2 path={domain+API_FILES} videoPath={domain+API_VIDEO} apiUrl={domain+API} close={() => { setfilterPicker2(false) }} />}
             {loginOpen && <Login domain={domain} onClose={() => { debugLog('Login modal: onClose (manual/backdrop)'); setLoginOpen(false); }} onSuccess={() => { debugLog('Login modal: onSuccess', { user: getUser() }); setCurrentUser(getUser()); setLoginOpen(false); showStore(); }} />}
             {sessionsOpen && <Sessions close={() => setSessionsOpen(false)} />}
+            {speedTestOpen && <SpeedTest close={() => setSpeedTestOpen(false)} />}
             {aiOpen && <AIChat domain={domain} onClose={() => setAiOpen(false)} />}
             {qrScanOpen && <QRScanner onClose={() => setQrScanOpen(false)} />}
             {remoteControlOpen && <RemoteControl domain={domain} onClose={() => setRemoteControlOpen(false)} />}

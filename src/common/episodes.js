@@ -40,6 +40,38 @@ export function matchSubtitle(videoName, srts) {
     return hit || null;
 }
 
+// Every subtitle (of `srts`, each { name, url }) that belongs to the video named `videoName`:
+// named after it ("Movie.srt", "Movie.en.srt", "Movie.ar.srt"), else the same season/episode.
+export function subtitlesForVideo(videoName, srts) {
+    const base = baseName(videoName);
+    const named = srts.filter(s => baseName(s.name) === base || baseName(s.name).startsWith(base));
+    if (named.length) return named;
+    const one = matchSubtitle(videoName, srts);
+    return one ? [one] : [];
+}
+
+// Of a video's subtitles, the Arabic one (the default to show), or null. Told by the name when it
+// says so ("….ar.srt", "Arabic"), else by the text itself — plenty of Arabic files here are just
+// "Movie.srt". Only fetched when there's more than one to choose from.
+const ARABIC_NAME = /(^|[._\s\-[(])(ar|ara|arabic)([._\s\-\])]|$)|عربي/i;
+export async function arabicSubtitle(subs) {
+    if (!subs.length) return null;
+    const named = subs.find(s => ARABIC_NAME.test(baseName(s.name).slice(-12)));
+    if (named) return named;
+    if (subs.length === 1) return null;
+    for (const s of subs) {
+        try {
+            const res = await fetch(s.url);
+            if (!res.ok) continue;
+            const text = (await res.text()).slice(0, 8000);
+            const arabic = (text.match(/[\u0600-\u06FF]/g) || []).length;
+            const latin = (text.match(/[A-Za-z]/g) || []).length;
+            if (arabic > 50 && arabic > latin) return s;
+        } catch {}
+    }
+    return null;
+}
+
 // True when a subtitle's name says it's for a different episode than the video's — e.g. a stale
 // pairing saved in watch history or an old episode list.
 export function isOtherEpisodeSubtitle(videoName, srtName) {

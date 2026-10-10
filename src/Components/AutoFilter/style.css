@@ -28,3 +28,4 @@
 .autofilter-job-status { font-size: 12px; color: #8a8ab0; }
 .autofilter-job--done .autofilter-job-status { color: #7dd9a0; }
 .autofilter-job--error .autofilter-job-status { color: #ff8080; }
+.autofilter-job-name svg { vertical-align: -2px; margin-right: 2px; }

@@ -2,10 +2,10 @@ import React, { useMemo, useState, useRef, useEffect } from 'react'
 import StorageHelper from '../../Helpers/StorageHelper'
 import { imdbRating } from '../../common/imdb'
 import { FaEye, FaFilter, FaPlayCircle, FaPencilAlt, FaDownload, FaTrash, FaClosedCaptioning } from 'react-icons/fa'
-import { MdVideoLibrary, MdFavorite, MdFavoriteBorder, MdAutoAwesome, MdFilterAlt } from 'react-icons/md'
+import { MdVideoLibrary, MdFavorite, MdFavoriteBorder, MdAutoAwesome, MdFilterAlt, MdSubtitles } from 'react-icons/md'
 
 
-function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy, focused, focusRef, isFavorite, onToggleFavorite, onRename, onDownload, onSearchSubtitle, onDelete, onAskAI, onGenerateFilter, aiFilterProgress, onImdb, imdbFile, draggable, onDragStart, dropTarget, folderKey }) {
+function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasProgress: hasProgressProp, video, copy, focused, focusRef, isFavorite, onToggleFavorite, onRename, onDownload, onSearchSubtitle, onDelete, onAskAI, onGenerateFilter, onGenerateSubtitles, aiFilterProgress, onImdb, imdbFile, draggable, onDragStart, dropTarget, folderKey }) {
     const [rating, setRating] = useState(null);
     useEffect(() => {
         if (!folderKey) return;
@@ -104,7 +104,7 @@ function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasPr
                 ) : (
                     <>
                         <span className="file-record2-title">{localTitle}</span>
-                        {(onAskAI || onImdb || onGenerateFilter || onDownload || onSearchSubtitle || onRename || onDelete) && (
+                        {(onAskAI || onImdb || onGenerateFilter || onGenerateSubtitles || onDownload || onSearchSubtitle || onRename || onDelete) && (
                             <div className="file-record2-actions">
                                 {onAskAI && (
                                     <button
@@ -131,6 +131,15 @@ function FileRecord({ imgSrc, title, filter, isMultiEpisode, episodeCount, hasPr
                                         title={isMultiEpisode ? 'Generate filters for all episodes (AI: nudity & sex scenes)' : 'Generate filter (AI: nudity & sex scenes)'}
                                     >
                                         <MdFilterAlt />
+                                    </button>
+                                )}
+                                {onGenerateSubtitles && (
+                                    <button
+                                        className="file-record2-action-btn"
+                                        onClick={e => { e.stopPropagation(); onGenerateSubtitles(); }}
+                                        title={isMultiEpisode ? 'Generate subtitles for all episodes (AI speech transcription)' : 'Generate subtitles (AI speech transcription)'}
+                                    >
+                                        <MdSubtitles />
                                     </button>
                                 )}
                                 {onDownload && (

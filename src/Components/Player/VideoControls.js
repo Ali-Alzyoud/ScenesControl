@@ -32,6 +32,7 @@ import { sanitizeConfigPatch } from '../../common/playerConfig'
 import { getTtsEnabled, setTtsEnabled, getTtsPrefs, setTtsPrefs, ttsState } from '../../common/tts'
 import { playablesOf, libraryPath, findTitleForVideo, retoken } from '../../common/episodes'
 import { toggleRemoteFullscreen, exitPseudoFullscreen, isRemoteFullscreen } from './remoteFullscreen'
+import { runSpeedTest, speedTestState } from '../../common/speedTest'
 
 var styleControls = {
     width: '90%',
@@ -576,6 +577,8 @@ function VideoControls({ time,
                             break;
                         }
                         case 'stream-mode': if (typeof cmd.value === 'string') setStreamMode(cmd.value); break;
+                        // A remote asked this screen to test its connection; the result goes out with the status.
+                        case 'speed-test': if (speedTestState.result?.state !== 'running') runSpeedTest(domain); break;
                         case 'reload': {
                             // Pick up exactly where it was: the position is normally only saved
                             // every few seconds, and whether it was playing isn't saved at all.
@@ -657,6 +660,7 @@ function VideoControls({ time,
                     streamMode: getStreamMode(),
                     tts: getTtsEnabled(), ttsStatus: ttsState.status, ttsPrefs: getTtsPrefs(), ttsLanguage: ttsState.language,
                     subtitles: remoteSubsRef.current.map(x => x.name),
+                    speedTest: speedTestState.result,
                 }),
             }).catch(() => {});
         };

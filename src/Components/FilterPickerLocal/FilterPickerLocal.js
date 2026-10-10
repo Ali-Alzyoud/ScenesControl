@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { MdHistory } from 'react-icons/md'
-import { MdFilterAlt, MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle, MdFileDownload, MdPlaylistAdd, MdAdd, MdRemove, MdVisibility, MdVisibilityOff } from 'react-icons/md'
+import { MdFilterAlt, MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle, MdFileDownload, MdPlaylistAdd, MdAdd, MdRemove, MdVisibility, MdVisibilityOff, MdSubtitles } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import { createPortal } from 'react-dom'
 import AIChat from '../AIChat/AIChat'
@@ -9,6 +9,8 @@ import { openImdb } from '../../common/imdb'
 import { titleImage } from '../../common/posters'
 import { pairEpisodeFiles } from '../../common/episodes'
 import { startAutoFilter, useAutoFilterJobs, isActive as isFilterJobActive } from '../AutoFilter/autoFilter'
+import { startTranscribe, useTranscribeJobs } from '../AutoFilter/transcribe'
+import { useTranslateJobs } from '../AutoFilter/translateJobs'
 import * as API from '../../common/API/API'
 import { authFetch, getUser, isController } from '../../common/auth'
 
@@ -94,6 +96,9 @@ export const openContent = ({ video, srt, filter, image }) => {
     window.location.reload();
 }
 
+// "1990" -> "90s", "2020" -> "2020s" (this century spelled out, so 2000s isn't "00s").
+const decadeLabel = (d) => (Number(d) < 2000 ? `${String(d).slice(2)}s` : `${d}s`);
+
 function FilterPicker({
     close,
     setModalOpen,
@@ -108,7 +113,8 @@ function FilterPicker({
 }) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [selectedFolder, setSelectedFolder] = useState("");
-    const [sortBy, setSortBy] = useState(localStorage.getItem("sortBy") || "alphabet");
+    // ("year" was a sort option once; it's the decade filter now.)
+    const [sortBy, setSortBy] = useState(() => { const v = localStorage.getItem("sortBy"); return v && v !== 'year' ? v : "alphabet"; });
     const [filterText, setFilterText] = useState(localStorage.getItem("filterText") || "");
     const [sortAsc, setSortAsc] = useState(localStorage.getItem("sortAsc") !== "false");
     // Random picks outlive the picker closing (e.g. opening one of them), so they're stored and
@@ -136,6 +142,16 @@ function FilterPicker({
     const languageRef = useRef(null);
     languageRef.current = language;
     const [languageLists, setLanguageLists] = useState({});
+    // "Not filtered": only titles still missing a scene filter file (also server-side).
+    const [unfilteredOnly, setUnfilteredOnly] = useState(false);
+    const unfilteredRef = useRef(false);
+    unfilteredRef.current = unfilteredOnly;
+    const [unfilteredCounts, setUnfilteredCounts] = useState({});
+    // Decade ("1990" = the 90s), from each title's year — also server-side.
+    const [decade, setDecade] = useState(null);
+    const decadeRef = useRef(null);
+    decadeRef.current = decade;
+    const [decadeLists, setDecadeLists] = useState({});
     // The genre/language bubble rows only show when this toolbar toggle is on (remembered).
     const [showTagFilters, setShowTagFilters] = useState(() => {
         try { return localStorage.getItem('showTagFilters') === 'true'; } catch { return false; }
@@ -145,7 +161,7 @@ function FilterPicker({
         setShowTagFilters(next);
         try { localStorage.setItem('showTagFilters', String(next)); } catch {}
         // Hidden filters shouldn't keep narrowing the list out of sight.
-        if (!next) { setGenre(null); setLanguage(null); }
+        if (!next) { setGenre(null); setLanguage(null); setUnfilteredOnly(false); setDecade(null); }
     };
     // Whether to hide items already picked up by the yt-dlp download history/job matching below.
     // That matching is a folder+filename string match against download records — if a download's
@@ -159,6 +175,8 @@ function FilterPicker({
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestionIndex, setSuggestionIndex] = useState(-1);
     const [focusedIndex, setFocusedIndex] = useState(-1);
+    const folderListRef = useRef(null);
+    const activeFolderRef = useRef(null);
     const searchRef = useRef(null);
     const [focusedEpIndex, setFocusedEpIndex] = useState(0);
     // Paginated per-tab loading — see fetchTabs/fetchTabPage below. Replaces the old model of
@@ -724,13 +742,17 @@ function FilterPicker({
         const offset = loadingEntry.offset;
         const requestedGenre = genreRef.current;
         const requestedLanguage = languageRef.current;
+        const requestedUnfiltered = unfilteredRef.current;
+        const requestedDecade = decadeRef.current;
         try {
             const params = new URLSearchParams({ folder, offset: String(offset), limit: String(PAGE_SIZE), folderSort: sortBy, folderOrder: sortAsc ? 'asc' : 'desc' });
             if (requestedGenre) params.set('genre', requestedGenre);
             if (requestedLanguage) params.set('language', requestedLanguage);
+            if (requestedUnfiltered) params.set('unfiltered', '1');
+            if (requestedDecade) params.set('decade', requestedDecade);
             const res = await authFetch(`${apiUrl}?${params.toString()}`);
-            // The genre/language changed while this was in flight — its reset fetch owns the list now.
-            if (genreRef.current !== requestedGenre || languageRef.current !== requestedLanguage) return tabItemsRef.current[folder];
+            // The genre/language/not-filtered choice changed while this was in flight — its reset fetch owns the list now.
+            if (genreRef.current !== requestedGenre || languageRef.current !== requestedLanguage || unfilteredRef.current !== requestedUnfiltered || decadeRef.current !== requestedDecade) return tabItemsRef.current[folder];
             if (!res.ok) {
                 const failedEntry = { ...tabItemsRef.current[folder], loading: false };
                 tabItemsRef.current = { ...tabItemsRef.current, [folder]: failedEntry };
@@ -914,6 +936,8 @@ function FilterPicker({
             const data = await res.json();
             setGenreLists(prev => ({ ...prev, [folder]: data.genres || [] }));
             setLanguageLists(prev => ({ ...prev, [folder]: data.languages || [] }));
+            setUnfilteredCounts(prev => ({ ...prev, [folder]: data.unfiltered || 0 }));
+            setDecadeLists(prev => ({ ...prev, [folder]: data.decades || [] }));
         } catch {}
     };
 
@@ -921,6 +945,8 @@ function FilterPicker({
     useEffect(() => {
         setGenre(null);
         setLanguage(null);
+        setUnfilteredOnly(false);
+        setDecade(null);
         if (selectedFolder && !genreLists[selectedFolder]) fetchGenres(selectedFolder);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedFolder]);
@@ -935,7 +961,7 @@ function FilterPicker({
         setTabItems({});
         if (selectedFolder) fetchTabPage(selectedFolder, { reset: true });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [genre, language]);
+    }, [genre, language, unfilteredOnly, decade]);
 
     // Sort changed — the ordering is applied server-side, so reload the current tab from
     // page 1 rather than trying to re-sort whatever partial set happens to be loaded.
@@ -1147,7 +1173,13 @@ function FilterPicker({
     // AI filter generation: jobs and their progress (refreshing the listing when one finishes, so
     // the new filter shows up), and starting one for a video path in the library.
     const autoFilterDomain = localStorage.getItem('domain');
-    const filterJobs = useAutoFilterJobs(isAdmin ? autoFilterDomain : null, { onFinished: () => resync() });
+    const filterOnlyJobs = useAutoFilterJobs(isAdmin ? autoFilterDomain : null, { onFinished: () => resync() });
+    // Subtitle generation (speech transcription) shares the GPU queue, the progress panel and the
+    // card's "AI n%" badge with the filter jobs.
+    const subtitleJobs = useTranscribeJobs(isAdmin ? autoFilterDomain : null, { onFinished: () => resync() });
+    // …and so do subtitle translations (Subtitle Editor "Save", AI chat), which run on the server.
+    const translateJobs = useTranslateJobs(isAdmin ? autoFilterDomain : null, { onFinished: () => resync() });
+    const filterJobs = [...filterOnlyJobs, ...subtitleJobs, ...translateJobs].sort((a, b) => a.createdAt - b.createdAt);
     const [dismissedJobs, setDismissedJobs] = useState(() => new Set());
     const shownFilterJobs = filterJobs.filter(j => !dismissedJobs.has(j.id));
     const filterProgressFor = (prefix) => {
@@ -1166,6 +1198,19 @@ function FilterPicker({
             }
         }
         if (skipped) alert.info(`${skipped} episode${skipped === 1 ? ' already has' : 's already have'} a filter — skipped (use its own button to regenerate)`);
+        setDismissedJobs(new Set());
+    };
+    const generateSubtitles = async (videos) => {
+        if (videos.length > 1 && !window.confirm(`Generate subtitles from the speech for the episodes that don't have generated ones yet (${videos.length} episodes)? It runs in the background, about 5 minutes per hour of video.`)) return;
+        let skipped = 0;
+        for (const v of videos) {
+            try {
+                if (!(await startTranscribe(autoFilterDomain, v, { ifExists: videos.length === 1 ? 'ask' : 'skip' })) && videos.length > 1) skipped++;
+            } catch (e) {
+                alert.error(e.message);
+            }
+        }
+        if (skipped) alert.info(`${skipped} episode${skipped === 1 ? ' already has' : 's already have'} generated subtitles — skipped (use its own button to regenerate)`);
         setDismissedJobs(new Set());
     };
 
@@ -1371,9 +1416,64 @@ function FilterPicker({
         if (nextIndex >= count - getColumns()) loadMoreCurrent();
     };
 
+    // Focus between the folder list and the cards. The card that had focus is remembered, so
+    // going into the folders and straight back lands on it again.
+    const lastCardIndex = useRef(-1);
+    const focusFolders = () => {
+        lastCardIndex.current = focusedIndex;
+        setFocusedIndex(-1);
+        folderListRef.current?.focus();
+    };
+    const focusCards = () => {
+        const count = displayItems.length;
+        if (!count) return;
+        const back = lastCardIndex.current;
+        setFocusedIndex(back >= 0 && back < count ? back : 0);
+        containerRef.current?.focus();
+    };
+    useEffect(() => { lastCardIndex.current = -1; }, [selectedFolder]);
+    useEffect(() => { activeFolderRef.current?.scrollIntoView({ block: 'nearest' }); }, [selectedFolder]);
+
+    const handleFolderKeyDown = (e) => {
+        if (e.target.tagName === 'INPUT') return;
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                selectTab(Math.min(tabKeys.length - 1, selectedIndex + 1));
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                selectTab(Math.max(0, selectedIndex - 1));
+                break;
+            case 'Home':
+                e.preventDefault();
+                selectTab(0);
+                break;
+            case 'End':
+                e.preventDefault();
+                selectTab(tabKeys.length - 1);
+                break;
+            case 'ArrowRight':
+            case 'Enter':
+                e.preventDefault();
+                focusCards();
+                break;
+            case 'Escape':
+                close();
+                break;
+            default: break;
+        }
+    };
+
     const handleKeyDown = (e) => {
         if (e.target.tagName === 'INPUT') return;
         const count = displayItems.length;
+        if (e.key === 'ArrowLeft' && (count === 0 || focusedIndex <= 0 || focusedIndex % getColumns() === 0)) {
+            // From the first column (or an empty folder) Left goes to the folder list.
+            e.preventDefault();
+            focusFolders();
+            return;
+        }
         if (count === 0) return;
         switch (e.key) {
             case 'ArrowRight':
@@ -1446,7 +1546,7 @@ function FilterPicker({
     };
 
     // Current tab's loaded pages, or global search results while a search is active — both
-    // already come back favorites-first and sorted server-side, so there's nothing left to do
+    // already come back sorted server-side, so there's nothing left to do
     // here beyond hiding downloaded-only items (see downloadedFileKeys above).
     const withoutDownloaded = (rawItems) => {
         if (!hideDownloaded || !downloadedFileKeys.size) return rawItems;
@@ -1478,7 +1578,7 @@ function FilterPicker({
         });
     };
 
-    // Sort order (including favorites-first) is now applied server-side per page, so this is
+    // Sort order is now applied server-side per page, so this is
     // just the random-picks override — no client-side re-sort needed.
     const displayItems = randomPicks || filteredItems;
 
@@ -1495,6 +1595,8 @@ function FilterPicker({
                 params.set('folder', selectedFolder);
                 if (genre) params.set('genre', genre);
                 if (language) params.set('language', language);
+                if (unfilteredOnly) params.set('unfiltered', '1');
+                if (decade) params.set('decade', decade);
             }
             const res = await authFetch(`${apiUrl}/random?${params.toString()}`);
             if (!res.ok) return;
@@ -1569,9 +1671,10 @@ function FilterPicker({
                         )}
                     </div>
 
-                    <button className="filters-toolbar-btn" onClick={() => { setSortAsc(a => !a); setRandomPicks(null); }} title={sortAsc ? 'Sort descending' : 'Sort ascending'}>
+                    <button className="filters-toolbar-btn filters-sort-btn" onClick={() => { setSortAsc(a => !a); setRandomPicks(null); }}
+                        title={sortAsc ? 'Ascending — click for descending' : 'Descending — click for ascending'}
+                        aria-label={sortAsc ? 'Sorted ascending' : 'Sorted descending'}>
                         {sortAsc ? <MdArrowUpward /> : <MdArrowDownward />}
-                        {sortAsc ? 'Ascending' : 'Descending'}
                     </button>
                     <button className={`filters-toolbar-btn ${randomPicks ? 'filters-toolbar-btn--active' : ''}`} onClick={pickRandom} title={randomPicks ? `Another ${RANDOM_COUNT} random picks` : `${RANDOM_COUNT} random picks`}>
                         <MdShuffle />
@@ -1650,87 +1753,102 @@ function FilterPicker({
                     )}
                 </div>
 
-                {/* Folder selector */}
-                <div className="folder-select-row">
-                    {renamingTab === selectedFolder ? (
-                        <input
-                            className="folder-tab-rename-input"
-                            autoFocus
-                            value={renameTabValue}
-                            onChange={e => setRenameTabValue(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') renameTab(selectedFolder, renameTabValue); if (e.key === 'Escape') { setRenamingTab(null); setRenameTabValue(''); } }}
-                            onBlur={() => renameTab(selectedFolder, renameTabValue)}
-                        />
-                    ) : (
-                        <select
-                            className="folder-select"
-                            value={selectedFolder}
-                            onChange={e => {
-                                const index = tabKeys.indexOf(e.target.value);
-                                if (index >= 0) selectTab(index);
-                                setShowNewFolder(null);
-                                setNewFolderName('');
-                            }}
-                        >
-                            {allTabs.map(t => (
-                                <option key={t.name} value={t.name}>
-                                    {t.name === FAVORITES_TAB ? '★ Favourites' : (t.name || '(root)')} ({t.count})
-                                </option>
-                            ))}
-                        </select>
-                    )}
-                    {isAdmin && renamingTab !== selectedFolder && selectedFolder !== FAVORITES_TAB && (
-                        <>
-                            <button className="filters-toolbar-btn" title="Create folder here"
-                                onClick={() => { setShowNewFolder(selectedFolder); setNewFolderName(''); }}>+</button>
-                            <button className="filters-toolbar-btn" title="Rename"
-                                onClick={() => { setRenamingTab(selectedFolder); setRenameTabValue(selectedFolder); }}>✎</button>
-                        </>
-                    )}
-                </div>
-                {showTagFilters && !isSearching && (genreLists[selectedFolder] || []).length > 0 && (
-                    <div className="genre-chips" role="toolbar" aria-label="Filter by genre">
-                        <button
-                            className={`genre-chip${!genre ? ' genre-chip--active' : ''}`}
-                            aria-pressed={!genre}
-                            onClick={() => setGenre(null)}
-                        >
-                            All
-                        </button>
-                        {genreLists[selectedFolder].map(g => (
-                            <button
-                                key={g.name}
-                                className={`genre-chip${genre === g.name ? ' genre-chip--active' : ''}`}
-                                aria-pressed={genre === g.name}
-                                onClick={() => setGenre(cur => (cur === g.name ? null : g.name))}
+                <div className="store-body">
+                {/* Folder list: the tabs as items on the left, their cards on the right. Up/Down
+                    switches folder, Right/Enter goes into the cards (Left from the first column
+                    comes back). A title dragged onto a folder is moved into it. */}
+                <nav className="folder-sidebar" ref={folderListRef} tabIndex={0} onKeyDown={handleFolderKeyDown} aria-label="Folders">
+                    {allTabs.map((t, index) => {
+                        const active = t.name === selectedFolder;
+                        if (active && renamingTab === selectedFolder) {
+                            return (
+                                <input
+                                    key={t.name}
+                                    className="folder-tab-rename-input"
+                                    autoFocus
+                                    value={renameTabValue}
+                                    onChange={e => setRenameTabValue(e.target.value)}
+                                    onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter') renameTab(selectedFolder, renameTabValue); if (e.key === 'Escape') { setRenamingTab(null); setRenameTabValue(''); } }}
+                                    onBlur={() => renameTab(selectedFolder, renameTabValue)}
+                                />
+                            );
+                        }
+                        return (
+                            <div
+                                key={t.name}
+                                ref={active ? activeFolderRef : null}
+                                className={`folder-item${active ? ' folder-item--active' : ''}${isAdmin && cardDragOver === t.name ? ' folder-item--drop' : ''}`}
+                                data-cardfolder={isAdmin && t.name !== FAVORITES_TAB ? t.name : undefined}
+                                onClick={() => { selectTab(index); setShowNewFolder(null); setNewFolderName(''); }}
+                                title={t.name === FAVORITES_TAB ? 'Favourites' : t.name}
                             >
-                                {g.name}<span className="genre-chip-count">{g.count}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
-                {/* One language alone isn't worth filtering by. */}
-                {showTagFilters && !isSearching && (languageLists[selectedFolder] || []).length > 1 && (
-                    <div className="genre-chips language-chips" role="toolbar" aria-label="Filter by language">
-                        <button
-                            className={`genre-chip${!language ? ' genre-chip--active' : ''}`}
-                            aria-pressed={!language}
-                            onClick={() => setLanguage(null)}
-                        >
-                            All languages
-                        </button>
-                        {languageLists[selectedFolder].map(l => (
-                            <button
-                                key={l.name}
-                                className={`genre-chip${language === l.name ? ' genre-chip--active' : ''}`}
-                                aria-pressed={language === l.name}
-                                onClick={() => setLanguage(cur => (cur === l.name ? null : l.name))}
-                            >
-                                {l.name}<span className="genre-chip-count">{l.count}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
+                                <span className="folder-item-name">{t.name === FAVORITES_TAB ? '★ Favourites' : (t.name || '(root)')}</span>
+                                <span className="folder-item-count">{t.count}</span>
+                                {isAdmin && active && t.name !== FAVORITES_TAB && (
+                                    <span className="folder-item-actions">
+                                        <button title="Create folder here" tabIndex={-1}
+                                            onClick={e => { e.stopPropagation(); setShowNewFolder(selectedFolder); setNewFolderName(''); }}>+</button>
+                                        <button title="Rename" tabIndex={-1}
+                                            onClick={e => { e.stopPropagation(); setRenamingTab(selectedFolder); setRenameTabValue(selectedFolder); }}>✎</button>
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })}
+                </nav>
+                <div className="store-main">
+                {/* Filters, in one row: genre and language pickers (with title counts), the
+                    not-filtered toggle, and Clear once anything is chosen. */}
+                {showTagFilters && !isSearching && selectedFolder !== FAVORITES_TAB && (() => {
+                    const genres = genreLists[selectedFolder] || [];
+                    const languages = languageLists[selectedFolder] || [];
+                    const decades = decadeLists[selectedFolder] || [];
+                    const unfilteredCount = unfilteredCounts[selectedFolder];
+                    const anyActive = !!(genre || language || unfilteredOnly || decade);
+                    if (!genres.length && languages.length < 2 && decades.length < 2 && unfilteredCount === undefined) return null;
+                    return (
+                        <div className="filter-bar" role="toolbar" aria-label="Filters">
+                            {genres.length > 0 && (
+                                <select className={`filter-bar-select${genre ? ' filter-bar-select--active' : ''}`}
+                                    value={genre || ''} onChange={e => setGenre(e.target.value || null)} aria-label="Genre">
+                                    <option value="">All genres</option>
+                                    {genres.map(g => <option key={g.name} value={g.name}>{g.name} ({g.count})</option>)}
+                                </select>
+                            )}
+                            {/* One language alone isn't worth filtering by. */}
+                            {languages.length > 1 && (
+                                <select className={`filter-bar-select${language ? ' filter-bar-select--active' : ''}`}
+                                    value={language || ''} onChange={e => setLanguage(e.target.value || null)} aria-label="Language">
+                                    <option value="">All languages</option>
+                                    {languages.map(l => <option key={l.name} value={l.name}>{l.name} ({l.count})</option>)}
+                                </select>
+                            )}
+                            {decades.length > 1 && (
+                                <select className={`filter-bar-select${decade ? ' filter-bar-select--active' : ''}`}
+                                    value={decade || ''} onChange={e => setDecade(e.target.value || null)} aria-label="Decade">
+                                    <option value="">All years</option>
+                                    {decades.map(d => <option key={d.name} value={d.name}>{decadeLabel(d.name)} ({d.count})</option>)}
+                                </select>
+                            )}
+                            {unfilteredCount !== undefined && (
+                                <button
+                                    className={`filter-bar-toggle${unfilteredOnly ? ' filter-bar-toggle--active' : ''}`}
+                                    aria-pressed={unfilteredOnly}
+                                    title="Only titles that don't have a scene filter yet"
+                                    onClick={() => setUnfilteredOnly(on => !on)}
+                                >
+                                    <MdFilterAlt /> Not filtered <span className="filter-bar-count">{unfilteredCount}</span>
+                                </button>
+                            )}
+                            {anyActive && (
+                                <button className="filter-bar-clear" title="Clear all filters"
+                                    onClick={() => { setGenre(null); setLanguage(null); setUnfilteredOnly(false); setDecade(null); }}>
+                                    <MdClose /> Clear
+                                </button>
+                            )}
+                        </div>
+                    );
+                })()}
                 {showNewFolder && (
                     <div className="folder-new-input-row">
                         <input
@@ -1896,6 +2014,7 @@ function FilterPicker({
                                         episodeCount={episodeCount}
                                         copy={() => openEpisodePanel({ title: item.folder, image, ...episodeListOf(item) })}
                                         onGenerateFilter={isAdmin ? () => generateFilter(item.files.filter(f => f.type === 'MEDIA').map(v => `${item.folder}/${v.name}`)) : undefined}
+                                        onGenerateSubtitles={isAdmin ? () => generateSubtitles(item.files.filter(f => f.type === 'MEDIA').map(v => `${item.folder}/${v.name}`)) : undefined}
                                         aiFilterProgress={isAdmin ? filterProgressFor(item.folder) : null}
                                         onRename={isAdmin ? newName => renameFolder(item, newName) : undefined}
                                         onDownload={isAdmin ? () => { setDownloadUrl(''); setShowDownload(item.folder); } : undefined}
@@ -1938,6 +2057,7 @@ function FilterPicker({
                                         onDownload={isAdmin ? () => { setDownloadUrl(''); setShowDownload(item.folder); } : undefined}
                                         onSearchSubtitle={isAdmin && videoFile ? () => openSubtitleSearch(item.folder, videoFile.name) : undefined}
                                         onGenerateFilter={isAdmin && videoFile ? () => generateFilter([`${item.folder}/${videoFile.name}`]) : undefined}
+                                        onGenerateSubtitles={isAdmin && videoFile ? () => generateSubtitles([`${item.folder}/${videoFile.name}`]) : undefined}
                                         aiFilterProgress={isAdmin ? filterProgressFor(item.folder) : null}
                                         onDelete={isAdmin ? () => deleteFolder(item) : undefined}
                                         draggable={isAdmin}
@@ -1967,6 +2087,8 @@ function FilterPicker({
                         </div>
                     )}
                 </div>
+                </div>
+                </div>
 
                 {/* Episode panel */}
                 {episodePanel && (
@@ -1982,6 +2104,12 @@ function FilterPicker({
                                     <button className="episode-panel-filter-all" title="Generate AI filters (nudity & sex) for all episodes that don't have one"
                                         onClick={() => generateFilter(episodePanel.names.map(n => `${episodePanel.title}/${n}`))}>
                                         <MdFilterAlt /> Filter all
+                                    </button>
+                                )}
+                                {isAdmin && episodePanel.names?.length > 0 && (
+                                    <button className="episode-panel-filter-all" title="Generate subtitles from the speech (AI) for all episodes that don't have generated ones"
+                                        onClick={() => generateSubtitles(episodePanel.names.map(n => `${episodePanel.title}/${n}`))}>
+                                        <MdSubtitles /> Subtitles all
                                     </button>
                                 )}
                                 <button className="episode-panel-close" onClick={closeEpisodePanel}>
@@ -2020,13 +2148,20 @@ function FilterPicker({
                                                 const p = filterProgressFor(epPath);
                                                 const hasFilter = (episodePanel.filters || []).some(f => f && decodeURIComponent(f.split('?')[0]).endsWith(`/${episodePanel.names[index]}.txt`));
                                                 return p !== null
-                                                    ? <span className="episode-ai-progress" title="AI is generating the filter">AI {Math.round(p * 100)}%</span>
+                                                    ? <span className="episode-ai-progress" title="AI is working on this episode">AI {Math.round(p * 100)}%</span>
                                                     : (
-                                                        <button className={`episode-filter-btn${hasFilter ? ' has-filter' : ''}`}
-                                                            title={hasFilter ? 'Has a filter — regenerate with AI' : 'Generate filter (AI: nudity & sex scenes)'}
-                                                            onClick={e => { e.stopPropagation(); generateFilter([epPath]); }}>
-                                                            <MdFilterAlt />
-                                                        </button>
+                                                        <>
+                                                            <button className="episode-filter-btn"
+                                                                title="Generate subtitles (AI speech transcription)"
+                                                                onClick={e => { e.stopPropagation(); generateSubtitles([epPath]); }}>
+                                                                <MdSubtitles />
+                                                            </button>
+                                                            <button className={`episode-filter-btn${hasFilter ? ' has-filter' : ''}`}
+                                                                title={hasFilter ? 'Has a filter — regenerate with AI' : 'Generate filter (AI: nudity & sex scenes)'}
+                                                                onClick={e => { e.stopPropagation(); generateFilter([epPath]); }}>
+                                                                <MdFilterAlt />
+                                                            </button>
+                                                        </>
                                                     );
                                             })()}
                                             {isAdmin && (

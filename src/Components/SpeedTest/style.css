@@ -1,0 +1,46 @@
+.speedtest-overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(0, 0, 0, 0.82);
+    display: flex; align-items: center; justify-content: center;
+}
+.speedtest-modal {
+    width: 420px; max-width: calc(100vw - 32px);
+    background: #12121e; border: 1px solid #2a2a40; border-radius: 14px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7); overflow: hidden;
+}
+.speedtest-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 16px; background: #1a1a2e; border-bottom: 1px solid #2a2a40; color: #a89fff;
+}
+.speedtest-title { flex: 1; font-size: 15px; font-weight: 600; color: #d0d0f0; }
+.speedtest-close {
+    display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+    background: #2a2a3e; border: 1px solid #3a3a55; border-radius: 8px; color: #b0b0d0; cursor: pointer; font-size: 16px;
+}
+.speedtest-close:hover { background: #3a3a55; color: #fff; }
+.speedtest-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.speedtest-server { font-size: 12px; color: #7a7aa6; word-break: break-all; }
+.speedtest-result { display: flex; flex-direction: column; gap: 10px; }
+.speedtest-figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.speedtest-figure {
+    display: flex; flex-direction: column; gap: 4px; padding: 10px;
+    background: #1a1a2c; border: 1px solid #2a2a44; border-radius: 10px;
+}
+.speedtest-figure span { font-size: 11px; color: #8a8ab0; text-transform: uppercase; letter-spacing: 0.04em; }
+.speedtest-figure strong { font-size: 18px; color: #e8e8ff; font-variant-numeric: tabular-nums; }
+.speedtest-figure.is-live { border-color: #6c63ff; }
+.speedtest-status { font-size: 13px; color: #a8a0ff; }
+.speedtest-status--error { color: #ff8080; }
+.speedtest-advice {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    padding: 10px; border-radius: 10px; background: #6c63ff1f; color: #d8d4ff; font-size: 13px;
+}
+.speedtest-ok { color: #7dd9a0; font-size: 12px; }
+.speedtest-btn {
+    background: #1e1e30; border: 1px solid #3a3a55; border-radius: 8px; color: #c0c0e0;
+    font-size: 13px; padding: 6px 12px; cursor: pointer;
+}
+.speedtest-btn:hover:not(:disabled), .speedtest-btn:focus-visible { border-color: #6c63ff; color: #fff; outline: none; }
+.speedtest-btn:disabled { opacity: 0.6; cursor: default; }
+.speedtest-btn--primary { background: #6c63ff; border-color: #6c63ff; color: #fff; align-self: flex-start; }
+.speedtest-hint { font-size: 12px; color: #6c6c90; }
