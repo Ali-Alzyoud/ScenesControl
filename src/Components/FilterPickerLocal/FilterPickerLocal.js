@@ -1084,13 +1084,24 @@ function FilterPicker({
     // Auto-load the next page once the user scrolls near the bottom — the D-pad/keyboard
     // equivalent lives in handleKeyDown below, since scroll position alone doesn't move when
     // navigating by focus.
-    // Year sort: while scrolling, the decade being scrolled through shows big in the middle and
+    // Year sort: during a big scroll, the decade being scrolled through shows big in the middle and
     // fades out shortly after scrolling stops. The current decade is the last heading that has
-    // reached the upper third of the view.
+    // reached the upper third of the view. Small scrolls (a wheel tick, one row with the arrow
+    // keys) don't show it: a scroll — movements less than SCROLL_PAUSE_MS apart — has to cover
+    // DECADE_LABEL_SCREENS view heights first.
+    const DECADE_LABEL_SCREENS = 1.5;
+    const SCROLL_PAUSE_MS = 250;
     const [decadeOverlay, setDecadeOverlay] = useState({ label: '', visible: false });
     const decadeOverlayTimer = useRef(null);
+    const scrollBurst = useRef({ startTop: 0, lastAt: 0, shown: false });
     useEffect(() => () => clearTimeout(decadeOverlayTimer.current), []);
     const showScrollDecade = (el) => {
+        const now = Date.now();
+        const burst = scrollBurst.current;
+        if (now - burst.lastAt > SCROLL_PAUSE_MS) { burst.startTop = el.scrollTop; burst.shown = false; }
+        burst.lastAt = now;
+        if (!burst.shown && Math.abs(el.scrollTop - burst.startTop) < el.clientHeight * DECADE_LABEL_SCREENS) return;
+        burst.shown = true;
         const headings = el.querySelectorAll('.cards-decade-heading');
         if (!headings.length) return;
         const line = el.getBoundingClientRect().top + el.clientHeight / 3;
