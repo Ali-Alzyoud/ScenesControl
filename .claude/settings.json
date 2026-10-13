@@ -91,7 +91,9 @@
       "Bash(node -c src/routes/ai.js)",
       "Bash(npm run *)",
       "mcp__claude-in-chrome__tabs_context_mcp",
-      "ClaudeInChromeDomain(192.168.4.17)"
+      "ClaudeInChromeDomain(192.168.4.17)",
+      "ClaudeInChromeDomain(one.dash.cloudflare.com)",
+      "ClaudeInChromeDomain(dash.cloudflare.com)"
     ],
     "additionalDirectories": [
       "/tmp",
