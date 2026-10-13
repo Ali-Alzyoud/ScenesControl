@@ -216,6 +216,7 @@
     min-height: 0;
 }
 .store-main {
+    position: relative;
     flex: 1;
     min-width: 0;
     min-height: 0;
@@ -1202,3 +1203,30 @@
     letter-spacing: 0.02em;
 }
 .cards-decade-heading:first-child { margin-top: 0; }
+
+/* Year sort: the decade being scrolled through, big in the middle; fades out after scrolling */
+.decade-scroll-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    z-index: 6;
+    padding: 0.15em 0.5em;
+    border-radius: 24px;
+    background: rgba(14, 14, 26, 0.55);
+    backdrop-filter: blur(6px);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: clamp(48px, 11vw, 140px);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.decade-scroll-label.is-visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+}

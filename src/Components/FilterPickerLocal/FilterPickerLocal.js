@@ -1084,9 +1084,30 @@ function FilterPicker({
     // Auto-load the next page once the user scrolls near the bottom — the D-pad/keyboard
     // equivalent lives in handleKeyDown below, since scroll position alone doesn't move when
     // navigating by focus.
+    // Year sort: while scrolling, the decade being scrolled through shows big in the middle and
+    // fades out shortly after scrolling stops. The current decade is the last heading that has
+    // reached the upper third of the view.
+    const [decadeOverlay, setDecadeOverlay] = useState({ label: '', visible: false });
+    const decadeOverlayTimer = useRef(null);
+    useEffect(() => () => clearTimeout(decadeOverlayTimer.current), []);
+    const showScrollDecade = (el) => {
+        const headings = el.querySelectorAll('.cards-decade-heading');
+        if (!headings.length) return;
+        const line = el.getBoundingClientRect().top + el.clientHeight / 3;
+        let label = headings[0].textContent;
+        for (const h of headings) {
+            if (h.getBoundingClientRect().top <= line) label = h.textContent;
+            else break;
+        }
+        setDecadeOverlay(prev => (prev.visible && prev.label === label ? prev : { label, visible: true }));
+        clearTimeout(decadeOverlayTimer.current);
+        decadeOverlayTimer.current = setTimeout(() => setDecadeOverlay(prev => ({ ...prev, visible: false })), 900);
+    };
+
     const handleScroll = () => {
         const el = containerRef.current;
         if (!el) return;
+        if (groupByDecade) showScrollDecade(el);
         // Saved as a row index (rounded from the measured real row height), not a raw pixel
         // offset, so restoring always snaps to a whole row instead of landing a bit off. Folder
         // is saved alongside it so a reopen only tries to restore against the same tab. Search
@@ -1898,6 +1919,9 @@ function FilterPicker({
                     })}
                 </nav>
                 <div className="store-main">
+                {groupByDecade && (
+                    <div className={`decade-scroll-label${decadeOverlay.visible ? ' is-visible' : ''}`} aria-hidden="true">{decadeOverlay.label}</div>
+                )}
                 {/* Filters, in one row: genre and language pickers (with title counts), the
                     not-filtered toggle, and Clear once anything is chosen. */}
                 {showTagFilters && !isSearching && selectedFolder !== FAVORITES_TAB && (() => {
