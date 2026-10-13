@@ -13,8 +13,15 @@ export const REMOTE_ROUTES = {
     tailscale: 'https://m.camel-goldeye.ts.net',
     cloudflare: 'https://scenes-api.alzyod.com',
 };
-const ROUTE_KEY = 'remoteRoute';
-export const remoteRouteName = () => (REMOTE_ROUTES[localStorage.getItem(ROUTE_KEY)] ? localStorage.getItem(ROUTE_KEY) : 'tailscale');
+const ROUTE_KEY = 'remoteRoute';      // the last race's winner
+const PIN_KEY = 'remoteRoutePin';     // 'auto', or a route chosen by hand in the menu (kept)
+export const remoteRoutePin = () => (REMOTE_ROUTES[localStorage.getItem(PIN_KEY)] ? localStorage.getItem(PIN_KEY) : 'auto');
+export const setRemoteRoutePin = (pin) => localStorage.setItem(PIN_KEY, REMOTE_ROUTES[pin] ? pin : 'auto');
+export const remoteRouteName = () => {
+    const pin = remoteRoutePin();
+    if (pin !== 'auto') return pin;
+    return REMOTE_ROUTES[localStorage.getItem(ROUTE_KEY)] ? localStorage.getItem(ROUTE_KEY) : 'tailscale';
+};
 // The remote backend to use now: the last race's winner (Tailscale until a race has run).
 export const remoteDomain = () => REMOTE_ROUTES[remoteRouteName()];
 export const isRemoteDomain = (d) => Object.values(REMOTE_ROUTES).includes(d);
@@ -22,7 +29,9 @@ export const remoteRouteLabel = (d) => (d === REMOTE_ROUTES.cloudflare ? 'Cloudf
 
 // Asks both remote routes at once and remembers whichever answers first (any HTTP reply counts —
 // it only has to reach the backend). Resolves with the winner's name, or null if neither answered.
+// A route pinned in the menu is used as is, without a race.
 export async function pickRemoteRoute(timeoutMs = 6000) {
+    if (remoteRoutePin() !== 'auto') return remoteRoutePin();
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     const probe = (name) => fetch(`${REMOTE_ROUTES[name]}/api/v1/speed/ping?_=${Date.now()}`, { cache: 'no-store', signal: ctrl.signal })
@@ -42,6 +51,11 @@ export async function pickRemoteRoute(timeoutMs = 6000) {
 export const isHomeHost = (host = window.location.hostname) =>
     /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host === 'localhost' || /\.(local|lan)$/.test(host);
 
+// The server on the home network (the menu's "Local"): this page's own host when it was opened at
+// home, else the home server's LAN address — for a device on the home Wi-Fi that opened the public site.
+const HOME_LAN = 'https://192.168.4.17:4443';
+export const localDomain = (host = window.location.hostname) => (isHomeHost(host) ? `https://${host}:4443` : HOME_LAN);
+
 // The Android app. The public (Cloudflare) site can't host it (25 MiB file limit), so there it's
 // downloaded from the backend's /app route; at home, from this same site.
 export const apkDownloadUrl = () =>
@@ -49,5 +63,5 @@ export const apkDownloadUrl = () =>
 
 export const defaultDomain = () => {
     const host = window.location.hostname;
-    return isHomeHost(host) ? `https://${host}:4443` : remoteDomain();
+    return isHomeHost(host) ? localDomain(host) : remoteDomain();
 };

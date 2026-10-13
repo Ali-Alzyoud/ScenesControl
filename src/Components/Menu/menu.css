@@ -465,3 +465,7 @@ input.hidden {
 .menu-drawer svg {
     stroke: none;
 }
+
+/* Remote's route choice (Auto / Tailscale / Cloudflare), under the server buttons */
+.menu-segmented--sub { margin-top: 6px; }
+.menu-segmented--sub button { font-size: 12px; padding-top: 6px; padding-bottom: 6px; }
