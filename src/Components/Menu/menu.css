@@ -466,6 +466,10 @@ input.hidden {
     stroke: none;
 }
 
-/* Remote's route choice (Auto / Tailscale / Cloudflare), under the server buttons */
-.menu-segmented--sub { margin-top: 6px; }
-.menu-segmented--sub button { font-size: 12px; padding-top: 6px; padding-bottom: 6px; }
+/* Server: Local / Remote (Tailscale) / Remote (Tunnel), one per line */
+.menu-segmented--stack { grid-template-columns: 1fr; }
+.menu-segmented--stack button { justify-content: flex-start; padding: 0 12px; }
+.menu-link-btn {
+    background: none; border: none; padding: 0; margin-left: 4px;
+    color: #a89fff; font: inherit; text-decoration: underline; cursor: pointer;
+}

@@ -13,11 +13,11 @@ import SpeedTest from '../SpeedTest/SpeedTest'
 import QRScanner from '../QRScanner/QRScanner'
 import RemoteControl from '../RemoteControl/RemoteControl'
 
-import { apkDownloadUrl, isRemoteDomain, localDomain, pickRemoteRoute, remoteDomain, remoteRouteLabel, remoteRoutePin, setRemoteRoutePin } from '../../common/domain';
+import { apkDownloadUrl, ROUTES, ROUTE_LABELS, routeDomain, routeOf, setRoute } from '../../common/domain';
 import {
     MdMenu, MdClose, MdQrCodeScanner, MdSettingsRemote, MdVideoLibrary, MdLogin, MdLogout,
     MdPlayCircleOutline, MdMovie, MdSubtitles, MdSync, MdFilterAlt, MdLink, MdStorefront,
-    MdSettings, MdSpeed, MdInfoOutline, MdAndroid, MdDevices, MdAutoAwesome, MdHome, MdCloud, MdDns,
+    MdSettings, MdSpeed, MdInfoOutline, MdAndroid, MdDevices, MdAutoAwesome, MdHome, MdCloud, MdVpnLock,
     MdExpandMore, MdChevronRight,
 } from 'react-icons/md';
 import { connect } from "react-redux";
@@ -272,15 +272,12 @@ function Menu({ videoName, setFilterItems, setVideoSrc, setVideoName, setSubtitl
     };
 
     const resume = drawerOpen ? resumeTarget() : null;
-    const serverMode = isRemoteDomain(domain) ? 'remote' : domain === localDomain() ? 'local' : 'custom';
-    // Remote: Auto (whichever of Tailscale / Cloudflare answers first) or one of them pinned.
-    const [routePin, setRoutePin] = useState(remoteRoutePin());
-    const chooseRoute = (pin) => {
-        setRemoteRoutePin(pin);
-        setRoutePin(pin);
+    // Which of the three servers is in use (null: a custom address). Choosing one is remembered.
+    const serverRoute = routeOf(domain);
+    const chooseRoute = (route) => {
+        setRoute(route);
         setCustomDomainOpen(false);
-        setDomain(remoteDomain());
-        if (pin === 'auto') pickRemoteRoute().then(() => setDomain(d => (isRemoteDomain(d) ? remoteDomain() : d)));
+        setDomain(routeDomain(route));
     };
     const isAdmin = currentUser?.role === 'admin';
 
@@ -399,32 +396,24 @@ function Menu({ videoName, setFilterItems, setVideoSrc, setVideoName, setSubtitl
 
                     <section className="menu-section">
                         <h3 className="menu-section-title">Server</h3>
-                        <div className="menu-segmented" role="radiogroup" aria-label="Server">
-                            <button type="button" role="radio" aria-checked={serverMode === 'local'} data-menu-item className={serverMode === 'local' ? 'is-active' : ''} onClick={() => { setDomain(localDomain()); setCustomDomainOpen(false); }}>
-                                <MdHome /> Local
-                            </button>
-                            <button type="button" role="radio" aria-checked={serverMode === 'remote'} data-menu-item className={serverMode === 'remote' ? 'is-active' : ''} onClick={() => chooseRoute(routePin)}>
-                                <MdCloud /> Remote
-                            </button>
-                            <button type="button" role="radio" aria-checked={serverMode === 'custom'} data-menu-item className={serverMode === 'custom' || customDomainOpen ? 'is-active' : ''} onClick={() => setCustomDomainOpen(true)}>
-                                <MdDns /> Custom
-                            </button>
+                        <div className="menu-segmented menu-segmented--stack" role="radiogroup" aria-label="Server">
+                            {ROUTES.map(route => (
+                                <button key={route} type="button" role="radio" aria-checked={serverRoute === route && !customDomainOpen} data-menu-item
+                                    className={serverRoute === route && !customDomainOpen ? 'is-active' : ''} onClick={() => chooseRoute(route)}>
+                                    {route === 'local' ? <MdHome /> : route === 'tailscale' ? <MdVpnLock /> : <MdCloud />} {ROUTE_LABELS[route]}
+                                </button>
+                            ))}
                         </div>
-                        {serverMode === 'remote' && !customDomainOpen && (
-                            <div className="menu-segmented menu-segmented--sub" role="radiogroup" aria-label="Remote route">
-                                {[['auto', 'Auto'], ['tailscale', 'Tailscale'], ['cloudflare', 'Cloudflare']].map(([pin, label]) => (
-                                    <button key={pin} type="button" role="radio" aria-checked={routePin === pin} data-menu-item
-                                        className={routePin === pin ? 'is-active' : ''} onClick={() => chooseRoute(pin)}>{label}</button>
-                                ))}
-                            </div>
-                        )}
-                        {(customDomainOpen || serverMode === 'custom') ? (
+                        {(customDomainOpen || !serverRoute) ? (
                             <label className="menu-field">
                                 <span>Server address</span>
                                 <input type="url" inputMode="url" data-menu-item value={domain || ''} placeholder="https://host:4443" onChange={e => setDomain(e.target.value)} />
                             </label>
                         ) : (
-                            <p className="menu-server-address">{domain}{remoteRouteLabel(domain) ? ` · via ${remoteRouteLabel(domain)}${routePin === 'auto' ? ' (fastest now)' : ''}` : serverMode === 'local' ? ' · home network' : ''}</p>
+                            <p className="menu-server-address">
+                                {domain}{' '}
+                                <button type="button" className="menu-link-btn" data-menu-item onClick={() => setCustomDomainOpen(true)}>Other address…</button>
+                            </p>
                         )}
                     </section>
 

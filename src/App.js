@@ -9,7 +9,7 @@ import { Player } from './Components/Player';
 import Menu from './Components/Menu'
 import { getToken, getUser, debugLog, isController, setDeviceKind, clearAuth } from './common/auth'
 import { QrScanHandler } from './Components/Login/Login'
-import { defaultDomain, isHomeHost, isRemoteDomain, pickRemoteRoute, REMOTE_ROUTES } from './common/domain'
+import { defaultDomain, setRoute } from './common/domain'
 import StorageHelper from './Helpers/StorageHelper'
 import SrtClass from './common/SrtClass'
 import { matchSubtitle, isOtherEpisodeSubtitle, subtitlesForVideo, arabicSubtitle } from './common/episodes'
@@ -71,26 +71,24 @@ const SESSION_ID = sessionStorage.getItem('__sessionId');
   if (typeof ResizeObserver === 'function') new ResizeObserver(refresh).observe(root);
 }
 
-// The page's own address decides the backend on every load: the public site always uses the
-// remote service, and localhost / a home IP always uses this host's local one. Both reach the same
-// server (same accounts and tokens), so a server picked by hand, or saved by QR pairing or a
+// The server is the one chosen on this device (Local / Remote (Tailscale) / Remote (Tunnel), see
+// common/domain.js). The Android app passes its gear choice as ?route=…, applied (and dropped from
+// the address bar) here. A server picked by hand as a custom address, or saved by QR pairing or a
 // cast link, only lasts until the next reload instead of sticking to the wrong one.
+{
+  const params = new URLSearchParams(window.location.search);
+  const route = params.get('route');
+  if (route) {
+    setRoute(route);
+    params.delete('route');
+    const qs = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
+  }
+}
 if (localStorage.getItem('domain') !== defaultDomain()) {
   localStorage.setItem('domain', defaultDomain());
   localStorage.setItem('remoteMeta', '');
   localStorage.setItem('remotePath', '');
-}
-
-// Away from home, check which of the two remote routes (Tailscale direct, Cloudflare) answers
-// first right now and switch to it. Both reach the same server with the same tokens, so the switch
-// needs no reload; anything already loaded from the other one keeps working.
-if (!isHomeHost()) {
-  pickRemoteRoute().then((winner) => {
-    const current = localStorage.getItem('domain');
-    if (winner && isRemoteDomain(current) && current !== REMOTE_ROUTES[winner]) {
-      localStorage.setItem('domain', REMOTE_ROUTES[winner]);
-    }
-  });
 }
 
 // A scanned home-screen QR (?qr=<id>&domain=...) is consumed once, here, before anything
