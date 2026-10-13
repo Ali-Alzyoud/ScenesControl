@@ -13,7 +13,7 @@ import SpeedTest from '../SpeedTest/SpeedTest'
 import QRScanner from '../QRScanner/QRScanner'
 import RemoteControl from '../RemoteControl/RemoteControl'
 
-import { REMOTE_DOMAIN, apkDownloadUrl } from '../../common/domain';
+import { apkDownloadUrl, isRemoteDomain, pickRemoteRoute, remoteDomain, remoteRouteLabel } from '../../common/domain';
 import {
     MdMenu, MdClose, MdQrCodeScanner, MdSettingsRemote, MdVideoLibrary, MdLogin, MdLogout,
     MdPlayCircleOutline, MdMovie, MdSubtitles, MdSync, MdFilterAlt, MdLink, MdStorefront,
@@ -273,7 +273,7 @@ function Menu({ videoName, setFilterItems, setVideoSrc, setVideoName, setSubtitl
     };
 
     const resume = drawerOpen ? resumeTarget() : null;
-    const serverMode = domain === REMOTE_DOMAIN ? 'remote' : domain === homeDomain() ? 'home' : 'custom';
+    const serverMode = isRemoteDomain(domain) ? 'remote' : domain === homeDomain() ? 'home' : 'custom';
     const isAdmin = currentUser?.role === 'admin';
 
     return (
@@ -395,7 +395,7 @@ function Menu({ videoName, setFilterItems, setVideoSrc, setVideoName, setSubtitl
                             <button type="button" role="radio" aria-checked={serverMode === 'home'} data-menu-item className={serverMode === 'home' ? 'is-active' : ''} onClick={() => { setDomain(homeDomain()); setCustomDomainOpen(false); }}>
                                 <MdHome /> Home
                             </button>
-                            <button type="button" role="radio" aria-checked={serverMode === 'remote'} data-menu-item className={serverMode === 'remote' ? 'is-active' : ''} onClick={() => { setDomain(REMOTE_DOMAIN); setCustomDomainOpen(false); }}>
+                            <button type="button" role="radio" aria-checked={serverMode === 'remote'} data-menu-item className={serverMode === 'remote' ? 'is-active' : ''} onClick={() => { setDomain(remoteDomain()); setCustomDomainOpen(false); pickRemoteRoute().then(() => setDomain(d => (isRemoteDomain(d) ? remoteDomain() : d))); }}>
                                 <MdCloud /> Remote
                             </button>
                             <button type="button" role="radio" aria-checked={serverMode === 'custom'} data-menu-item className={serverMode === 'custom' || customDomainOpen ? 'is-active' : ''} onClick={() => setCustomDomainOpen(true)}>
@@ -408,7 +408,7 @@ function Menu({ videoName, setFilterItems, setVideoSrc, setVideoName, setSubtitl
                                 <input type="url" inputMode="url" data-menu-item value={domain || ''} placeholder="https://host:4443" onChange={e => setDomain(e.target.value)} />
                             </label>
                         ) : (
-                            <p className="menu-server-address">{domain}</p>
+                            <p className="menu-server-address">{domain}{remoteRouteLabel(domain) ? ` · via ${remoteRouteLabel(domain)}` : ''}</p>
                         )}
                     </section>
 

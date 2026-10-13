@@ -9,7 +9,7 @@ import { Player } from './Components/Player';
 import Menu from './Components/Menu'
 import { getToken, getUser, debugLog, isController, setDeviceKind, clearAuth } from './common/auth'
 import { QrScanHandler } from './Components/Login/Login'
-import { defaultDomain } from './common/domain'
+import { defaultDomain, isHomeHost, isRemoteDomain, pickRemoteRoute, REMOTE_ROUTES } from './common/domain'
 import StorageHelper from './Helpers/StorageHelper'
 import SrtClass from './common/SrtClass'
 import { matchSubtitle, isOtherEpisodeSubtitle, subtitlesForVideo, arabicSubtitle } from './common/episodes'
@@ -79,6 +79,18 @@ if (localStorage.getItem('domain') !== defaultDomain()) {
   localStorage.setItem('domain', defaultDomain());
   localStorage.setItem('remoteMeta', '');
   localStorage.setItem('remotePath', '');
+}
+
+// Away from home, check which of the two remote routes (Tailscale direct, Cloudflare) answers
+// first right now and switch to it. Both reach the same server with the same tokens, so the switch
+// needs no reload; anything already loaded from the other one keeps working.
+if (!isHomeHost()) {
+  pickRemoteRoute().then((winner) => {
+    const current = localStorage.getItem('domain');
+    if (winner && isRemoteDomain(current) && current !== REMOTE_ROUTES[winner]) {
+      localStorage.setItem('domain', REMOTE_ROUTES[winner]);
+    }
+  });
 }
 
 // A scanned home-screen QR (?qr=<id>&domain=...) is consumed once, here, before anything

@@ -1189,3 +1189,16 @@
 .filter-bar-count { font-size: 11px; color: #8a8ab0; }
 .filter-bar-toggle--active .filter-bar-count { color: #c8c2ff; }
 .filter-bar-clear { background: none; border-color: transparent; color: #8a8ab0; }
+
+/* Year sort: a heading before each decade's cards, on its own line of the grid */
+.cards-decade-heading {
+    flex-basis: 100%;
+    margin: 8px 0 -4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #2a2a44;
+    color: #c8c2ff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+.cards-decade-heading:first-child { margin-top: 0; }

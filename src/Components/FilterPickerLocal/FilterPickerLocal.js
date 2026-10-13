@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { MdHistory } from 'react-icons/md'
-import { MdFilterAlt, MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle, MdFileDownload, MdPlaylistAdd, MdAdd, MdRemove, MdVisibility, MdVisibilityOff, MdSubtitles } from 'react-icons/md'
+import { MdFilterAlt, MdClose, MdSync, MdArrowUpward, MdArrowDownward, MdShuffle, MdFileDownload, MdPlaylistAdd, MdAdd, MdRemove, MdVisibility, MdVisibilityOff, MdSubtitles, MdFilterAltOff } from 'react-icons/md'
 import FileRecord from './FileRecordLocal'
 import { createPortal } from 'react-dom'
 import AIChat from '../AIChat/AIChat'
@@ -96,6 +96,18 @@ export const openContent = ({ video, srt, filter, image }) => {
     window.location.reload();
 }
 
+// Each tab's last filters ({ [tab]: { genre, language, unfiltered, decade } }), kept across visits.
+const TAB_FILTERS_KEY = 'storeTabFilters';
+const loadTabFilters = () => {
+    try { const v = JSON.parse(localStorage.getItem(TAB_FILTERS_KEY)); return v && typeof v === 'object' ? v : {}; } catch { return {}; }
+};
+
+// A title's release year, the way the server sorts by it (RemoteConnection utils/files.js yearOf):
+// the last year-like number in the folder name, else in its video's file name; 0 if none.
+const YEAR_RE = /(?:^|[\s._([-])((?:19|20)\d{2})(?=[\s._)\]-]|$)/g;
+const lastYear = (name) => { let y = 0; for (const m of String(name || '').matchAll(YEAR_RE)) y = Number(m[1]); return y; };
+const yearOfItem = (item) => lastYear(item.folder.split('/').pop()) || lastYear((item.files || []).find(f => f.type === 'MEDIA')?.name);
+
 // "1990" -> "90s", "2020" -> "2020s" (this century spelled out, so 2000s isn't "00s").
 const decadeLabel = (d) => (Number(d) < 2000 ? `${String(d).slice(2)}s` : `${d}s`);
 
@@ -113,8 +125,7 @@ function FilterPicker({
 }) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [selectedFolder, setSelectedFolder] = useState("");
-    // ("year" was a sort option once; it's the decade filter now.)
-    const [sortBy, setSortBy] = useState(() => { const v = localStorage.getItem("sortBy"); return v && v !== 'year' ? v : "alphabet"; });
+    const [sortBy, setSortBy] = useState(localStorage.getItem("sortBy") || "alphabet");
     const [filterText, setFilterText] = useState(localStorage.getItem("filterText") || "");
     const [sortAsc, setSortAsc] = useState(localStorage.getItem("sortAsc") !== "false");
     // Random picks outlive the picker closing (e.g. opening one of them), so they're stored and
@@ -941,15 +952,35 @@ function FilterPicker({
         } catch {}
     };
 
-    // A genre/language belongs to one tab: switching tabs drops it.
+    // Filters belong to one tab, and each tab remembers its own (also across reopening the
+    // Store): switching tabs puts back that tab's last genre/language/decade/not-filtered.
+    // `filtersFor` is the tab the filter state was loaded for, so the save below never writes one
+    // tab's filters under the next tab's name mid-switch.
+    const [filtersFor, setFiltersFor] = useState(null);
     useEffect(() => {
-        setGenre(null);
-        setLanguage(null);
-        setUnfilteredOnly(false);
-        setDecade(null);
+        const saved = (showTagFilters && loadTabFilters()[selectedFolder]) || {};
+        setGenre(saved.genre || null);
+        setLanguage(saved.language || null);
+        setUnfilteredOnly(!!saved.unfiltered);
+        setDecade(saved.decade || null);
+        setFiltersFor(selectedFolder);
         if (selectedFolder && !genreLists[selectedFolder]) fetchGenres(selectedFolder);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedFolder]);
+    useEffect(() => {
+        if (!selectedFolder || filtersFor !== selectedFolder) return;
+        const all = loadTabFilters();
+        if (genre || language || unfilteredOnly || decade) all[selectedFolder] = { genre, language, unfiltered: unfilteredOnly, decade };
+        else delete all[selectedFolder];
+        try { localStorage.setItem(TAB_FILTERS_KEY, JSON.stringify(all)); } catch {}
+    }, [genre, language, unfilteredOnly, decade, filtersFor, selectedFolder]);
+    // A remembered choice the tab no longer has (renamed genre, last 60s title moved away…) is dropped.
+    useEffect(() => {
+        if (genre && genreLists[selectedFolder] && !genreLists[selectedFolder].some(g => g.name === genre)) setGenre(null);
+        if (language && languageLists[selectedFolder] && !languageLists[selectedFolder].some(l => l.name === language)) setLanguage(null);
+        if (decade && decadeLists[selectedFolder] && !decadeLists[selectedFolder].some(d => d.name === decade)) setDecade(null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [genreLists, languageLists, decadeLists, selectedFolder]);
 
     // Genre or language picked/cleared — reload from page 1 with it. Other tabs' loaded pages were fetched
     // under the old genre, so they're dropped too rather than shown unfiltered/mis-filtered later.
@@ -1125,6 +1156,20 @@ function FilterPicker({
         setShowSuggestions(true);
         setSuggestionIndex(-1);
         setRandomPicks(null);
+    };
+
+    // Back to the whole tab: search, filters and random picks all cleared.
+    const anyNarrowing = !!(filterText || genre || language || decade || unfilteredOnly || randomPicks);
+    const clearAll = () => {
+        setFilterText('');
+        localStorage.setItem("filterText", '');
+        setShowSuggestions(false);
+        setSuggestionIndex(-1);
+        setRandomPicks(null);
+        setGenre(null);
+        setLanguage(null);
+        setUnfilteredOnly(false);
+        setDecade(null);
     };
 
     const clearSearch = () => {
@@ -1465,10 +1510,41 @@ function FilterPicker({
         }
     };
 
+    // Rows as they actually are on screen: decade headings (year sort) break the grid into
+    // uneven rows, so "the card below" is found by position rather than index + columns.
+    const cardEls = () => {
+        const els = containerRef.current?.querySelectorAll('.cards-grid > [data-cardfolder]');
+        return els && els.length === displayItems.length ? els : null;
+    };
+    // The card in the next (dir 1) or previous (dir -1) row closest to it horizontally, or null
+    // (no such row, or the cards can't be matched up — then the old index arithmetic is used).
+    const cardInRow = (index, dir) => {
+        const els = cardEls();
+        if (!els?.[index]) return null;
+        const cur = els[index].getBoundingClientRect();
+        let rowTop = null;
+        let best = null;
+        for (let i = 0; i < els.length; i++) {
+            const r = els[i].getBoundingClientRect();
+            if (dir > 0 ? r.top <= cur.top + 4 : r.top >= cur.top - 4) continue;
+            if (rowTop === null || (dir > 0 ? r.top < rowTop - 4 : r.top > rowTop + 4)) { rowTop = r.top; best = null; }
+            if (Math.abs(r.top - rowTop) > 4) continue;
+            const dx = Math.abs((r.left + r.right) / 2 - (cur.left + cur.right) / 2);
+            if (!best || dx < best.dx) best = { i, dx };
+        }
+        return best ? best.i : null;
+    };
+    // Whether a card is the first in its row (nothing to its left on screen).
+    const startsRow = (index) => {
+        const els = cardEls();
+        if (!els?.[index] || !els[index - 1]) return index % getColumns() === 0;
+        return Math.abs(els[index - 1].getBoundingClientRect().top - els[index].getBoundingClientRect().top) > 4;
+    };
+
     const handleKeyDown = (e) => {
         if (e.target.tagName === 'INPUT') return;
         const count = displayItems.length;
-        if (e.key === 'ArrowLeft' && (count === 0 || focusedIndex <= 0 || focusedIndex % getColumns() === 0)) {
+        if (e.key === 'ArrowLeft' && (count === 0 || focusedIndex <= 0 || startsRow(focusedIndex))) {
             // From the first column (or an empty folder) Left goes to the folder list.
             e.preventDefault();
             focusFolders();
@@ -1491,8 +1567,9 @@ function FilterPicker({
             case 'ArrowDown': {
                 e.preventDefault();
                 const cols = getColumns();
+                const below = focusedIndex >= 0 ? cardInRow(focusedIndex, 1) : null;
                 setFocusedIndex(i => {
-                    const n = (i === -1 ? 0 : i) + cols;
+                    const n = below !== null ? below : (i === -1 ? 0 : i) + cols;
                     const clamped = n < count ? n : i === -1 ? 0 : i;
                     maybeLoadMoreFor(clamped, count);
                     return clamped;
@@ -1502,7 +1579,8 @@ function FilterPicker({
             case 'ArrowUp': {
                 e.preventDefault();
                 const cols = getColumns();
-                setFocusedIndex(i => { if (i <= 0) return 0; const p = i - cols; return p >= 0 ? p : 0; });
+                const above = focusedIndex > 0 ? cardInRow(focusedIndex, -1) : null;
+                setFocusedIndex(i => { if (i <= 0) return 0; if (above !== null) return above; const p = i - cols; return p >= 0 ? p : 0; });
                 break;
             }
             case 'Enter':
@@ -1576,6 +1654,20 @@ function FilterPicker({
             }).catch(() => setFavorites(prev)); // revert on failure
             return next;
         });
+    };
+
+    // Sorted by year (and showing the tab, not a search or random picks): a heading starts each
+    // decade, e.g. "1990s". The cards are already in year order from the server.
+    const groupByDecade = sortBy === 'year' && !isSearching && !randomPicks;
+    const decadeKey = (item) => { const y = yearOfItem(item); return y ? String(Math.floor(y / 10) * 10) : ''; };
+    const withDecadeHeading = (item, index, card) => {
+        if (!groupByDecade) return card;
+        const d = decadeKey(item);
+        if (index > 0 && decadeKey(displayItems[index - 1]) === d) return card;
+        return [
+            <div key={`decade-${d || 'none'}`} className="cards-decade-heading">{d ? `${d}s` : 'Year unknown'}</div>,
+            card,
+        ];
     };
 
     // Sort order is now applied server-side per page, so this is
@@ -1689,6 +1781,13 @@ function FilterPicker({
                         <MdFilterAlt />
                         Filters
                     </button>
+                    {anyNarrowing && (
+                        <button className="filters-toolbar-btn" onClick={clearAll}
+                            title="Clear the search, all filters and random picks">
+                            <MdFilterAltOff />
+                            Clear all
+                        </button>
+                    )}
                     {randomPicks && (
                         <button className="filters-toolbar-btn filters-random-clear" onClick={() => setRandomPicks(null)} title="Clear random picks" aria-label="Clear random picks">
                             <MdClose />
@@ -1710,7 +1809,9 @@ function FilterPicker({
                         onChange={e => { setSortBy(e.target.value); setRandomPicks(null); }}
                     >
                         <option value="alphabet">A → Z</option>
-                        <option value="date">Latest</option>
+                        <option value="added">Date added</option>
+                        <option value="date">Last modified</option>
+                        <option value="year">Year</option>
                         <option value="none">Default</option>
                     </select>
                     <div className="filters-cardsize-group" title="Card size">
@@ -1967,7 +2068,7 @@ function FilterPicker({
                 {/* Cards grid */}
                 <div className="filter-files" ref={containerRef} tabIndex={0} onScroll={handleScroll} onKeyDown={handleKeyDown} style={moving ? { opacity: 0.5, pointerEvents: 'none' } : undefined}>
                     <div className="cards-grid" style={{ '--card-size': `${cardSize}px` }}>
-                        {displayItems.map((item, cardIndex) => {
+                        {displayItems.map((item, cardIndex) => withDecadeHeading(item, cardIndex, (() => {
                             const isFocused = focusedIndex === cardIndex;
                             const isFavorite = favorites.includes(item.folder);
                             const isEmpty = !item.files || item.files.length === 0;
@@ -2070,7 +2171,7 @@ function FilterPicker({
                                     />
                                 );
                             }
-                        })}
+                        })()))}
                     </div>
                     {(isSearching ? searchResults.loading : tabItems[selectedFolder]?.loading) && (
                         <div style={{ textAlign: 'center', padding: '16px', color: '#888aaa', fontSize: 13 }}>
