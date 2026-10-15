@@ -93,6 +93,8 @@ export const openContent = ({ video, srt, filter, image }) => {
     // URL, so the click seemed to do nothing until Clear content removed the old fragment.
     // replaceState makes the new URL current synchronously, then reload() loads exactly that.
     window.history.replaceState({}, '', str);
+    // Picking something to watch starts it once it has loaded (VideoPlayer's onLoadedData).
+    sessionStorage.setItem('rc_resume_play', '1');
     window.location.reload();
 }
 

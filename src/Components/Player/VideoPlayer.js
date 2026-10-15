@@ -320,13 +320,12 @@ class VideoPlayer extends React.PureComponent {
             if (videoName && dur > 0) {
               StorageHelper.saveContentProgress({ videoName, time: getCurrentTime, duration: dur });
             }
-            // A remote "reload" of a video that was playing asks for it to carry on playing.
-            if (sessionStorage.getItem('rc_resume_play') === '1') {
-              sessionStorage.removeItem('rc_resume_play');
-              setPlayerState("play");
-            } else {
-              setPlayerState("pause");
-            }
+            // Plays on if this video was just picked to watch, or a remote "reload" of a video that
+            // was playing asked for it to carry on — or if Play was pressed while it was still
+            // loading (an HLS stream can take a few seconds); pausing then would undo that press.
+            const resume = sessionStorage.getItem('rc_resume_play') === '1';
+            sessionStorage.removeItem('rc_resume_play');
+            setPlayerState(resume || this.props.playerState === 'play' ? "play" : "pause");
           }}
           onSeeking={(event) => {
             const { currentTime } = this.player.current;
